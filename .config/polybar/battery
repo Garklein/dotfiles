@@ -1,0 +1,4 @@
+#!/home/gator/others/ngnk/k
+
+(c;p):2#0:0 / capacity, plugged in
+`0:"%{F#a1e1ff}",$[.p;"P";"NOT P"],"LUGGED IN%{F-} ",c,"%"

@@ -1,0 +1,13 @@
+/*
+@font-face {
+    src: url(.fonts/g/GL-GermanCursive.otf);
+    font-family: GL-GermanCursive;
+}
+* {
+    font-family: GL-GermanCursive;
+    font-size: 30px !important;
+}
+*/
+div[id^=message-content], h3, div[class^=name_], div[role=textbox] {
+    transform: scale(-1, -1) !important;
+}

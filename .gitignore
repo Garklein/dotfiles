@@ -1,0 +1,9 @@
+.emacs.d/var
+.emacs.d/url
+.emacs.d/elpa
+.emacs.d/etc
+.emacs.d/.last-package-update-day
+.emacs.d/config.el
+.emacs.d/straight/*
+.emacs.d/undo/*
+.emacs.d/eshell

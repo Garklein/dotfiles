@@ -1,0 +1,5 @@
+configuration {
+  modes: "drun";
+  font: "Agave 15";
+}
+@theme "Snow.rasi"
