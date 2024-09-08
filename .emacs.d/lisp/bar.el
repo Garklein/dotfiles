@@ -131,7 +131,7 @@
 
 (defun vol ()
   (pcase-let ((`(,level ,onoff)
-	       (->> (shell-command-to-string "amixer get Master | grep Left:")
+	       (-> (shell-command-to-string "amixer get Master | grep Left:")
 		    (split-string)
 		    (seq-drop 4))))
     (if (equal onoff "[off]")
