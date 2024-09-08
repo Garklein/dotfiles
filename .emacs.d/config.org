@@ -10,7 +10,6 @@
 - fix evil-auto-indent
 - evil registers (@ and pasting macros)
 - artist make work when changing font size
-- make vim marks persist between sessions, make 3j leave a mark
 - [i
 * package and scripting stuff
 #+begin_src elisp
@@ -82,6 +81,11 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
       (when org-src-mode (org-edit-src-exit))
       (call-interactively #'evil-write))
     (evil-ex-define-cmd "w[rite]" #'custom-write)
+
+    (advice-add #'evil-line-move :before
+		(lambda (count &optional _)
+		  (when (> (abs count) 1)
+		    (evil-set-jump))))
 
     (evil-define-key nil evil-normal-state-map (kbd "M-o")
       (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
