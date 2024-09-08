@@ -54,7 +54,7 @@
 (defun bar/remove-line-numbers-from-bar ()
   (when bar-buffer
     (with-current-buffer bar-buffer
-      (when display-line-numbers-mode
+      (when display-line-numbers
 	(display-line-numbers-mode -1)))))
 (add-hook 'display-line-numbers-mode-hook        #'bar/remove-line-numbers-from-bar)
 (add-hook 'global-display-line-numbers-mode-hook #'bar/remove-line-numbers-from-bar)
@@ -133,7 +133,7 @@
   (pcase-let ((`(,level ,onoff)
 	       (->> (shell-command-to-string "amixer get Master | grep Left:")
 		    (split-string)
-		    (drop 4))))
+		    (seq-drop 4))))
     (if (equal onoff "[off]")
 	"muted"
       (concat "vol " (substring level 1 -1)))))
@@ -145,10 +145,10 @@
 	      (car))))
     (concat "light " (substring level 1 -1))))
 (defun internet ()
-  (unless
-      (equal "0" (-> (shell-command-to-string "ping -c1 google.com ; echo $?") split-string last car))
+  (unless (equal "up" (file-to-string "/sys/class/net/wlo1/operstate"))
     "not connected"))
 
 (setq right-modules `(,#'internet ,#'vol ,#'light))
 
 (provide 'bar)
+

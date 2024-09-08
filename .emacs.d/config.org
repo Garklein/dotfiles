@@ -18,17 +18,19 @@
   (setq straight-process-buffer " *straight-process*")
   (defvar bootstrap-version)
   (let ((bootstrap-file
-	(expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-	(bootstrap-version 5))
+  	(expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+  	(bootstrap-version 5))
     (unless (file-exists-p bootstrap-file)
       (with-current-buffer
-	  (url-retrieve-synchronously
-	  "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-	  'silent 'inhibit-cookies)
-	(goto-char (point-max))
-	(eval-print-last-sexp)))
+    	  (url-retrieve-synchronously
+    	  "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+    	  'silent 'inhibit-cookies)
+    	(goto-char (point-max))
+    	(eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
   (setq straight-use-package-by-default t)
+  ;(package-install 'use-package)
+  ;(require 'use-package)
 
   (push "~/.emacs.d/lisp" load-path)
   (use-package dash)
@@ -132,6 +134,49 @@ run a command
    'display-buffer-alist
    '((lambda (s) (string-match "output\\*" s)) display-buffer-no-window (nil)))
 #+end_src
+** workspaces
+#+begin_src elisp
+  (setq exwm-workspace-number 3)
+
+  ;; allow all buffers in all workspaces
+  (setq exwm-workspace-show-all-buffers t)
+  (setq exwm-layout-show-all-buffers t)
+
+  (defun adjust-frame-transparency (frame)
+    (let* ((wallpaper
+	    (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
+	   (brightness
+	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
+		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
+	   (alpha (+ (* -0.37 brightness) 1.07)))
+		(modify-all-frames-parameters
+		 `((alpha                 . ,alpha)
+		   (right-divider-width   . 20)
+		   (internal-border-width . 20)))))
+  (add-hook 'after-make-frame-functions #'adjust-frame-transparency)
+#+end_src
+** wallpaper
+#+begin_src elisp
+  (defun season ()
+    (let ((m (car (calendar-current-date 10))))
+      (cond
+       ((<= m 3) 'winter)
+       ((<  9 m) 'fall)
+       ((<= m 6) 'spring)
+       (t        'summer))))
+
+  (defun set-wallpaper-by-season (season)
+    (let ((wallpaper
+	   (pcase season
+	     ('winter "fluff-surviv-wallpaper.png")
+	     ('spring "kandinsky-wallpaper.png")
+	     ('summer "fluff-blossom-wallpaper.png")
+	     ('fall   "bach-wallpaper.png"))))
+      (run (concat "feh --bg-center /home/gator/keep/images/wallpapers/" wallpaper))
+      (mapc #'adjust-frame-transparency (frame-list))))
+
+  (set-wallpaper-by-season (season))
+#+end_src
 ** make buffer names class names
 #+begin_src elisp
   (add-hook 'exwm-update-class-hook
@@ -143,7 +188,6 @@ run a command
   (bar)
 
   (run "picom")
-  (run "feh --bg-center /home/gator/keep/images/wallpapers/fluff-surviv-wallpaper-no-snow-on-bar.png")
   (run "xidlehook --not-when-audio --timer 120 'systemctl suspend' ''")
 
   (setq inhibit-startup-screen t)
@@ -200,21 +244,6 @@ run a command
 
   (setq exwm-input-prefix-keys '(?\C-x ?\C-w ?\M-x))
   (define-key exwm-mode-map (kbd "C-c") nil)
-#+end_src
-** workspaces
-#+begin_src elisp
-  (setq exwm-workspace-number 3)
-
-  ;; allow all buffers in all workspaces
-  (setq exwm-workspace-show-all-buffers t)
-  (setq exwm-layout-show-all-buffers t)
-
-  (add-hook 'after-make-frame-functions
-	    (lambda (frame)
-	      (modify-all-frames-parameters
-	       '((alpha                 . 90)
-		 (right-divider-width   . 20)
-		 (internal-border-width . 20)))))
 #+end_src
 ** enable exwm!
 #+begin_src elisp
