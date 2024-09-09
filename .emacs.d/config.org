@@ -200,8 +200,8 @@ run a command
   (defun set-sleep-minutes (minutes)
     (interactive "nIdle minutes until sleep: ")
     (setq sleep-minutes minutes)
-    (run "pkill xidlehook")
     (run (concat
+	  "pkill xidlehook &&"
 	  "xidlehook --not-when-audio --timer "
 	  (number-to-string (round (* minutes 60)))
 	  " 'systemctl suspend' ''")))
@@ -217,10 +217,8 @@ run a command
     (let* ((inhibit-message t)
 	   (time (format-time-string "%H_%M_%S" (current-time)))
 	   (file (concat "/tmp/" time ".png")))
-      ;; these need to be shell-command because the first must finish before the second
-      (shell-command (concat "maim -sq " file))
-      ;; this needs to be shell-command since it needs the &> ... because xclip is weird
-      (shell-command (concat "xclip -selection clipboard -t image/png " file " &> /dev/null"))))
+      ;; this needs to be a shell command since it needs the &> ... because xclip is weird
+      (shell-command (concat "maim -sq " file " ; " "xclip -selection clipboard -t image/png " file " &> /dev/null"))))
 
   (defun start-app (name)
     (interactive (list (read-shell-command "$ ")))
