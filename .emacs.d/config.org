@@ -152,7 +152,7 @@ run a command
 	   (brightness
 	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
 		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
-	   (alpha (+ (* -0.37 brightness) 1.10)))
+	   (alpha (+ (* -0.37 brightness) 1.08)))
 		(modify-all-frames-parameters
 		 `((alpha                 . ,alpha)
 		   (right-divider-width   . 20)
@@ -193,8 +193,15 @@ run a command
   (add-hook 'exwm-init-hook #'bar)
 
   (run "picom")
-  (run "xidlehook --not-when-audio --timer 120 'systemctl suspend' ''")
   (run "setxkbmap us,ca -option 'grp:win_space_toggle'")
+
+  (defun set-sleep-timer (minutes)
+    (run "pkill xidlehook")
+    (run (concat
+	  "xidlehook --not-when-audio --timer "
+	  (number-to-string (round (* minutes 60)))
+	  " 'systemctl suspend' ''")))
+  (set-sleep-timer 2)
 
   (setq inhibit-startup-screen t)
   (setq initial-scratch-message nil)
