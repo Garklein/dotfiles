@@ -98,11 +98,26 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
     (evil-define-key 'insert 'global (kbd "C-<return>")
       (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative)))))
 
-    ;; evil-collection
-    (use-package evil-collection
-      :after evil
-      :config
-      (evil-collection-init))
+  ;; https://github.com/magnars/.emacs.d/blob/master/defuns/lisp-defuns.el
+  (defun eval-and-replace ()
+    "Replace the preceding sexp with its value."
+    (interactive)
+    (let ((at-end (= (char-after) ?\))))
+      (when at-end (insert ")"))
+      (backward-kill-sexp)
+    (condition-case nil
+	(prin1 (eval (read (current-kill 0)))
+	       (current-buffer))
+      (error (message "Invalid expression")
+	     (insert (current-kill 0))))
+    (when at-end (delete-char 1) (backward-char))))
+  (evil-define-key nil evil-normal-state-map (kbd "C-x C-r") #'eval-and-replace)
+
+  ;; evil-collection
+  (use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init))
 #+end_src
 * exwm
 ** requires
@@ -198,7 +213,7 @@ run a command
   (defvar sleep-minutes
     "Idle minutes until sleep")
   (defun set-sleep-minutes (minutes)
-    (interactive "nIdle minutes until sleep: ")
+    (interactive (list (read-number "Idle minutes until sleep: " 2)))
     (setq sleep-minutes minutes)
     (run (concat
 	  "pkill xidlehook &&"
