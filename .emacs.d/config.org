@@ -323,6 +323,16 @@ make mode line look nice (has to be done after theme)
   (set-face-background 'show-paren-match (face-attribute 'default :background))
   (set-face-attribute 'show-paren-match nil :underline t)
 #+end_src
+
+don't show a cursor in empty buffers
+#+begin_src elisp
+  (dolist (hook '(window-selection-change-functions after-change-functions))
+    (add-hook hook
+	      (lambda (&rest _)
+		(setq-local evil-normal-state-cursor
+			    (or (/= (point-min) (point-max)) '(bar . 0))))))
+  (setq inhibit-modification-hooks nil)
+#+end_src
 ** line numbers
 #+begin_src elisp
   (global-display-line-numbers-mode)
@@ -630,11 +640,13 @@ make mode line look nice (has to be done after theme)
 * misc config
 ** misc emacs config
 #+begin_src elisp
+  ;(require 'editvar)
   (put 'narrow-to-region 'disabled nil)
   (save-place-mode 1)
   (setq confirm-kill-processes nil)
   (setq vc-follow-symlinks t)
   (global-hi-lock-mode 1)
+  (setq auto-revert-verbose nil)
   (setq custom-file "~/.emacs.d/custom.el")
 
   ;; don't prompt whether to kill processes in buffers
@@ -667,6 +679,7 @@ Make narrowing restore font size:
 	    (lambda ()
 	      (dired-omit-mode)
 	      (dired-hide-details-mode)
+	      (auto-revert-mode)
 	      (evil-local-set-key 'normal (kbd "C-c o") #'toggle-dired-omit-mode)))
 
   (use-package dired-preview
@@ -728,3 +741,4 @@ Make narrowing restore font size:
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize))
 #+end_src
+
