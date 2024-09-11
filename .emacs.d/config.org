@@ -326,17 +326,28 @@ make mode line look nice (has to be done after theme)
 
 don't show a cursor in empty buffers
 #+begin_src elisp
-  (dolist (hook '(window-selection-change-functions after-change-functions))
+  (setq inhibit-modification-hooks nil)
+  (setq evil-normal-state-cursor
+	(lambda () (setq cursor-type (not (equal (buffer-string) "")))))
+
+  (defvar zen nil)
+  (make-local-variable 'zen)
+  (defvar old-mode-line-format)
+  (make-local-variable 'old-mode-line-format)
+  (dolist (hook '(window-state-change-functions after-change-functions))
     (add-hook hook
 	      (lambda (&rest _)
-		(if (equal (buffer-string) "")
+		(if (and (not zen)
+			 (equal (buffer-string) ""))
 		    (progn
-		      (setq-local evil-normal-state-cursor '(bar . 0)
-				  mode-line-format         nil)
-		      (message ""))
-		  (setq-local evil-normal-state-cursor t
-			      mode-line-format (default-value 'mode-line-format))))))
-  (setq inhibit-modification-hooks nil)
+		      (message "")
+		      (setq cursor-type          nil
+			    old-mode-line-format mode-line-format
+			    mode-line-format     nil
+			    zen t))
+		  (when zen
+		    (setq mode-line-format old-mode-line-format
+			  zen              nil))))))
 #+end_src
 ** line numbers
 #+begin_src elisp
