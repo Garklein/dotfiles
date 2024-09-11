@@ -166,7 +166,7 @@ run a command
 	   (brightness
 	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
 		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
-	   (alpha (+ (* -0.37 brightness) 1.08)))
+	   (alpha (+ (* -0.37 brightness) 1.1)))
 		(modify-all-frames-parameters
 		 `((alpha                 . ,alpha)
 		   (right-divider-width   . 20)
@@ -215,7 +215,7 @@ run a command
     (interactive (list (read-number "Idle minutes until sleep: " 2)))
     (setq sleep-minutes minutes)
     (run (concat
-	  "pkill xidlehook &&"
+	  "pkill xidlehook ;"
 	  "xidlehook --not-when-audio --timer "
 	  (number-to-string (round (* minutes 60)))
 	  " 'systemctl suspend' ''")))
