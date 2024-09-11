@@ -98,9 +98,8 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
     (evil-define-key 'insert 'global (kbd "C-<return>")
       (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative)))))
 
-  ;; https://github.com/magnars/.emacs.d/blob/master/defuns/lisp-defuns.el
   (defun eval-and-replace ()
-    "Replace the preceding sexp with its value."
+    "Replace the preceding elisp expression with its value."
     (interactive)
     (let ((at-end (= (char-after) ?\))))
       (when at-end (insert ")"))
@@ -678,6 +677,11 @@ Make narrowing restore font size:
 	   "\\\\|pdf"
 	   ""
 	   dired-preview-ignored-extensions-regexp)))
+#+end_src
+** pdf mode
+#+begin_src elisp
+  (add-hook 'doc-view-mode-hook
+	    (lambda () (display-line-numbers-mode 0)))
 #+end_src
 ** org config
 #+begin_src elisp
