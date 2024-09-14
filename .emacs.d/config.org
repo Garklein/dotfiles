@@ -184,9 +184,9 @@ run a command
        ((<= m 6) 'spring)
        (t        'summer))))
 
-  (defun set-wallpaper-by-season (season)
+  (defun set-wallpaper-by-season (&optional season)
     (let ((wallpaper
-	   (pcase season
+	   (pcase (or season (season))
 	     ('winter "fluff-surviv-wallpaper.png")
 	     ('spring "kandinsky-wallpaper.png")
 	     ('summer "fluff-blossom-wallpaper.png")
@@ -194,7 +194,7 @@ run a command
       (run (concat "feh --bg-center /home/gator/keep/images/wallpapers/" wallpaper))
       (mapc #'adjust-frame-transparency (frame-list))))
 
-  (set-wallpaper-by-season (season))
+  (set-wallpaper-by-season)
 #+end_src
 ** make buffer names class names
 #+begin_src elisp
@@ -326,9 +326,27 @@ make mode line look nice (has to be done after theme)
 
 don't show a cursor in empty buffers
 #+begin_src elisp
+  (defvar-local clean-mode-state nil)
+  (define-minor-mode clean-mode
+    "Hides the cursor and mode line."
+    :global nil
+    :init-value nil
+    (if clean-mode
+  	(unless clean-mode-state
+  	  (setq clean-mode-state
+  		(buffer-local-set-state
+  		 mode-line-format nil
+  		 cursor           nil
+  		 evil-normal-state-cursor '(bar . 0))))
+      (when clean-mode-state
+  	(buffer-local-restore-state clean-mode-state)
+  	(setq clean-mode-state nil))))
+
   (setq inhibit-modification-hooks nil)
-  (setq evil-normal-state-cursor
-	(lambda () (setq cursor-type (not (equal (buffer-string) "")))))
+  (dolist (hook '(window-state-change-functions after-change-functions))
+    (add-hook hook
+  	      (lambda (&rest _)
+  		(clean-mode (if (= (point-min) (point-max)) 1 -1)))))
 #+end_src
 ** line numbers
 #+begin_src elisp
