@@ -17,15 +17,15 @@
   (setq straight-process-buffer " *straight-process*")
   (defvar bootstrap-version)
   (let ((bootstrap-file
-  	(expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-  	(bootstrap-version 5))
+	(expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+	(bootstrap-version 5))
     (unless (file-exists-p bootstrap-file)
       (with-current-buffer
-    	  (url-retrieve-synchronously
-    	  "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-    	  'silent 'inhibit-cookies)
-    	(goto-char (point-max))
-    	(eval-print-last-sexp)))
+	  (url-retrieve-synchronously
+	  "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	  'silent 'inhibit-cookies)
+	(goto-char (point-max))
+	(eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
   (setq straight-use-package-by-default t)
   ;(package-install 'use-package)
@@ -33,6 +33,11 @@
 
   (push "~/.emacs.d/lisp" load-path)
   (use-package dash)
+
+  (defun remove-all-advice (symbol)
+    (advice-mapc
+     (lambda (advice _) (advice-remove symbol advice))
+     symbol))
 #+end_src
 ** clean up temp files
 make sure temp files don't litter .emacs.d
@@ -289,7 +294,11 @@ make mode line look nice (has to be done after theme)
   (setq-default mode-line-format
 		'((:eval (if buffer-read-only "" "  %*"))
 		  "  %b  "
-		  (:eval (if (eq major-mode 'exwm-mode) "" "%l-%C"))))
+		  (:eval
+		   (pcase major-mode
+		     ('exwm-mode "")
+		     ('pdf-view-mode (format "|  page %s" (pdf-view-current-page)))
+		     (_ "%l-%C")))))
   ;; *Messages* doesn't want to change its mode line for some reason
   (with-current-buffer (get-buffer "*Messages*")
     (setq mode-line-format (default-value 'mode-line-format)))
@@ -323,30 +332,32 @@ make mode line look nice (has to be done after theme)
   (set-face-background 'show-paren-match (face-attribute 'default :background))
   (set-face-attribute 'show-paren-match nil :underline t)
 #+end_src
-
-don't show a cursor in empty buffers
+** don't show cursor/mode line in empty buffers
 #+begin_src elisp
-  (defvar-local clean-mode-state nil)
-  (define-minor-mode clean-mode
-    "Hides the cursor and mode line."
-    :global nil
-    :init-value nil
-    (if clean-mode
-  	(unless clean-mode-state
-  	  (setq clean-mode-state
-  		(buffer-local-set-state
-  		 mode-line-format nil
-  		 cursor           nil
-  		 evil-normal-state-cursor '(bar . 0))))
-      (when clean-mode-state
-  	(buffer-local-restore-state clean-mode-state)
-  	(setq clean-mode-state nil))))
+    (defvar-local clean-mode-state nil)
+    (define-minor-mode clean-mode
+      "Hides the cursor and mode line."
+      :global nil
+      :init-value nil
+      (if clean-mode
+	  (unless clean-mode-state
+	    (setq clean-mode-state
+		  (buffer-local-set-state
+		   mode-line-format nil
+		   cursor           nil
+		   evil-normal-state-cursor '(bar . 0))))
+	(when clean-mode-state
+	  (buffer-local-restore-state clean-mode-state)
+	  (setq clean-mode-state nil))))
 
-  (setq inhibit-modification-hooks nil)
-  (dolist (hook '(window-state-change-functions after-change-functions))
-    (add-hook hook
-  	      (lambda (&rest _)
-  		(clean-mode (if (= (point-min) (point-max)) 1 -1)))))
+    (setq inhibit-modification-hooks nil)
+    (dolist (hook '(window-state-change-functions after-change-functions))
+      (add-hook hook
+		(lambda (&rest _)
+		  (let ((should-clean
+			 (and (not (equal major-mode 'exwm-mode))
+			      (= (point-min) (point-max)))))
+		  (clean-mode (if should-clean 1 -1))))))
 #+end_src
 ** line numbers
 #+begin_src elisp
@@ -708,8 +719,19 @@ Make narrowing restore font size:
 #+end_src
 ** pdf mode
 #+begin_src elisp
-  (add-hook 'doc-view-mode-hook
-	    (lambda () (display-line-numbers-mode 0)))
+  (add-hook 'pdf-view-mode-hook
+	    (lambda ()
+	      (run-with-timer 0.5 nil
+			      (lambda ()
+				(display-line-numbers-mode 0)
+				(pdf-view-fit-height-to-window)))))
+  (advice-add #'abort-if-file-too-large :around
+	      (lambda (oldfun size op-type filename &optional offer-raw)
+		(let ((large-file-warning-threshold
+		       (if (equal (file-name-extension filename) "pdf")
+			   100000000
+			 large-file-warning-threshold)))
+		  (funcall oldfun size op-type filename offer-raw))))
 #+end_src
 ** org config
 #+begin_src elisp
@@ -755,5 +777,7 @@ Make narrowing restore font size:
   (use-package exec-path-from-shell)
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize))
+
+  (use-package pdf-tools)
 #+end_src
 
