@@ -663,38 +663,7 @@ make mode line look nice (has to be done after theme)
   (use-package rust-mode :defer t)
 #+end_src
 
-* misc config
-** misc emacs config
-#+begin_src elisp
-  ;(require 'editvar)
-  (put 'narrow-to-region 'disabled nil)
-  (save-place-mode 1)
-  (setq confirm-kill-processes nil)
-  (setq vc-follow-symlinks t)
-  (global-hi-lock-mode 1)
-  (setq auto-revert-verbose nil)
-  (setq custom-file "~/.emacs.d/custom.el")
-
-  ;; don't prompt whether to kill processes in buffers
-  (setq kill-buffer-query-functions (delq #'process-kill-buffer-query-function kill-buffer-query-functions))
-#+end_src
-Make align-regexp use spaces:
-#+begin_src elisp
-  (defun align-with-spaces (align-regexp &rest args)
-    (let ((indent-tabs-mode nil))
-      (apply align-regexp args)))
-  (advice-add #'align-regexp :around #'align-with-spaces)
-#+end_src
-Make narrowing restore font size:
-#+begin_src elisp
-  (defvar before-narrow-scale nil
-    "The `text-scale-mode-amount' before narrowing")
-  (make-variable-buffer-local 'before-narrow-scale)
-  (advice-add #'narrow-to-region :before
-	      (lambda (_ _) (setq before-narrow-scale text-scale-mode-amount)))
-  (advice-add #'widen :after
-	      (lambda () (text-scale-set before-narrow-scale)))
-#+end_src
+* minor modes
 ** dired
 #+begin_src elisp
   (setq dired-omit-files "^\\.")
@@ -719,12 +688,20 @@ Make narrowing restore font size:
 #+end_src
 ** pdf mode
 #+begin_src elisp
+  (use-package pdf-tools)
+  (pdf-tools-install)
+#+end_src
+Make the page resize on opening
+#+begin_src elisp
   (add-hook 'pdf-view-mode-hook
 	    (lambda ()
 	      (run-with-timer 0.5 nil
 			      (lambda ()
 				(display-line-numbers-mode 0)
 				(pdf-view-fit-height-to-window)))))
+#+end_src
+Make the file size limit larger on PDF files
+#+begin_src elisp
   (advice-add #'abort-if-file-too-large :around
 	      (lambda (oldfun size op-type filename &optional offer-raw)
 		(let ((large-file-warning-threshold
@@ -732,6 +709,15 @@ Make narrowing restore font size:
 			   100000000
 			 large-file-warning-threshold)))
 		  (funcall oldfun size op-type filename offer-raw))))
+#+end_src
+Fix PDF file displaying when windows are changed
+#+begin_src elisp
+  (add-hook #'window-configuration-change-hook
+	    (lambda ()
+	      (dolist (w (window-list))
+		(with-selected-window w
+		  (when (eq major-mode 'pdf-view-mode)
+		    (pdf-view-redisplay t))))))
 #+end_src
 ** org config
 #+begin_src elisp
@@ -743,7 +729,7 @@ Make narrowing restore font size:
 	      (electric-pair-local-mode t)
 	      (electric-indent-local-mode 1)))
 #+end_src
-* eshell
+** eshell
 #+begin_src elisp
   (require 'eshell)
   (require 'em-smart)
@@ -761,6 +747,44 @@ Make narrowing restore font size:
 
   (setq eshell-prompt-regexp "^[^λ\n]* λ ")
 #+end_src
+* misc emacs config
+#+begin_src elisp
+  ;(require 'editvar)
+  (put 'narrow-to-region 'disabled nil)
+  (save-place-mode 1)
+  (setq confirm-kill-processes nil)
+  (setq vc-follow-symlinks t)
+  (global-hi-lock-mode 1)
+  (setq auto-revert-verbose nil)
+  (setq custom-file "~/.emacs.d/custom.el")
+
+  ;; don't prompt whether to kill processes in buffers
+  (setq kill-buffer-query-functions (delq #'process-kill-buffer-query-function kill-buffer-query-functions))
+#+end_src
+
+Make align-regexp use spaces:
+#+begin_src elisp
+  (defun align-with-spaces (align-regexp &rest args)
+    (let ((indent-tabs-mode nil))
+      (apply align-regexp args)))
+  (advice-add #'align-regexp :around #'align-with-spaces)
+#+end_src
+
+Make narrowing restore font size:
+#+begin_src elisp
+  (defvar before-narrow-scale nil
+    "The `text-scale-mode-amount' before narrowing")
+  (make-variable-buffer-local 'before-narrow-scale)
+  (advice-add #'narrow-to-region :before
+	      (lambda (_ _) (setq before-narrow-scale text-scale-mode-amount)))
+  (advice-add #'widen :after
+	      (lambda () (text-scale-set before-narrow-scale)))
+#+end_src
+
+Save bookmarks when a new one is added:
+#+begin_src elisp
+  (advice-add #'bookmark-set :after (lambda (&optional _ _) (bookmark-save)))
+#+end_src
 * misc packages
 #+begin_src elisp
   (use-package 2048-game :defer t)
@@ -777,7 +801,5 @@ Make narrowing restore font size:
   (use-package exec-path-from-shell)
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize))
-
-  (use-package pdf-tools)
 #+end_src
 
