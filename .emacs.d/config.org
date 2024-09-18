@@ -432,7 +432,7 @@ make mode line look nice (has to be done after theme)
   (setq compilation-ask-about-save nil) ; save all buffers when compiling
   (defmacro set-command (exp)
     `(evil-local-set-key 'normal (kbd "C-c C-c") (lambda () (interactive) ,exp)))
-  (defmacro file-name-and-in (extension code)
+  (defmacro with-file-name (extension command)
     `(progn
        (kill-compilation-process)
        (unless (and (buffer-file-name)
@@ -441,11 +441,11 @@ make mode line look nice (has to be done after theme)
 	   (set-visited-file-name (concat "/tmp/" (format-time-string "%H_%M_%S" before-init-time) "." ,extension))
 	   (rename-buffer old-buffer-name)))
        (let* ((file-name (buffer-file-name))
-	      (_in       (file-name-with-extension file-name "in"))
-	      (in        (if (file-exists-p _in) _in "/dev/null")))
-	 (compile ,code))))
+	      (in-path   (file-name-with-extension file-name "in"))
+	      (in        (if (file-exists-p in-path) (concat " < " in-path) "")))
+	 (compile (concat ,command in) (equal in "")))))
   (defun run-with (command extension)
-    (file-name-and-in extension (concat command " " file-name " < " in)))
+    (with-file-name extension (concat command " " file-name)))
 
   (defun append-compilation ()
     (interactive)
@@ -493,7 +493,7 @@ make mode line look nice (has to be done after theme)
   (add-hook 'fortran-mode-hook
 	    (lambda ()
 	      (set-command
-	       (file-name-and-in "f90" (concat "gfortran -O2 " file-name " -o /tmp/a.out && /tmp/a.out < " in)))
+	       (with-file-name "f90" (concat "gfortran -O2 " file-name " -o /tmp/a.out && /tmp/a.out")))
 	      (set-normal-tab 2)
 	      (setq prettify-symbols-compose-predicate #'operator-prettify-compose-p)))
 #+end_src
@@ -557,7 +557,7 @@ make mode line look nice (has to be done after theme)
   (add-hook 'c++-mode-hook
 	    (lambda ()
 	      (set-command
-	       (file-name-and-in "cpp" (concat "g++ -O2 " file-name " -o /tmp/a.out && /tmp/a.out < " in)))
+	       (with-file-name "cpp" (concat "g++ -O2 " file-name " -o /tmp/a.out && /tmp/a.out")))
 	      (set-normal-tab 2)
 	      (setq prettify-symbols-compose-predicate #'operator-prettify-compose-p)
 	      (set-pretty '("->" "=" "==" "!="))))
@@ -567,7 +567,7 @@ make mode line look nice (has to be done after theme)
   (add-hook 'c-mode-hook
 	    (lambda ()
 	      (set-command
-	       (file-name-and-in "c" (concat "gcc -O2 " file-name " -o /tmp/a.out && /tmp/a.out < " in)))
+	       (with-file-name "c" (concat "gcc -O2 " file-name " -o /tmp/a.out && /tmp/a.out")))
 	      (set-normal-tab 2)
 	      (setq prettify-symbols-compose-predicate #'operator-prettify-compose-p)
 	      (set-pretty '("->" "=" "==" "!="))))
@@ -658,7 +658,7 @@ make mode line look nice (has to be done after theme)
 	    (lambda ()
 	      (set-command
 		 (unless (= 0 (shell-command "cargo run"))
-		   (file-name-and-in "rs" (concat "rustc " file-name " -o /tmp/a.out && /tmp/a.out < " in))))
+		   (with-file-name "rs" (concat "rustc " file-name " -o /tmp/a.out && /tmp/a.out"))))
 	      (set-normal-tab 2)))
   (use-package rust-mode :defer t)
 #+end_src
@@ -676,6 +676,7 @@ make mode line look nice (has to be done after theme)
 	      (dired-hide-details-mode)
 	      (auto-revert-mode)
 	      (evil-local-set-key 'normal (kbd "C-c o") #'toggle-dired-omit-mode)))
+  (add-hook 'image-mode-hook (lambda () (display-line-numbers-mode 0)))
 
   (use-package dired-preview
     :config
