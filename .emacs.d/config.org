@@ -11,6 +11,7 @@
 - evil registers (@ and pasting macros)
 - artist make work when changing font size
 - [i
+- evil filename-modifiers
 * package and scripting stuff
 #+begin_src elisp
   ;; don't show the straight process buffer in the buffer list
@@ -165,19 +166,26 @@ run a command
   (setq exwm-workspace-show-all-buffers t)
   (setq exwm-layout-show-all-buffers t)
 
-  (defun adjust-frame-transparency (frame)
+  (defun adjust-frame-transparency ()
     (let* ((wallpaper
 	    (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
 	   (brightness
 	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
 		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
 	   (alpha (+ (* -0.37 brightness) 1.1)))
-		(modify-all-frames-parameters
-		 `((alpha                 . ,alpha)
-		   (right-divider-width   . 20)
-		   (bottom-divider-width  . 20)
-		   (internal-border-width . 20)))))
-  (add-hook 'after-make-frame-functions #'adjust-frame-transparency)
+      (dolist (frame (frame-list))
+	(with-selected-frame frame
+	  (modify-all-frames-parameters
+	   `(
+	     (alpha-background      . 100)
+	     (alpha                 . ,alpha)
+	     ;(alpha-background      . ,alpha)
+	     ;(alpha-background      . 0)
+	     (alpha                 . 100)
+	     (right-divider-width   . 20)
+	     (bottom-divider-width  . 20)
+	     (internal-border-width . 20)))))))
+  (add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
 #+end_src
 ** wallpaper
 #+begin_src elisp
@@ -197,7 +205,7 @@ run a command
 	     ('summer "fluff-blossom-wallpaper.png")
 	     ('fall   "bach-wallpaper.png"))))
       (run (concat "feh --bg-center /home/gator/keep/images/wallpapers/" wallpaper))
-      (mapc #'adjust-frame-transparency (frame-list))))
+      (adjust-frame-transparency)))
 
   (set-wallpaper-by-season)
 #+end_src
@@ -297,7 +305,7 @@ make mode line look nice (has to be done after theme)
 		  (:eval
 		   (pcase major-mode
 		     ('exwm-mode "")
-		     ('pdf-view-mode (format "|  page %s" (pdf-view-current-page)))
+		     ('pdf-view-mode (format "[%s]" (pdf-view-current-pagelabel)))
 		     (_ "%l-%C")))))
   ;; *Messages* doesn't want to change its mode line for some reason
   (with-current-buffer (get-buffer "*Messages*")
@@ -305,9 +313,7 @@ make mode line look nice (has to be done after theme)
   (dolist (face '(mode-line mode-line-inactive))
     (set-face-attribute face nil
 			:background 'unspecified
-			:overline   t
-			:box       `(:line-width 3
-						 :color     ,(face-attribute 'default :background))))
+			:overline   t))
 #+end_src
 ** window properties
 #+begin_src elisp
@@ -773,13 +779,14 @@ Make align-regexp use spaces:
 
 Make narrowing restore font size:
 #+begin_src elisp
+  (require 'face-remap)
   (defvar before-narrow-scale nil
     "The `text-scale-mode-amount' before narrowing")
   (make-variable-buffer-local 'before-narrow-scale)
   (advice-add #'narrow-to-region :before
-	      (lambda (_ _) (setq before-narrow-scale text-scale-mode-amount)))
+  	      (lambda (_ _) (setq before-narrow-scale text-scale-mode-amount)))
   (advice-add #'widen :after
-	      (lambda () (text-scale-set before-narrow-scale)))
+  	      (lambda () (text-scale-set before-narrow-scale)))
 #+end_src
 
 Save bookmarks when a new one is added:
