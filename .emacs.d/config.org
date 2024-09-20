@@ -337,30 +337,30 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** don't show cursor/mode line in empty buffers
 #+begin_src elisp
-    (defvar-local clean-mode-state nil)
-    (define-minor-mode clean-mode
-      "Hides the cursor and mode line."
-      :global nil
-      :init-value nil
-      (if clean-mode
-	  (unless clean-mode-state
-	    (setq clean-mode-state
-		  (buffer-local-set-state
-		   mode-line-format nil
-		   cursor           nil
-		   evil-normal-state-cursor '(bar . 0))))
-	(when clean-mode-state
-	  (buffer-local-restore-state clean-mode-state)
-	  (setq clean-mode-state nil))))
+  (defvar-local clean-mode-state nil)
+  (define-minor-mode clean-mode
+    "Hides the cursor and mode line."
+    :global nil
+    :init-value nil
+    (if clean-mode
+        (unless clean-mode-state
+  	(setq clean-mode-state
+  	      (buffer-local-set-state
+  	       mode-line-format nil
+  	       cursor           nil
+  	       evil-normal-state-cursor '(bar . 0))))
+      (when clean-mode-state
+        (buffer-local-restore-state clean-mode-state)
+        (setq clean-mode-state nil))))
 
-    (setq inhibit-modification-hooks nil)
-    ;(dolist (hook '(window-state-change-functions after-change-functions))
-    ;  (add-hook hook
-    ;		(lambda (&rest _)
-    ;		  (let ((should-clean
-    ;			 (and (not (equal major-mode 'exwm-mode))
-    ;			      (= (point-min) (point-max)))))
-    ;		  (clean-mode (if should-clean 1 -1))))))
+  (setq inhibit-modification-hooks nil)
+  (dolist (hook '(window-state-change-functions after-change-functions))
+    (add-hook hook
+  	    (lambda (&rest _)
+  	      (let ((should-clean
+  		     (and (not (equal major-mode 'exwm-mode))
+  			  (equal (buffer-string) ""))))
+  		(clean-mode (if should-clean 1 -1))))))
 #+end_src
 ** line numbers
 #+begin_src elisp
