@@ -18,19 +18,20 @@
   (setq straight-process-buffer " *straight-process*")
   (defvar bootstrap-version)
   (let ((bootstrap-file
-	(expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-	(bootstrap-version 5))
+  	(expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+  	(bootstrap-version 5))
     (unless (file-exists-p bootstrap-file)
       (with-current-buffer
-	  (url-retrieve-synchronously
-	  "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-	  'silent 'inhibit-cookies)
-	(goto-char (point-max))
-	(eval-print-last-sexp)))
+  	  (url-retrieve-synchronously
+  	  "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+  	  'silent 'inhibit-cookies)
+  	(goto-char (point-max))
+  	(eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
   (setq straight-use-package-by-default t)
   ;(package-install 'use-package)
   ;(require 'use-package)
+  (setq native-com-async-report-warning-errors 'silent)
 
   (push "~/.emacs.d/lisp" load-path)
   (use-package dash)
@@ -78,15 +79,6 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
     (evil-define-key 'normal 'global (kbd "C-w v") #'vertical-split)
 
     (evil-ex-define-cmd "term[inal]" 'eshell)
-
-    (evil-define-command custom-write
-      :motion nil
-      :move-point nil
-      :type line
-      :repeat nil
-      (when org-src-mode (org-edit-src-exit))
-      (call-interactively #'evil-write))
-    (evil-ex-define-cmd "w[rite]" #'custom-write)
 
     (advice-add #'evil-line-move :before
 		(lambda (count &optional _)
@@ -137,14 +129,14 @@ stop the sentinel from messaging when processes finish
   (defun inhibit-sentinel-messages (fun &rest args)
     "Inhibit messages in all sentinels started by fun."
     (cl-letf* ((old-set-process-sentinel (symbol-function 'set-process-sentinel))
-	       ((symbol-function 'set-process-sentinel)
-		(lambda (process sentinel)
-		  (funcall
-		   old-set-process-sentinel
-		   process
-		   `(lambda (&rest args)
-		      (let ((inhibit-message t))
-			(apply (quote ,sentinel) args)))))))
+           ((symbol-function 'set-process-sentinel)
+    	(lambda (process sentinel)
+    	  (funcall
+    	   old-set-process-sentinel
+    	   process
+    	   `(lambda (&rest args)
+    	      (let ((inhibit-message t))
+    		(apply (quote ,sentinel) args)))))))
       (apply fun args)))
 #+end_src
 run a command
@@ -337,30 +329,30 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** don't show cursor/mode line in empty buffers
 #+begin_src elisp
-  (defvar-local clean-mode-state nil)
-  (define-minor-mode clean-mode
-    "Hides the cursor and mode line."
-    :global nil
-    :init-value nil
-    (if clean-mode
-        (unless clean-mode-state
-  	(setq clean-mode-state
-  	      (buffer-local-set-state
-  	       mode-line-format nil
-  	       cursor           nil
-  	       evil-normal-state-cursor '(bar . 0))))
-      (when clean-mode-state
-        (buffer-local-restore-state clean-mode-state)
-        (setq clean-mode-state nil))))
+  ;(defvar-local clean-mode-state nil)
+  ;(define-minor-mode clean-mode
+  ;  "Hides the cursor and mode line."
+  ;  :global nil
+  ;  :init-value nil
+  ;  (if (not clean-mode)
+  ;      (setq clean-mode-state
+  ;	    (buffer-local-set-state
+  ;	     mode-line-format nil
+  ;	     cursor           nil
+  ;	     evil-normal-state-cursor '(bar . 0)))
+  ;    (when clean-mode-state
+  ;      (buffer-local-restore-state clean-mode-state)
+  ;      (setq clean-mode-state nil))))
 
-  (setq inhibit-modification-hooks nil)
-  (dolist (hook '(window-state-change-functions after-change-functions))
-    (add-hook hook
-  	    (lambda (&rest _)
-  	      (let ((should-clean
-  		     (and (not (equal major-mode 'exwm-mode))
-  			  (equal (buffer-string) ""))))
-  		(clean-mode (if should-clean 1 -1))))))
+  ;(setq inhibit-modification-hooks nil)
+  ;(dolist (hook '(window-state-change-functions after-change-functions))
+  ;  (add-hook hook
+  ;	    (lambda (&rest _)
+  ;	      (let ((should-clean
+  ;		     (and (not (equal major-mode 'exwm-mode))
+  ;			  (equal (buffer-string) ""))))
+  ;		;(message "%s %s %s" should-clean (buffer-name) (buffer-string))
+  ;		(clean-mode (if should-clean 1 -1))))))
 #+end_src
 ** line numbers
 #+begin_src elisp
@@ -777,13 +769,13 @@ Make align-regexp use spaces:
 Make narrowing restore font size:
 #+begin_src elisp
   (require 'face-remap)
-  (defvar before-narrow-scale nil
+  (defvar-local before-narrow-scale 0
     "The `text-scale-mode-amount' before narrowing")
-  (make-variable-buffer-local 'before-narrow-scale)
   (advice-add #'narrow-to-region :before
-  	      (lambda (_ _) (setq before-narrow-scale text-scale-mode-amount)))
+        	    (lambda (_ _) (when (boundp 'text-scale-mode-amount)
+  			    (setq before-narrow-scale text-scale-mode-amount))))
   (advice-add #'widen :after
-  	      (lambda () (text-scale-set before-narrow-scale)))
+        	    (lambda () (text-scale-set before-narrow-scale)))
 #+end_src
 
 Save bookmarks when a new one is added:

@@ -91,8 +91,10 @@
   (when (bar/get-bar-window)
     (with-selected-window (bar/get-bar-window)
       ;; as far as i can figure out, the width of the right margin which displays the / on too-long lines
-      ;; is the width of one character
-      (let* ((w (- (window-body-width nil t) (car (window-text-pixel-size nil 1 2))))
+      ;; is the width of one character.
+      ;; however, we can't display there, so we also need to add a space to the right side,
+      ;; to balance it.
+      (let* ((w (- (window-body-width nil t) (* 2 (car (window-text-pixel-size nil 1 2)))))
 	     (left   (compute-module left-modules))
 	     (centre (compute-module centre-modules))
 	     (right  (compute-module right-modules))
@@ -104,9 +106,9 @@
 	      (- (ceiling (/ w 2.0))
 		 (bar/string-pixel-width right)
 		 (ceiling (/ (bar/string-pixel-width centre) 2.0))))
-	     (line (concat left " " centre " " right))
-	     (left-space  (length (concat left " ")))
-	     (right-space (length (concat left " " centre " "))))
+	     (line (concat " " left " " centre " " right))
+	     (left-space  (length (concat " " left " ")))
+	     (right-space (length (concat " " left " " centre " "))))
 	(erase-buffer)
 	(insert line)
 	(add-display-text-property left-space (1+ left-space) 'display `(space . (:width (,left-spacing))))
