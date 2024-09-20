@@ -91,8 +91,8 @@
   (when (bar/get-bar-window)
     (with-selected-window (bar/get-bar-window)
       ;; as far as i can figure out, the width of the right margin which displays the / on too-long lines
-      ;; is the length of `frame-char-width'
-      (let* ((w (- (window-body-width nil t) (frame-char-width)))
+      ;; is the width of one character
+      (let* ((w (- (window-body-width nil t) (car (window-text-pixel-size nil 1 2))))
 	     (left   (compute-module left-modules))
 	     (centre (compute-module centre-modules))
 	     (right  (compute-module right-modules))

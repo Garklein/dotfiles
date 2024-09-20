@@ -176,12 +176,7 @@ run a command
       (dolist (frame (frame-list))
 	(with-selected-frame frame
 	  (modify-all-frames-parameters
-	   `(
-	     (alpha-background      . 100)
-	     (alpha                 . ,alpha)
-	     ;(alpha-background      . ,alpha)
-	     ;(alpha-background      . 0)
-	     (alpha                 . 100)
+	   `((alpha-background      . ,alpha)
 	     (right-divider-width   . 20)
 	     (bottom-divider-width  . 20)
 	     (internal-border-width . 20)))))))
@@ -300,20 +295,22 @@ run a command
 make mode line look nice (has to be done after theme)
 #+begin_src elisp
   (setq-default mode-line-format
-		'((:eval (if buffer-read-only "" "  %*"))
-		  "  %b  "
-		  (:eval
-		   (pcase major-mode
-		     ('exwm-mode "")
-		     ('pdf-view-mode (format "[%s]" (pdf-view-current-pagelabel)))
-		     (_ "%l-%C")))))
+  	      '((:eval (if buffer-read-only "" "  %*"))
+  		"  %b"
+  		mode-line-format-right-align
+  		(:eval
+  		 (pcase major-mode
+  		   ('exwm-mode "")
+  		   ('pdf-view-mode (format "[%s]" (pdf-view-current-pagelabel)))
+  		   (_ "%l-%C")))
+  		"  "))
   ;; *Messages* doesn't want to change its mode line for some reason
   (with-current-buffer (get-buffer "*Messages*")
     (setq mode-line-format (default-value 'mode-line-format)))
   (dolist (face '(mode-line mode-line-inactive))
     (set-face-attribute face nil
-			:background 'unspecified
-			:overline   t))
+  		      :background 'unspecified
+  		      :overline   t))
 #+end_src
 ** window properties
 #+begin_src elisp
@@ -357,13 +354,13 @@ make mode line look nice (has to be done after theme)
 	  (setq clean-mode-state nil))))
 
     (setq inhibit-modification-hooks nil)
-    (dolist (hook '(window-state-change-functions after-change-functions))
-      (add-hook hook
-		(lambda (&rest _)
-		  (let ((should-clean
-			 (and (not (equal major-mode 'exwm-mode))
-			      (= (point-min) (point-max)))))
-		  (clean-mode (if should-clean 1 -1))))))
+    ;(dolist (hook '(window-state-change-functions after-change-functions))
+    ;  (add-hook hook
+    ;		(lambda (&rest _)
+    ;		  (let ((should-clean
+    ;			 (and (not (equal major-mode 'exwm-mode))
+    ;			      (= (point-min) (point-max)))))
+    ;		  (clean-mode (if should-clean 1 -1))))))
 #+end_src
 ** line numbers
 #+begin_src elisp
