@@ -80,14 +80,8 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
 
     (evil-ex-define-cmd "term[inal]" 'eshell)
 
-    (evil-define-command custom-write
-      :motion nil
-      :move-point nil
-      :type line
-      :repeat nil
-      (when org-src-mode (org-edit-src-exit))
-      (call-interactively #'evil-write))
-    (evil-ex-define-cmd "w[rite]" #'custom-write)
+    (advice-add #'evil-write :before
+  	      (lambda (&rest _) (when org-src-mode (org-edit-src-exit))))
 
     (advice-add #'evil-line-move :before
   	      (lambda (count &optional _)
