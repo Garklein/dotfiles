@@ -42,7 +42,6 @@
 
       (with-selected-window window
 	(setq bar-buffer (switch-to-buffer " *bar*"))
-	(setq-local evil-normal-state-cursor '(bar . 0))
 	(setq mode-line-format nil)
 	(face-remap-add-relative 'default :height 150)
 	(setq window-size-fixed nil)
@@ -113,7 +112,8 @@
 	(erase-buffer)
 	(insert line)
 	(add-display-text-property left-space (1+ left-space) 'display `(space . (:width (,left-spacing))))
-	(add-display-text-property right-space (1+ right-space) 'display `(space . (:width (,right-spacing))))))))
+ 	(add-display-text-property right-space (1+ right-space) 'display `(space . (:width (,right-spacing))))
+ 	(setq cursor-type nil)))))
 
 
 (defun file-to-string (file)
@@ -135,8 +135,8 @@
 (defun vol ()
   (pcase-let ((`(,level ,onoff)
 	       (-> (shell-command-to-string "amixer get Master | grep Left:")
-		    (split-string)
-		    (seq-drop 4))))
+		   (split-string)
+		   (seq-drop 4))))
     (if (equal onoff "[off]")
 	"muted"
       (concat "vol " (substring level 1 -1)))))

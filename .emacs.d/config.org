@@ -752,7 +752,7 @@ Fix PDF file displaying when windows are changed
 #+end_src
 * misc emacs config
 #+begin_src elisp
-  ;(require 'edit-var)
+  (require 'edit-var)
   (put 'narrow-to-region 'disabled nil)
   (save-place-mode 1)
   (setq confirm-kill-processes nil)

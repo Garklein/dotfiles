@@ -1,24 +1,29 @@
-;; todo: prompt with all variables (see how `describe-variable' does it)
-
 (defvar edit-var-buffers nil
   "Associates buffers with a the symbol being edited.")
 (defun save-var (&rest _)
   (when-let ((sym (alist-get (current-buffer) edit-var-buffers)))
-     (let ((new-val
-	    (->
-	     (buffer-substring-no-properties (point-min) (point-max))
-	     read-from-string car eval)))
-       (set sym new-val)
-       (setq edit-var-buffers (assoc-delete-all (current-buffer) edit-var-buffers))
-       (kill-buffer)
-       t)))
+    (set sym (-> (buffer-string) read-from-string car eval))
+    (kill-buffer)
+    (setq edit-var-buffers (seq-filter #'buffer-live-p edit-var-buffers)) ; also remove orphaned buffers
+    t)) ; don't do the normal evil-write
 (advice-add #'evil-write :before-until #'save-var)
 
+;; stolen from `describe-variable'
+(defun read-var-from-minibuffer ()
+  (completing-read
+   "Variable: "
+   #'help--symbol-completion-table
+   (lambda (sym)
+     (or (get sym 'variable-documentation)
+	 (and (not (keywordp sym))
+              (buffer-local-boundp sym (current-buffer)))))
+   t))
 (defun edit-var (sym)
-  (interactive "vVariable to edit: ")
+  (interactive (list (intern (read-var-from-minibuffer))))
   (let ((window (select-window (split-window-below)))
-	(buffer (switch-to-buffer (generate-new-buffer (concat "*`" (symbol-name sym) "' editing*")))))
-    (insert (concat "`" (with-output-to-string (prin1 (symbol-value sym)))))
+	(buffer (switch-to-buffer (generate-new-buffer (format "*`%s' editing" sym)))))
+    (emacs-lisp-mode)
+    (insert (concat "`" (prin1-to-string (symbol-value sym))))
     (fit-window-to-buffer)
     (set-window-dedicated-p window t)
     (push (cons buffer sym) edit-var-buffers)))
