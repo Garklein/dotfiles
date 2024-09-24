@@ -1,3 +1,5 @@
+;; todo: make it not stop the timer if something goes wrong with a module, refactor
+
 (defvar bar-buffer nil
   "The buffer for the bar.")
 

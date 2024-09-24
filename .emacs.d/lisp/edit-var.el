@@ -1,3 +1,5 @@
+(require 'help-fns)
+
 (defvar edit-var-buffers nil
   "Associates buffers with a the symbol being edited.")
 (defun save-var (&rest _)
@@ -10,20 +12,26 @@
 
 ;; stolen from `describe-variable'
 (defun read-var-from-minibuffer ()
-  (completing-read
-   "Variable: "
-   #'help--symbol-completion-table
-   (lambda (sym)
-     (or (get sym 'variable-documentation)
-	 (and (not (keywordp sym))
-              (buffer-local-boundp sym (current-buffer)))))
-   t))
+  (let* ((v (variable-at-point))
+	 (inputted-var
+	  (completing-read
+	   (format-prompt "Variable to edit" (and (symbolp v) v))
+	   #'help--symbol-completion-table
+	   (lambda (sym)
+	     (or (get sym 'variable-documentation)
+		 (and (not (keywordp sym))
+		      (buffer-local-boundp sym (current-buffer)))))
+	   t nil nil
+	   (if (symbolp v) (symbol-name v)))))
+    (intern inputted-var)))
+
 (defun edit-var (sym)
-  (interactive (list (intern (read-var-from-minibuffer))))
+  (interactive (list (read-var-from-minibuffer)))
   (let ((window (select-window (split-window-below)))
 	(buffer (switch-to-buffer (generate-new-buffer (format "*`%s' editing" sym)))))
     (emacs-lisp-mode)
     (insert (concat "`" (prin1-to-string (symbol-value sym))))
+    (goto-char 2)
     (fit-window-to-buffer)
     (set-window-dedicated-p window t)
     (push (cons buffer sym) edit-var-buffers)))
