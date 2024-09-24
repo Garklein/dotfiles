@@ -6,7 +6,7 @@
   (when-let ((sym (alist-get (current-buffer) edit-var-buffers)))
     (set sym (-> (buffer-string) read-from-string car eval))
     (kill-buffer)
-    (setq edit-var-buffers (seq-filter #'buffer-live-p edit-var-buffers)) ; also remove orphaned buffers
+    (setq edit-var-buffers (seq-filter #'buffer-live-p edit-var-buffers)) ; also remove any killed variable editing buffers
     t)) ; don't do the normal evil-write
 (advice-add #'evil-write :before-until #'save-var)
 
@@ -17,10 +17,7 @@
 	  (completing-read
 	   (format-prompt "Variable to edit" (and (symbolp v) v))
 	   #'help--symbol-completion-table
-	   (lambda (sym)
-	     (or (get sym 'variable-documentation)
-		 (and (not (keywordp sym))
-		      (buffer-local-boundp sym (current-buffer)))))
+	   #'boundp
 	   t nil nil
 	   (if (symbolp v) (symbol-name v)))))
     (intern inputted-var)))
