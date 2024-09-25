@@ -388,30 +388,33 @@ make mode line look nice (has to be done after theme)
   (global-prettify-symbols-mode 1)
   (defun operator-prettify-compose-p (start end _match) ; prettify-symbols-default-compose-p for docs
     (and (memq (char-syntax (char-after start)) '(?. ?_))
-	 (not (nth 8 (syntax-ppss)))))
+         (not (nth 8 (syntax-ppss)))))
   (setq-default prettify-symbols-alist
-		'(("lambda" . ?λ)
-		  ("&&" 	. ?∧)
-		  ("and" 	. ?∧)
-		  ("||" 	. ?∨)
-		  ("or" 	. ?∨)
-		  ("!"  	. ?¬)
-		  ("not"        . ?¬)
-		  ("<=" 	. ?≤)
-		  (">=" 	. ?≥)))
+  	      '(("lambda" . ?λ)
+  		("&&"     . ?∧)
+  		("and"    . ?∧)
+  		("||"     . ?∨)
+  		("or"     . ?∨)
+  		("!"      . ?¬)
+  		("not"    . ?¬)
+  		("<="     . ?≤)
+  		(">="     . ?≥)))
   (defconst pretty-alist
-    '(("->"   . ?→)
-      ("="    . ?←)
-      ("=="   . ?=)
-      ("!="   . ?≠)
-      ("=>"   . ?⇒)
-      ("==="  . ?=)
-      ("!=="  . ?≠)
-      ("*"    . ?×)
-      ("/"    . ?÷)))
+    '(("->"           . ?→)
+      ("="            . ?←)
+      ("=="           . ?=)
+      ("!="           . ?≠)
+      ("=>"           . ?⇒)
+      ("==="          . ?=)
+      ("!=="          . ?≠)
+      ("*"            . ?×)
+      ("/"            . ?÷))
+      "Common symbols that could be prettified.")
   (defun set-pretty (pretty-list)
     (dolist (symbol pretty-list)
       (push (assoc symbol pretty-alist) prettify-symbols-alist)))
+  (defun add-pretty (new-alist)
+    (setq prettify-symbols-alist(append new-alist prettify-symbols-alist)))
 #+end_src
 ** tab
 #+begin_src elisp
@@ -461,6 +464,13 @@ make mode line look nice (has to be done after theme)
 	  (append-to-buffer b 1 (point-max)))
 	(comment-region compilation-start (point-max)))))
   (evil-define-key 'normal 'global (kbd "C-c C-a") #'append-compilation)
+#+end_src
+** elisp
+#+begin_src elisp
+  (add-hook 'emacs-lisp-mode-hook
+  	  (lambda () (add-pretty
+  		 '(("thread-first" . ?→)
+  		   ("thread-last"  . ?⇒)))))
 #+end_src
 ** snobol
 #+begin_src elisp
