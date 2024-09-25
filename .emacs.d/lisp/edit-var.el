@@ -14,7 +14,7 @@
   (and (symbolp symbol) (boundp symbol) (not (keywordp symbol))))
 (defun read-var-from-minibuffer ()
   (let* ((sym (symbol-at-point))
-	 (v (if (variablep sym) sym)))
+	 (v (if (variablep sym) (symbol-name sym))))
     (intern
      (completing-read
       (format-prompt "Variable to edit" v)
