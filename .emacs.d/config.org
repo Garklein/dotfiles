@@ -340,8 +340,8 @@ make mode line look nice (has to be done after theme)
     (if clean-mode
         (when (not clean-mode-state)
   	(progn
-  	  (when (not (member (buffer-name) '(" *work*" " *bar*")))
-  	    (message "Enabling clean-mode in buffer %s" (buffer-name)))
+  	  ;(when (not (member (buffer-name) '(" *work*" " *bar*")))
+  	  ;  (message "Enabling clean-mode in buffer %s" (buffer-name)))
   	  (setq clean-mode-state
         		(buffer-local-set-state
         		 mode-line-format nil
