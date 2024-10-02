@@ -55,4 +55,3 @@ path=(
 path=$(printf ":%s" "${path[@]}")
 path=${path:1}
 export PATH=$path
-

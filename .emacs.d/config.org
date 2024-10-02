@@ -152,6 +152,14 @@ run a command
   (add-to-list
    'display-buffer-alist
    '((lambda (s _) (string-match "output\\*" s)) display-buffer-no-window (nil)))
+
+  (defun run_ (command)
+    (let ((file (make-temp-file ""))
+  	(buf (generate-new-buffer (concat " *" command " output*"))))
+      (with-temp-file file
+        (insert "(when-let ((output (eshell-command-result \"") (insert command) (insert "\")))")
+        (insert "  (message output))"))
+      (async-shell-command (concat "cd ~/emacs && src/emacs --script " file " 2>&1 | tail -n +28") buf)))
 #+end_src
 ** workspaces
 #+begin_src elisp
@@ -163,18 +171,18 @@ run a command
 
   (defun adjust-frame-transparency ()
     (let* ((wallpaper
-	    (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
-	   (brightness
-	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
-		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
-	   (alpha (+ (* -0.37 brightness) 1.12)))
+  	    (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
+  	   (brightness
+  	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
+  		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
+  	   (alpha (+ (* -0.37 brightness) 1.11)))
       (dolist (frame (frame-list))
-	(with-selected-frame frame
-	  (modify-all-frames-parameters
-	   `((alpha-background      . ,alpha)
-	     (right-divider-width   . 20)
-	     (bottom-divider-width  . 20)
-	     (internal-border-width . 20)))))))
+  	(with-selected-frame frame
+  	  (modify-all-frames-parameters
+  	   `((alpha-background      . 0.87)
+  	     (right-divider-width   . 20)
+  	     (bottom-divider-width  . 20)
+  	     (internal-border-width . 20)))))))
   (add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
 #+end_src
 ** wallpaper
@@ -232,47 +240,48 @@ run a command
   (defun screenshot ()
     (interactive)
     (let* ((inhibit-message t)
-	   (time (format-time-string "%H_%M_%S" (current-time)))
-	   (file (concat "/tmp/" time ".png")))
+    	 (time (format-time-string "%H_%M_%S" (current-time)))
+    	 (file (concat "/tmp/" time ".png")))
       ;; this needs to be a shell command since it needs the &> ... because xclip is weird
       (shell-command (concat "maim -sq " file " ; " "xclip -selection clipboard -t image/png " file " &> /dev/null"))))
 
   (defun start-app (name)
     (interactive (list (read-shell-command "$ ")))
     (let ((existing-buffer
-	 (->> (buffer-list)
-	      (--filter (string-prefix-p name (buffer-name it)))
-	      (--sort (string< (buffer-name it) (buffer-name other)))
-	      car)))
+    	 (->> (buffer-list)
+    	      (--filter (string-prefix-p name (buffer-name it)))
+    	      (--sort (string< (buffer-name it) (buffer-name other)))
+    	      car)))
       (if existing-buffer
-	(switch-to-buffer existing-buffer)
-	(run name))))
+    	(switch-to-buffer existing-buffer)
+        (run name))))
 
   ;; Global keybindings.
   (setq exwm-input-global-keys
-	`(([?\s-p] . start-app)
-	  ([?\s-o] . (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
-	  ([?\s-i] . (lambda () (interactive) (start-app "firefox")))
-	  ([?\s-u] . (lambda () (interactive) (start-app "webcord")))
+        `(([?\s-p] . start-app)
+    	([?\s-o] . (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
+    	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
+    	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
+    	([?\s-q] . (lambda () (interactive) (run "pkill wine")))
 
-	  (,(kbd "s-<backspace>") . delete-window)
+    	(,(kbd "s-<backspace>") . delete-window)
 
-	  ([?\M-:]  . eval-expression)
-	  ([?\s-:]  . evil-ex)
-	  ([?\s-m]  . exwm-input-toggle-keyboard)
+    	([?\M-:]  . eval-expression)
+    	([?\s-:]  . evil-ex)
+    	([?\s-m]  . exwm-input-toggle-keyboard)
 
-	  (,(kbd "s-S") . screenshot)
+    	(,(kbd "s-S") . screenshot)
 
-	  (,(kbd "<XF86AudioMute>") . (lambda () (interactive) (run "pactl set-sink-mute @DEFAULT_SINK@ toggle") (update-bar)))
-	  (,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ +5%") (update-bar)))
-	  (,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ -5%") (update-bar)))
+    	(,(kbd "<XF86AudioMute>") . (lambda () (interactive) (run "pactl set-sink-mute @DEFAULT_SINK@ toggle") (update-bar)))
+    	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ +5%") (update-bar)))
+    	(,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ -5%") (update-bar)))
 
-	  (,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (run "xbacklight -inc 3") (update-bar)))
-	  (,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (run "xbacklight -dec 3") (update-bar)))
+    	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (run "xbacklight -inc 3") (update-bar)))
+    	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (run "xbacklight -dec 3") (update-bar)))
 
-	  ([?\s-j] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
-	  ([?\s-k] . (lambda () (interactive) (exwm-workspace-switch-create 1)))
-	  ([?\s-l] . (lambda () (interactive) (exwm-workspace-switch-create 2)))))
+    	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
+    	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch-create 1)))
+    	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch-create 2)))))
 
   (setq exwm-input-prefix-keys '(?\C-x ?\C-w ?\M-x))
   (define-key exwm-mode-map (kbd "C-c") nil)
@@ -425,13 +434,14 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** compiling
 #+begin_src elisp
+  (setq compilation-scroll-output t)
   (defun kill-compilation-process ()
     (interactive)
     (when (get-buffer "*compilation*")
       (with-current-buffer "*compilation*"
-	(let ((process (get-buffer-process (current-buffer))))
-	  (when process
-	    (delete-process (get-buffer-process (current-buffer))))))))
+  	(let ((process (get-buffer-process (current-buffer))))
+  	  (when process
+  	    (delete-process (get-buffer-process (current-buffer))))))))
   (evil-define-key 'normal 'global (kbd "C-c DEL") #'kill-compilation-process)
 
   (setq compilation-ask-about-save nil) ; save all buffers when compiling
@@ -441,14 +451,14 @@ make mode line look nice (has to be done after theme)
     `(progn
        (kill-compilation-process)
        (unless (and (buffer-file-name)
-		    (equal ,extension (file-name-extension (buffer-file-name))))
-	 (let ((old-buffer-name (buffer-name)))
-	   (set-visited-file-name (concat "/tmp/" (format-time-string "%H_%M_%S" before-init-time) "." ,extension))
-	   (rename-buffer old-buffer-name)))
+  		    (equal ,extension (file-name-extension (buffer-file-name))))
+  	 (let ((old-buffer-name (buffer-name)))
+  	   (set-visited-file-name (concat "/tmp/" (format-time-string "%H_%M_%S" before-init-time) "." ,extension))
+  	   (rename-buffer old-buffer-name)))
        (let* ((file-name (buffer-file-name))
-	      (in-path   (file-name-with-extension file-name "in"))
-	      (in        (if (file-exists-p in-path) (concat " < " in-path) "")))
-	 (compile (concat ,command in) (equal in "")))))
+  	      (in-path   (file-name-with-extension file-name "in"))
+  	      (in        (if (file-exists-p in-path) (concat " < " in-path) "")))
+  	 (compile (concat ,command in) (equal in "")))))
   (defun run-with (command extension)
     (with-file-name extension (concat command " " file-name)))
 
@@ -458,11 +468,11 @@ make mode line look nice (has to be done after theme)
       (end-of-buffer)
       (insert "\n\n")
       (let ((compilation-start (point))
-	    (b (current-buffer))
-	    (comment-style 'box-multi))
-	(with-current-buffer "*compilation*"
-	  (append-to-buffer b 1 (point-max)))
-	(comment-region compilation-start (point-max)))))
+  	    (b (current-buffer))
+  	    (comment-style 'box-multi))
+  	(with-current-buffer "*compilation*"
+  	  (append-to-buffer b 1 (point-max)))
+  	(comment-region compilation-start (point-max)))))
   (evil-define-key 'normal 'global (kbd "C-c C-a") #'append-compilation)
 #+end_src
 ** elisp
