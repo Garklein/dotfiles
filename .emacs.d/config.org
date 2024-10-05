@@ -14,316 +14,316 @@
 - evil filename-modifiers
 * package and scripting stuff
 #+begin_src elisp
-  ;; don't show the straight process buffer in the buffer list
-  (setq straight-process-buffer " *straight-process*")
-  (defvar bootstrap-version)
-  (let ((bootstrap-file
-  	(expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-  	(bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-  	  (url-retrieve-synchronously
-  	  "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-  	  'silent 'inhibit-cookies)
-  	(goto-char (point-max))
-  	(eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
-  (setq straight-use-package-by-default t)
-  ;(package-install 'use-package)
-  ;(require 'use-package)
-  (setq native-com-async-report-warning-errors 'silent)
+;; don't show the straight process buffer in the buffer list
+(setq straight-process-buffer " *straight-process*")
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+	(url-retrieve-synchronously
+	 "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	 'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+(setq straight-use-package-by-default t)
+					;(package-install 'use-package)
+					;(require 'use-package)
+(setq native-com-async-report-warning-errors 'silent)
 
-  (push "~/.emacs.d/lisp" load-path)
-  (use-package dash)
+(push "~/.emacs.d/lisp" load-path)
+(use-package dash)
 
-  (defun remove-all-advice (symbol)
-    (advice-mapc
-     (lambda (advice _) (advice-remove symbol advice))
-     symbol))
+(defun remove-all-advice (symbol)
+  (advice-mapc
+   (lambda (advice _) (advice-remove symbol advice))
+   symbol))
 #+end_src
 ** clean up temp files
 make sure temp files don't litter .emacs.d
 #+begin_src elisp
-  (use-package no-littering)
+(use-package no-littering)
 #+end_src
 put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo) in /tmp
 #+begin_src elisp
-  (setq backup-directory-alist         `((".*" . ,temporary-file-directory)))
-  (setq auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
-  (setq lock-file-name-transforms      `((".*" ,temporary-file-directory t)))
+(setq backup-directory-alist         `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
+(setq lock-file-name-transforms      `((".*" ,temporary-file-directory t)))
 #+end_src
 * keybinds and evil
 #+begin_src elisp
-  ;; evil
-  (use-package evil
-    :init (setq evil-want-keybinding nil) ; for evil-collection
-    :config
-    (evil-mode 1)
+;; evil
+(use-package evil
+  :init (setq evil-want-keybinding nil) ; for evil-collection
+  :config
+  (evil-mode 1)
 
-    (evil-set-undo-system 'undo-redo)
-    (use-package vundo)
+  (evil-set-undo-system 'undo-redo)
+  (use-package vundo)
 
-    (setq evil-auto-indent nil)
+  (setq evil-auto-indent nil)
 
-    (evil-define-command horizontal-split ()
-      (interactive)
-      (split-window-below)
-      (other-window 1)
-      (switch-to-buffer (other-buffer)))
-    (evil-define-key 'normal 'global (kbd "C-w s") #'horizontal-split)
-    (evil-define-command vertical-split ()
-      (interactive)
-      (split-window-right)
-      (other-window 1)
-      (switch-to-buffer (other-buffer)))
-    (evil-define-key 'normal 'global (kbd "C-w v") #'vertical-split)
-
-    (evil-ex-define-cmd "term[inal]" 'eshell)
-
-    (advice-add #'evil-write :before
-  	      (lambda (&rest _) (when org-src-mode (org-edit-src-exit))))
-
-    (advice-add #'evil-line-move :before
-  	      (lambda (count &optional _)
-  		(when (> (abs count) 1)
-  		  (evil-set-jump))))
-
-    (evil-define-key nil evil-normal-state-map (kbd "M-o")
-      (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
-
-    (evil-define-key 'normal 'global (kbd "M-p")
-      (lambda () (interactive) (scroll-down (/ (window-total-height (selected-window)) 2))))
-    (evil-define-key 'normal 'global (kbd "M-n")
-      (lambda () (interactive) (scroll-up (/ (window-total-height (selected-window)) 2))))
-
-    (evil-define-key 'insert 'global (kbd "C-<return>")
-      (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative)))))
-
-  (defun eval-and-replace ()
-    "Replace the preceding elisp expression with its value."
+  (evil-define-command horizontal-split ()
     (interactive)
-    (let ((at-end (= (char-after) ?\))))
-      (when at-end (insert ")"))
-      (backward-kill-sexp)
-      (condition-case nil
-  	(prin1 (eval (read (current-kill 0)))
-  	       (current-buffer))
-        (error (message "Invalid expression")
-  	     (insert (current-kill 0))))
-      (when at-end (delete-char 1) (backward-char))))
-  (evil-define-key nil evil-normal-state-map (kbd "C-x C-r") #'eval-and-replace)
+    (split-window-below)
+    (other-window 1)
+    (switch-to-buffer (other-buffer)))
+  (evil-define-key 'normal 'global (kbd "C-w s") #'horizontal-split)
+  (evil-define-command vertical-split ()
+    (interactive)
+    (split-window-right)
+    (other-window 1)
+    (switch-to-buffer (other-buffer)))
+  (evil-define-key 'normal 'global (kbd "C-w v") #'vertical-split)
 
-  ;; evil-collection
-  (use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init))
+  (evil-ex-define-cmd "term[inal]" 'eshell)
+
+  (advice-add #'evil-write :before
+	      (lambda (&rest _) (when org-src-mode (org-edit-src-exit))))
+
+  (advice-add #'evil-line-move :before
+	      (lambda (count &optional _)
+		(when (> (abs count) 1)
+		  (evil-set-jump))))
+
+  (evil-define-key nil evil-normal-state-map (kbd "M-o")
+    (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
+
+  (evil-define-key 'normal 'global (kbd "M-p")
+    (lambda () (interactive) (scroll-down (/ (window-total-height (selected-window)) 2))))
+  (evil-define-key 'normal 'global (kbd "M-n")
+    (lambda () (interactive) (scroll-up (/ (window-total-height (selected-window)) 2))))
+
+  (evil-define-key 'insert 'global (kbd "C-<return>")
+    (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative)))))
+
+(defun eval-and-replace ()
+  "Replace the preceding elisp expression with its value."
+  (interactive)
+  (let ((at-end (= (char-after) ?\))))
+    (when at-end (insert ")"))
+    (backward-kill-sexp)
+    (condition-case nil
+	(prin1 (eval (read (current-kill 0)))
+	       (current-buffer))
+      (error (message "Invalid expression")
+	     (insert (current-kill 0))))
+    (when at-end (delete-char 1) (backward-char))))
+(evil-define-key nil evil-normal-state-map (kbd "C-x C-r") #'eval-and-replace)
+
+;; evil-collection
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
 #+end_src
 * exwm
 ** requires
 #+begin_src elisp
-  (use-package exwm)
-  (require 'exwm)
+(use-package exwm)
+(require 'exwm)
 #+end_src
 ** helpers
 stop the sentinel from messaging when processes finish
 (https://emacs.stackexchange.com/a/50241)
 #+begin_src elisp
-  (defun inhibit-sentinel-messages (fun &rest args)
-    "Inhibit messages in all sentinels started by fun."
-    (cl-letf* ((old-set-process-sentinel (symbol-function 'set-process-sentinel))
-           ((symbol-function 'set-process-sentinel)
-    	(lambda (process sentinel)
-    	  (funcall
-    	   old-set-process-sentinel
-    	   process
-    	   `(lambda (&rest args)
-    	      (let ((inhibit-message t))
-    		(apply (quote ,sentinel) args)))))))
-      (apply fun args)))
+(defun inhibit-sentinel-messages (fun &rest args)
+  "Inhibit messages in all sentinels started by fun."
+  (cl-letf* ((old-set-process-sentinel (symbol-function 'set-process-sentinel))
+         ((symbol-function 'set-process-sentinel)
+  	(lambda (process sentinel)
+  	  (funcall
+  	   old-set-process-sentinel
+  	   process
+  	   `(lambda (&rest args)
+  	      (let ((inhibit-message t))
+  		(apply (quote ,sentinel) args)))))))
+    (apply fun args)))
 #+end_src
 run a command
 #+begin_src elisp
-  (defun run (command)
-    (let ((inhibit-message t))
-      (inhibit-sentinel-messages
-       #'async-shell-command command
-       (generate-new-buffer (concat " *" command " output*")))))
-  (add-to-list
-   'display-buffer-alist
-   '((lambda (s _) (string-match "output\\*" s)) display-buffer-no-window (nil)))
+(defun run (command)
+  (let ((inhibit-message t))
+    (inhibit-sentinel-messages
+     #'async-shell-command command
+     (generate-new-buffer (concat " *" command " output*")))))
+(add-to-list
+ 'display-buffer-alist
+ '((lambda (s _) (string-match "output\\*" s)) display-buffer-no-window (nil)))
 
-  (defun run_ (command)
-    (let ((file (make-temp-file ""))
-  	(buf (generate-new-buffer (concat " *" command " output*"))))
-      (with-temp-file file
-        (insert "(when-let ((output (eshell-command-result \"") (insert command) (insert "\")))")
-        (insert "  (message output))"))
-      (async-shell-command (concat "cd ~/emacs && src/emacs --script " file " 2>&1 | tail -n +28") buf)))
+(defun run_ (command)
+  (let ((file (make-temp-file ""))
+	(buf (generate-new-buffer (concat " *" command " output*"))))
+    (with-temp-file file
+      (insert "(when-let ((output (eshell-command-result \"") (insert command) (insert "\")))")
+      (insert "  (message output))"))
+    (async-shell-command (concat "cd ~/emacs && src/emacs --script " file " 2>&1 | tail -n +28") buf)))
 #+end_src
 ** workspaces
 #+begin_src elisp
-  (setq exwm-workspace-number 3)
+(setq exwm-workspace-number 3)
 
-  ;; allow all buffers in all workspaces
-  (setq exwm-workspace-show-all-buffers t)
-  (setq exwm-layout-show-all-buffers t)
+;; allow all buffers in all workspaces
+(setq exwm-workspace-show-all-buffers t)
+(setq exwm-layout-show-all-buffers t)
 
-  (defun adjust-frame-transparency ()
-    (let* ((wallpaper
-  	    (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
-  	   (brightness
-  	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
-  		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
-  	   (alpha (+ (* -0.37 brightness) 1.11)))
-      (dolist (frame (frame-list))
-  	(with-selected-frame frame
-  	  (modify-all-frames-parameters
-  	   `((alpha-background      . 0.87)
-  	     (right-divider-width   . 20)
-  	     (bottom-divider-width  . 20)
-  	     (internal-border-width . 20)))))))
-  (add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
+(defun adjust-frame-transparency ()
+  (let* ((wallpaper
+	    (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
+	   (brightness
+	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
+		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
+	   (alpha (+ (* -0.37 brightness) 1.11)))
+    (dolist (frame (frame-list))
+	(with-selected-frame frame
+	  (modify-all-frames-parameters
+	   `((alpha-background      . 0.87)
+	     (right-divider-width   . 20)
+	     (bottom-divider-width  . 20)
+	     (internal-border-width . 20)))))))
+(add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
 #+end_src
 ** wallpaper
 #+begin_src elisp
-  (defun season ()
-    (let ((m (car (calendar-current-date 10))))
-      (cond
-       ((<= m 3) 'winter)
-       ((<  9 m) 'fall)
-       ((<= m 6) 'spring)
-       (t        'summer))))
+(defun season ()
+  (let ((m (car (calendar-current-date 10))))
+    (cond
+     ((<= m 3) 'winter)
+     ((<  9 m) 'fall)
+     ((<= m 6) 'spring)
+     (t        'summer))))
 
-  (defun set-wallpaper-by-season (&optional season)
-    (let ((wallpaper
+(defun set-wallpaper-by-season (&optional season)
+  (let ((wallpaper
 	   (pcase (or season (season))
 	     ('winter "fluff-surviv-wallpaper.png")
 	     ('spring "kandinsky-wallpaper.png")
 	     ('summer "fluff-blossom-wallpaper.png")
 	     ('fall   "bach-wallpaper.png"))))
-      (run (concat "feh --bg-center /home/gator/keep/images/wallpapers/" wallpaper))
-      (adjust-frame-transparency)))
+    (run (concat "feh --bg-center /home/gator/keep/images/wallpapers/" wallpaper))
+    (adjust-frame-transparency)))
 
-  (set-wallpaper-by-season)
+(set-wallpaper-by-season)
 #+end_src
 ** make buffer names class names
 #+begin_src elisp
-  (add-hook 'exwm-update-class-hook
+(add-hook 'exwm-update-class-hook
 	    (lambda () (exwm-workspace-rename-buffer (downcase exwm-class-name))))
 #+end_src
 ** initial config
 #+begin_src elisp
-  (require 'bar)
-  (add-hook 'exwm-init-hook #'bar)
+(require 'bar)
+(add-hook 'exwm-init-hook #'bar)
 
-  (run "picom")
-  (run "setxkbmap us,ca -option 'grp:win_space_toggle'")
+(run "picom")
+(run "setxkbmap us,ca -option 'grp:win_space_toggle'")
 
-  (defvar sleep-minutes
-    "Idle minutes until sleep")
-  (defun set-sleep-minutes (minutes)
-    (interactive (list (read-number "Idle minutes until sleep: " 2)))
-    (setq sleep-minutes minutes)
-    (run (concat
+(defvar sleep-minutes
+  "Idle minutes until sleep")
+(defun set-sleep-minutes (minutes)
+  (interactive (list (read-number "Idle minutes until sleep: " 2)))
+  (setq sleep-minutes minutes)
+  (run (concat
 	  "pkill xidlehook ;"
 	  "xidlehook --not-when-audio --timer "
 	  (number-to-string (round (* minutes 60)))
 	  " 'systemctl suspend' ''")))
-  (set-sleep-minutes 2)
+(set-sleep-minutes 2)
 
-  (setq inhibit-startup-screen t)
-  (setq initial-scratch-message nil)
+(setq inhibit-startup-screen t)
+(setq initial-scratch-message nil)
 #+end_src
 ** keybinds
 #+begin_src elisp
-  (defun screenshot ()
-    (interactive)
-    (let* ((inhibit-message t)
-    	 (time (format-time-string "%H_%M_%S" (current-time)))
-    	 (file (concat "/tmp/" time ".png")))
-      ;; this needs to be a shell command since it needs the &> ... because xclip is weird
-      (shell-command (concat "maim -sq " file " ; " "xclip -selection clipboard -t image/png " file " &> /dev/null"))))
+(defun screenshot ()
+  (interactive)
+  (let* ((inhibit-message t)
+  	 (time (format-time-string "%H_%M_%S" (current-time)))
+  	 (file (concat "/tmp/" time ".png")))
+    ;; this needs to be a shell command since it needs the &> ... because xclip is weird
+    (shell-command (concat "maim -sq " file " ; " "xclip -selection clipboard -t image/png " file " &> /dev/null"))))
 
-  (defun start-app (name)
-    (interactive (list (read-shell-command "$ ")))
-    (let ((existing-buffer
-    	 (->> (buffer-list)
-    	      (--filter (string-prefix-p name (buffer-name it)))
-    	      (--sort (string< (buffer-name it) (buffer-name other)))
-    	      car)))
-      (if existing-buffer
-    	(switch-to-buffer existing-buffer)
-        (run name))))
+(defun start-app (name)
+  (interactive (list (read-shell-command "$ ")))
+  (let ((existing-buffer
+  	 (->> (buffer-list)
+  	      (--filter (string-prefix-p name (buffer-name it)))
+  	      (--sort (string< (buffer-name it) (buffer-name other)))
+  	      car)))
+    (if existing-buffer
+  	(switch-to-buffer existing-buffer)
+      (run name))))
 
-  ;; Global keybindings.
-  (setq exwm-input-global-keys
-        `(([?\s-p] . start-app)
-    	([?\s-o] . (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
-    	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
-    	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
-    	([?\s-q] . (lambda () (interactive) (run "pkill wine")))
+;; Global keybindings.
+(setq exwm-input-global-keys
+      `(([?\s-p] . start-app)
+  	([?\s-o] . (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
+  	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
+  	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
+  	([?\s-q] . (lambda () (interactive) (run "pkill LockDownBrowser")))
 
-    	(,(kbd "s-<backspace>") . delete-window)
+  	(,(kbd "s-<backspace>") . delete-window)
 
-    	([?\M-:]  . eval-expression)
-    	([?\s-:]  . evil-ex)
-    	([?\s-m]  . exwm-input-toggle-keyboard)
+  	([?\M-:]  . eval-expression)
+  	([?\s-:]  . evil-ex)
+  	([?\s-m]  . exwm-input-toggle-keyboard)
 
-    	(,(kbd "s-S") . screenshot)
+  	(,(kbd "s-S") . screenshot)
 
-    	(,(kbd "<XF86AudioMute>") . (lambda () (interactive) (run "pactl set-sink-mute @DEFAULT_SINK@ toggle") (update-bar)))
-    	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ +5%") (update-bar)))
-    	(,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ -5%") (update-bar)))
+  	(,(kbd "<XF86AudioMute>") . (lambda () (interactive) (run "pactl set-sink-mute @DEFAULT_SINK@ toggle") (update-bar)))
+  	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ +5%") (update-bar)))
+  	(,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ -5%") (update-bar)))
 
-    	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (run "xbacklight -inc 3") (update-bar)))
-    	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (run "xbacklight -dec 3") (update-bar)))
+  	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (run "xbacklight -inc 3") (update-bar)))
+  	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (run "xbacklight -dec 3") (update-bar)))
 
-    	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
-    	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch-create 1)))
-    	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch-create 2)))))
+  	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
+  	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch-create 1)))
+  	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch-create 2)))))
 
-  (setq exwm-input-prefix-keys '(?\C-x ?\C-w ?\M-x))
-  (define-key exwm-mode-map (kbd "C-c") nil)
+(setq exwm-input-prefix-keys '(?\C-x ?\C-w ?\M-x))
+(define-key exwm-mode-map (kbd "C-c") nil)
 #+end_src
 ** enable exwm!
 #+begin_src elisp
-  (exwm-enable)
+(exwm-enable)
 #+end_src
 * visuals
 ** theme
 #+begin_src elisp
-  (load-theme 'wombat)
+(load-theme 'wombat)
 #+end_src
 ** mode line
 make mode line look nice (has to be done after theme)
 #+begin_src elisp
-  (setq-default mode-line-format
-  	      '((:eval (if buffer-read-only "" "  %*"))
-  		"  %b"
-  		mode-line-format-right-align
-  		(:eval
-  		 (pcase major-mode
-  		   ('exwm-mode "")
-  		   ('pdf-view-mode (format "%s" (pdf-view-current-pagelabel)))
-  		   (_ "%l-%C")))
-  		"  "))
-  ;; *Messages* doesn't want to change its mode line for some reason
-  (with-current-buffer (get-buffer "*Messages*")
-    (setq mode-line-format (default-value 'mode-line-format)))
-  (dolist (face '(mode-line mode-line-inactive))
-    (set-face-attribute face nil
-  		      :background 'unspecified
-  		      :overline   t))
+(setq-default mode-line-format
+	      '((:eval (if buffer-read-only "" "  %*"))
+		"  %b"
+		mode-line-format-right-align
+		(:eval
+		 (pcase major-mode
+		   ('exwm-mode "")
+		   ('pdf-view-mode (format "%s" (pdf-view-current-pagelabel)))
+		   (_ "%l-%C")))
+		"  "))
+;; *Messages* doesn't want to change its mode line for some reason
+(with-current-buffer (get-buffer "*Messages*")
+  (setq mode-line-format (default-value 'mode-line-format)))
+(dolist (face '(mode-line mode-line-inactive))
+  (set-face-attribute face nil
+		      :background 'unspecified
+		      :overline   t))
 #+end_src
 ** window properties
 #+begin_src elisp
-      (tool-bar-mode 0)
-      (menu-bar-mode 0)
-      (scroll-bar-mode 0)
-      (tooltip-mode -1)
-      (fringe-mode 0)
-      (dolist (face '(window-divider
+(tool-bar-mode 0)
+(menu-bar-mode 0)
+(scroll-bar-mode 0)
+(tooltip-mode -1)
+(fringe-mode 0)
+(dolist (face '(window-divider
 		      window-divider-last-pixel
 		      window-divider-first-pixel))
 	(face-spec-reset-face face)
@@ -331,188 +331,188 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** cursor properties
 #+begin_src elisp
-  (add-to-list 'default-frame-alist '(cursor-color . "gray"))
-  (blink-cursor-mode 0)
-  (setq show-paren-delay 0)
-  (show-paren-mode 1)
-  (require 'paren)
-  (set-face-background 'show-paren-match (face-attribute 'default :background))
-  (set-face-attribute 'show-paren-match nil :underline t)
+(add-to-list 'default-frame-alist '(cursor-color . "gray"))
+(blink-cursor-mode 0)
+(setq show-paren-delay 0)
+(show-paren-mode 1)
+(require 'paren)
+(set-face-background 'show-paren-match (face-attribute 'default :background))
+(set-face-attribute 'show-paren-match nil :underline t)
 #+end_src
 ** don't show cursor/mode line in empty buffers
 #+begin_src elisp
-  (defvar-local clean-mode-state nil)
-  (define-minor-mode clean-mode
-    "Hides the cursor and mode line."
-    :global nil
-    :init-value nil
-    (if clean-mode
-        (when (not clean-mode-state)
-  	(progn
-  	  ;(when (not (member (buffer-name) '(" *work*" " *bar*")))
-  	  ;  (message "Enabling clean-mode in buffer %s" (buffer-name)))
-  	  (setq clean-mode-state
-        		(buffer-local-set-state
-        		 mode-line-format nil
-        		 cursor           nil
-        		 evil-normal-state-cursor '(bar . 0)))))
-      (when clean-mode-state
-        (buffer-local-restore-state clean-mode-state)
-        (setq clean-mode-state nil))))
+(defvar-local clean-mode-state nil)
+(define-minor-mode clean-mode
+  "Hides the cursor and mode line."
+  :global nil
+  :init-value nil
+  (if clean-mode
+      (when (not clean-mode-state)
+	(progn
+	  ;(when (not (member (buffer-name) '(" *work*" " *bar*")))
+	  ;  (message "Enabling clean-mode in buffer %s" (buffer-name)))
+	  (setq clean-mode-state
+      		(buffer-local-set-state
+      		 mode-line-format nil
+      		 cursor           nil
+      		 evil-normal-state-cursor '(bar . 0)))))
+    (when clean-mode-state
+      (buffer-local-restore-state clean-mode-state)
+      (setq clean-mode-state nil))))
 
-  (setq inhibit-modification-hooks nil)
-  (dolist (hook '(window-state-change-functions after-change-functions))
-    (add-hook hook
-  	    (lambda (&rest _)
-  	      (let ((should-clean
-  		     (and (not (equal major-mode 'exwm-mode))
-  			  (equal (buffer-string) "")
-  			  (not (string-prefix-p " " (buffer-name))))))
-  		(clean-mode (if should-clean 1 -1))))))
+(setq inhibit-modification-hooks nil)
+(dolist (hook '(window-state-change-functions after-change-functions))
+  (add-hook hook
+	    (lambda (&rest _)
+	      (let ((should-clean
+		     (and (not (equal major-mode 'exwm-mode))
+			  (equal (buffer-string) "")
+			  (not (string-prefix-p " " (buffer-name))))))
+		(clean-mode (if should-clean 1 -1))))))
 #+end_src
 ** line numbers
 #+begin_src elisp
-  (global-display-line-numbers-mode)
-  (setq display-line-numbers-type 'relative)
+(global-display-line-numbers-mode)
+(setq display-line-numbers-type 'relative)
 #+end_src
 ** font
 #+begin_src elisp
-  (set-frame-font "Agave 10" nil t)
+(set-frame-font "Agave 10" nil t)
 #+end_src
 ** trailing whitespace
 #+begin_src elisp
-  (setq-default show-trailing-whitespace t)
-  (dolist (mode '(shell-mode-hook
+(setq-default show-trailing-whitespace t)
+(dolist (mode '(shell-mode-hook
 		  term-mode-hook
 		  eshell-mode-hook
 		  inferior-elisp-mode-hook
 		  Buffer-menu-mode-hook))
-    (add-hook mode (lambda ()
+  (add-hook mode (lambda ()
 		     (display-line-numbers-mode 0)
 		     (setq show-trailing-whitespace nil))))
 #+end_src
 * languages
 ** pretty
 #+begin_src elisp
-  (global-prettify-symbols-mode 1)
-  (defun operator-prettify-compose-p (start end _match) ; prettify-symbols-default-compose-p for docs
-    (and (memq (char-syntax (char-after start)) '(?. ?_))
-         (not (nth 8 (syntax-ppss)))))
-  (setq-default prettify-symbols-alist
-  	      '(("lambda" . ?λ)
-  		("&&"     . ?∧)
-  		("and"    . ?∧)
-  		("||"     . ?∨)
-  		("or"     . ?∨)
-  		("!"      . ?¬)
-  		("not"    . ?¬)
-  		("<="     . ?≤)
-  		(">="     . ?≥)))
-  (defconst pretty-alist
-    '(("->"           . ?→)
-      ("="            . ?←)
-      ("=="           . ?=)
-      ("!="           . ?≠)
-      ("=>"           . ?⇒)
-      ("==="          . ?=)
-      ("!=="          . ?≠)
-      ("*"            . ?×)
-      ("/"            . ?÷))
-      "Common symbols that could be prettified.")
-  (defun set-pretty (pretty-list)
-    (dolist (symbol pretty-list)
-      (push (assoc symbol pretty-alist) prettify-symbols-alist)))
-  (defun add-pretty (new-alist)
-    (setq prettify-symbols-alist(append new-alist prettify-symbols-alist)))
+(global-prettify-symbols-mode 1)
+(defun operator-prettify-compose-p (start end _match) ; prettify-symbols-default-compose-p for docs
+  (and (memq (char-syntax (char-after start)) '(?. ?_))
+       (not (nth 8 (syntax-ppss)))))
+(setq-default prettify-symbols-alist
+	      '(("lambda" . ?λ)
+		("&&"     . ?∧)
+		("and"    . ?∧)
+		("||"     . ?∨)
+		("or"     . ?∨)
+		("!"      . ?¬)
+		("not"    . ?¬)
+		("<="     . ?≤)
+		(">="     . ?≥)))
+(defconst pretty-alist
+  '(("->"           . ?→)
+    ("="            . ?←)
+    ("=="           . ?=)
+    ("!="           . ?≠)
+    ("=>"           . ?⇒)
+    ("==="          . ?=)
+    ("!=="          . ?≠)
+    ("*"            . ?×)
+    ("/"            . ?÷))
+    "Common symbols that could be prettified.")
+(defun set-pretty (pretty-list)
+  (dolist (symbol pretty-list)
+    (push (assoc symbol pretty-alist) prettify-symbols-alist)))
+(defun add-pretty (new-alist)
+  (setq prettify-symbols-alist(append new-alist prettify-symbols-alist)))
 #+end_src
 ** tab
 #+begin_src elisp
- (defun set-normal-tab (width)
-   (electric-indent-local-mode 0)
-   (setq indent-line-function (lambda () (interactive) (insert "\t")))
-   (setq tab-width width))
+(defun set-normal-tab (width)
+  (electric-indent-local-mode 0)
+  (setq indent-line-function (lambda () (interactive) (insert "\t")))
+  (setq tab-width width))
 #+end_src
 ** compiling
 #+begin_src elisp
-  (setq compilation-scroll-output t)
-  (defun kill-compilation-process ()
-    (interactive)
-    (when (get-buffer "*compilation*")
-      (with-current-buffer "*compilation*"
-  	(let ((process (get-buffer-process (current-buffer))))
-  	  (when process
-  	    (delete-process (get-buffer-process (current-buffer))))))))
-  (evil-define-key 'normal 'global (kbd "C-c DEL") #'kill-compilation-process)
+(setq compilation-scroll-output t)
+(defun kill-compilation-process ()
+  (interactive)
+  (when (get-buffer "*compilation*")
+    (with-current-buffer "*compilation*"
+	(let ((process (get-buffer-process (current-buffer))))
+	  (when process
+	    (delete-process (get-buffer-process (current-buffer))))))))
+(evil-define-key 'normal 'global (kbd "C-c DEL") #'kill-compilation-process)
 
-  (setq compilation-ask-about-save nil) ; save all buffers when compiling
-  (defmacro set-command (exp)
-    `(evil-local-set-key 'normal (kbd "C-c C-c") (lambda () (interactive) ,exp)))
-  (defmacro with-file-name (extension command)
-    `(progn
-       (kill-compilation-process)
-       (unless (and (buffer-file-name)
-  		    (equal ,extension (file-name-extension (buffer-file-name))))
-  	 (let ((old-buffer-name (buffer-name)))
-  	   (set-visited-file-name (concat "/tmp/" (format-time-string "%H_%M_%S" before-init-time) "." ,extension))
-  	   (rename-buffer old-buffer-name)))
-       (let* ((file-name (buffer-file-name))
-  	      (in-path   (file-name-with-extension file-name "in"))
-  	      (in        (if (file-exists-p in-path) (concat " < " in-path) "")))
-  	 (compile (concat ,command in) (equal in "")))))
-  (defun run-with (command extension)
-    (with-file-name extension (concat command " " file-name)))
+(setq compilation-ask-about-save nil) ; save all buffers when compiling
+(defmacro set-command (exp)
+  `(evil-local-set-key 'normal (kbd "C-c C-c") (lambda () (interactive) ,exp)))
+(defmacro with-file-name (extension command)
+  `(progn
+     (kill-compilation-process)
+     (unless (and (buffer-file-name)
+		    (equal ,extension (file-name-extension (buffer-file-name))))
+	 (let ((old-buffer-name (buffer-name)))
+	   (set-visited-file-name (concat "/tmp/" (format-time-string "%H_%M_%S" before-init-time) "." ,extension))
+	   (rename-buffer old-buffer-name)))
+     (let* ((file-name (buffer-file-name))
+	      (in-path   (file-name-with-extension file-name "in"))
+	      (in        (if (file-exists-p in-path) (concat " < " in-path) "")))
+	 (compile (concat ,command in) (equal in "")))))
+(defun run-with (command extension)
+  (with-file-name extension (concat command " " file-name)))
 
-  (defun append-compilation ()
-    (interactive)
-    (save-excursion
-      (end-of-buffer)
-      (insert "\n\n")
-      (let ((compilation-start (point))
-  	    (b (current-buffer))
-  	    (comment-style 'box-multi))
-  	(with-current-buffer "*compilation*"
-  	  (append-to-buffer b 1 (point-max)))
-  	(comment-region compilation-start (point-max)))))
-  (evil-define-key 'normal 'global (kbd "C-c C-a") #'append-compilation)
+(defun append-compilation ()
+  (interactive)
+  (save-excursion
+    (end-of-buffer)
+    (insert "\n\n")
+    (let ((compilation-start (point))
+	    (b (current-buffer))
+	    (comment-style 'box-multi))
+	(with-current-buffer "*compilation*"
+	  (append-to-buffer b 1 (point-max)))
+	(comment-region compilation-start (point-max)))))
+(evil-define-key 'normal 'global (kbd "C-c C-a") #'append-compilation)
 #+end_src
 ** elisp
 #+begin_src elisp
-  (add-hook 'emacs-lisp-mode-hook
-  	  (lambda () (add-pretty
-  		 '(("thread-first" . ?→)
-  		   ("thread-last"  . ?⇒)))))
+(add-hook 'emacs-lisp-mode-hook
+	  (lambda () (add-pretty
+		 '(("thread-first" . ?→)
+		   ("thread-last"  . ?⇒)))))
 #+end_src
 ** snobol
 #+begin_src elisp
-  (defvar snobol-mode-hook)
-  (define-generic-mode
-      'snobol-mode
-    '()
-    nil
-    nil
-    '("\\.sno$")
-    snobol-mode-hook)
-  (add-hook 'snobol-mode-hook
+(defvar snobol-mode-hook)
+(define-generic-mode
+    'snobol-mode
+  '()
+  nil
+  nil
+  '("\\.sno$")
+  snobol-mode-hook)
+(add-hook 'snobol-mode-hook
 	    (lambda ()
 	      (set-command (run-with "snobol4" "sno"))))
 #+end_src
 ** html
 #+begin_src elisp
-    (use-package web-mode)
-    (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
-    (add-hook 'web-mode-hook
-	      (lambda ()
-		(set-command (progn
-			       ;(add-to-list 'display-buffer-alist '("*compilation*" display-buffer-no-window (nil)))
-			       (run-with "firefox" "html")
-			       (sleep-for 0.2)
-			       ;(delete '("*compilation*" display-buffer-no-window (nil)) display-buffer-alist)
-  ))
-    (set-normal-tab 2)))
+(use-package web-mode)
+(add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
+(add-hook 'web-mode-hook
+  	  (lambda ()
+  	    (set-command (progn
+  			   (add-to-list 'display-buffer-alist '("*compilation*" display-buffer-no-window (nil)))
+  			   (run-with "firefox" "html")
+  			   (sleep-for 0.2)
+  			   (delete '("*compilation*" display-buffer-no-window (nil)) display-buffer-alist)))
+  	    (set-normal-tab 2)))
+(setq web-mode-hook nil)
 #+end_src
 ** fortran
 #+begin_src elisp
-  (add-hook 'fortran-mode-hook
+(add-hook 'fortran-mode-hook
 	    (lambda ()
 	      (set-command
 	       (with-file-name "f90" (concat "gfortran -O2 " file-name " -o /tmp/a.out && /tmp/a.out")))
@@ -521,20 +521,20 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** perl
 #+begin_src elisp
-  (add-hook 'perl-mode-hook
+(add-hook 'perl-mode-hook
 	    (lambda ()
 	      (set-command (run-with "perl" "pl"))))
 #+end_src
 ** lisp
 #+begin_src elisp
-  (add-hook 'lisp-data-mode-hook
+(add-hook 'lisp-data-mode-hook
 	    (lambda ()
 	      (electric-pair-local-mode t)
 	      (electric-indent-local-mode 1)))
 #+end_src
 ** scheme
 #+begin_src elisp
-  (add-hook 'scheme-mode-hook
+(add-hook 'scheme-mode-hook
 	    (lambda ()
 	      (electric-pair-local-mode t)
 	      (electric-indent-local-mode 1)
@@ -542,41 +542,41 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** java
 #+begin_src elisp
-  (add-hook 'java-mode-hook
+(add-hook 'java-mode-hook
 	    (lambda ()
 	      (set-command (run-with "java" "java"))
 	      (set-normal-tab 4)))
 #+end_src
 ** haskell
 #+begin_src elisp
- (use-package haskell-mode :defer t)
- (add-hook #'haskell-mode-hook
-    (lambda ()
-      (set-command
+(use-package haskell-mode :defer t)
+(add-hook #'haskell-mode-hook
+   (lambda ()
+     (set-command
 	 (unless (= 0 (shell-command "cabal run"))
 	   (run-with "runhaskell" "hs")))
-      (electric-indent-local-mode 1)))
+     (electric-indent-local-mode 1)))
 #+end_src
 ** python
 #+begin_src elisp
- (add-hook 'python-mode-hook
-    (lambda ()
-      (set-command (run-with "python3" "py"))
-      (set-normal-tab 2)
-      (set-pretty '("=" "==" "!="))))
+(add-hook 'python-mode-hook
+   (lambda ()
+     (set-command (run-with "python3" "py"))
+     (set-normal-tab 2)
+     (set-pretty '("=" "==" "!="))))
 #+end_src
 ** js
 #+begin_src elisp
- (add-hook 'js-mode-hook
-    (lambda ()
-      (set-command (run-with "node" "js"))
-      (set-normal-tab 4)
-      (setq prettify-symbols-compose-predicate #'operator-prettify-compose-p)
-      (set-pretty '("=" "===" "!==" "*"))))
+(add-hook 'js-mode-hook
+   (lambda ()
+     (set-command (run-with "node" "js"))
+     (set-normal-tab 4)
+     (setq prettify-symbols-compose-predicate #'operator-prettify-compose-p)
+     (set-pretty '("=" "===" "!==" "*"))))
 #+end_src
 ** c++
 #+begin_src elisp
-  (add-hook 'c++-mode-hook
+(add-hook 'c++-mode-hook
 	    (lambda ()
 	      (set-command
 	       (with-file-name "cpp" (concat "g++ -O2 " file-name " -o /tmp/a.out && /tmp/a.out")))
@@ -586,7 +586,7 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** c
 #+begin_src elisp
-  (add-hook 'c-mode-hook
+(add-hook 'c-mode-hook
 	    (lambda ()
 	      (set-command
 	       (with-file-name "c" (concat "gcc -O2 " file-name " -o /tmp/a.out && /tmp/a.out")))
@@ -596,114 +596,114 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** ruby
 #+begin_src elisp
-   (add-hook 'ruby-mode-hook
-      (lambda ()
+(add-hook 'ruby-mode-hook
+   (lambda ()
 	(set-command (run-with "ruby" "rb"))
 	(set-pretty '("=" "==" "!="))
 	(set-normal-tab 2)))
 #+end_src
 ** k
 #+begin_src elisp
-  (defvar k-mode-hook)
-  (define-generic-mode
-      'k-mode
-    '("/ ")
-    nil
-    nil
-    '("\\.k$")
-    k-mode-hook)
-  (add-hook 'k-mode-hook
+(defvar k-mode-hook)
+(define-generic-mode
+    'k-mode
+  '("/ ")
+  nil
+  nil
+  '("\\.k$")
+  k-mode-hook)
+(add-hook 'k-mode-hook
 	    (lambda ()
 	      (set-command (run-with "~/others/ngnk/k" "k"))))
 #+end_src
 ** lilypond
 #+begin_src elisp
-  (defvar lilypond-mode-hook)
-  (define-generic-mode
-      'lilypond-mode
-    '("%")
-    nil
-    nil
-    '("\\.ly$")
-    lilypond-mode-hook)
-  (add-hook 'lilypond-mode-hook
+(defvar lilypond-mode-hook)
+(define-generic-mode
+    'lilypond-mode
+  '("%")
+  nil
+  nil
+  '("\\.ly$")
+  lilypond-mode-hook)
+(add-hook 'lilypond-mode-hook
 	    (lambda () (set-normal-tab 4))
 	    (set-command (run-with "lilypond" "ly")))
 #+end_src
 ** mlatu
 #+begin_src elisp
- (require 'mlatu-mode)
+(require 'mlatu-mode)
 #+end_src
 ** typescript
 #+begin_src elisp
- (use-package tide :defer t)
- (defun setup-tide-mode ()
-   (interactive)
-   (tide-setup)
-   (flycheck-mode +1)
-   (setq flycheck-check-syntax-automatically '(save mode-enabled))
-   (setq tide-format-options '(:convertTabsToSpaces nil :tabSize 4 :indentStyle "none"))
-   (setq eldoc-idle-delay 0)
-   (eldoc-mode +1))
+(use-package tide :defer t)
+(defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (setq tide-format-options '(:convertTabsToSpaces nil :tabSize 4 :indentStyle "none"))
+  (setq eldoc-idle-delay 0)
+  (eldoc-mode +1))
 
- ;; aligns annotation to the right hand side
- (setq company-tooltip-align-annotations t)
+;; aligns annotation to the right hand side
+(setq company-tooltip-align-annotations t)
 
- ;; formats the buffer before saving
- (add-hook 'before-save-hook 'tide-format-before-save)
+;; formats the buffer before saving
+(add-hook 'before-save-hook 'tide-format-before-save)
 
- (add-hook 'typescript-mode-hook #'setup-tide-mode)
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
 
- (add-hook 'typescript-mode-hook
-    (lambda () (set-normal-tab 4)))
+(add-hook 'typescript-mode-hook
+   (lambda () (set-normal-tab 4)))
 #+end_src
 ** v
 #+begin_src elisp
- (use-package v-mode
-   :defer t
-   :mode ("\\(\\.v?v\\|\\.vsh\\)$" . 'v-mode))
+(use-package v-mode
+  :defer t
+  :mode ("\\(\\.v?v\\|\\.vsh\\)$" . 'v-mode))
 #+end_src
 ** prolog
 #+begin_src elisp
- (use-package ediprolog :defer t)
- (setq ediprolog-program "/home/gator/.bin/scryer-prolog")
- (add-hook 'prolog-mode-hook
-    (lambda () (set-command (ediprolog-dwim))))
+(use-package ediprolog :defer t)
+(setq ediprolog-program "/home/gator/.bin/scryer-prolog")
+(add-hook 'prolog-mode-hook
+   (lambda () (set-command (ediprolog-dwim))))
 #+end_src
 ** ocaml
 #+begin_src elisp
- (use-package tuareg :defer t)
+(use-package tuareg :defer t)
 #+end_src
 ** rust
 #+begin_src elisp
-  (add-hook 'rust-mode-hook
+(add-hook 'rust-mode-hook
 	    (lambda ()
 	      (set-command
 		 (unless (= 0 (shell-command "cargo run"))
 		   (with-file-name "rs" (concat "rustc " file-name " -o /tmp/a.out && /tmp/a.out"))))
 	      (set-normal-tab 2)))
-  (use-package rust-mode :defer t)
+(use-package rust-mode :defer t)
 #+end_src
 
 * minor modes
 ** dired
 #+begin_src elisp
-  (setq dired-omit-files "^\\.")
-  (defun toggle-dired-omit-mode ()
-    (interactive)
-    (dired-omit-mode (if dired-omit-mode -1 1)))
-  (add-hook 'dired-mode-hook
+(setq dired-omit-files "^\\.")
+(defun toggle-dired-omit-mode ()
+  (interactive)
+  (dired-omit-mode (if dired-omit-mode -1 1)))
+(add-hook 'dired-mode-hook
 	    (lambda ()
 	      (dired-omit-mode)
 	      (dired-hide-details-mode)
 	      (auto-revert-mode)
 	      (evil-local-set-key 'normal (kbd "C-c o") #'toggle-dired-omit-mode)))
-  (add-hook 'image-mode-hook (lambda () (display-line-numbers-mode 0)))
+(add-hook 'image-mode-hook (lambda () (display-line-numbers-mode 0)))
 
-  (use-package dired-preview
-    :config
-    (setq dired-preview-delay 0)
-    (setq dired-preview-ignored-extensions-regexp
+(use-package dired-preview
+  :config
+  (setq dired-preview-delay 0)
+  (setq dired-preview-ignored-extensions-regexp
 	  (replace-regexp-in-string
 	   "\\\\|pdf"
 	   ""
@@ -711,12 +711,12 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** pdf mode
 #+begin_src elisp
-  (use-package pdf-tools)
-  (pdf-tools-install)
+(use-package pdf-tools)
+(pdf-tools-install)
 #+end_src
 Make the page resize on opening
 #+begin_src elisp
-  (add-hook 'pdf-view-mode-hook
+(add-hook 'pdf-view-mode-hook
 	    (lambda ()
 	      (run-with-timer 0.5 nil
 			      (lambda ()
@@ -725,7 +725,7 @@ Make the page resize on opening
 #+end_src
 Make the file size limit larger on PDF files
 #+begin_src elisp
-  (advice-add #'abort-if-file-too-large :around
+(advice-add #'abort-if-file-too-large :around
 	      (lambda (oldfun size op-type filename &optional offer-raw)
 		(let ((large-file-warning-threshold
 		       (if (equal (file-name-extension filename) "pdf")
@@ -735,7 +735,7 @@ Make the file size limit larger on PDF files
 #+end_src
 Fix PDF file displaying when windows are changed
 #+begin_src elisp
-  (add-hook #'window-configuration-change-hook
+(add-hook #'window-configuration-change-hook
 	    (lambda ()
 	      (dolist (w (window-list))
 		(with-selected-window w
@@ -744,23 +744,24 @@ Fix PDF file displaying when windows are changed
 #+end_src
 ** org config
 #+begin_src elisp
-  (setq org-startup-folded t)
-  (setq org-startup-truncated nil)
-  (setq org-src-tab-acts-natively t)
-  (add-hook 'org-mode-hook
-	    (lambda ()
-	      (electric-pair-local-mode t)
-	      (electric-indent-local-mode 1)))
+(setq org-startup-folded t)
+(setq org-startup-truncated nil)
+(setq org-src-tab-acts-natively t)
+(setq org-edit-src-content-indentation 0)
+(add-hook 'org-mode-hook
+	  (lambda ()
+	    (electric-pair-local-mode t)
+	    (electric-indent-local-mode 1)))
 #+end_src
 ** eshell
 #+begin_src elisp
-  (require 'eshell)
-  (require 'em-smart)
-  (setq eshell-where-to-jump 'begin)
-  (setq eshell-review-quick-commands nil)
-  (add-to-list 'eshell-modules-list 'eshell-smart)
+(require 'eshell)
+(require 'em-smart)
+(setq eshell-where-to-jump 'begin)
+(setq eshell-review-quick-commands nil)
+(add-to-list 'eshell-modules-list 'eshell-smart)
 
-  (setq eshell-prompt-function
+(setq eshell-prompt-function
 	(lambda ()
 	  (concat
 	   (format-time-string "%H:%M:%S" (current-time))
@@ -768,62 +769,65 @@ Fix PDF file displaying when windows are changed
 	   (eshell/basename (eshell/pwd))
 	   " λ ")))
 
-  (setq eshell-prompt-regexp "^[^λ\n]* λ ")
+(setq eshell-prompt-regexp "^[^λ\n]* λ ")
 #+end_src
 * misc emacs config
+** little stuff
 #+begin_src elisp
-  (require 'edit-var)
-  (put 'narrow-to-region 'disabled nil)
-  (save-place-mode 1)
-  (setq confirm-kill-processes nil)
-  (setq vc-follow-symlinks t)
-  (global-hi-lock-mode 1)
-  (setq auto-revert-verbose nil)
-  (setq custom-file "~/.emacs.d/custom.el")
+(require 'edit-var)
+(put 'narrow-to-region 'disabled nil)
+(save-place-mode 1)
+(setq confirm-kill-processes nil)
+(setq vc-follow-symlinks t)
+(global-hi-lock-mode 1)
+(setq auto-revert-verbose nil)
+(setq custom-file "~/.emacs.d/custom.el")
 
-  ;; don't prompt whether to kill processes in buffers
-  (setq kill-buffer-query-functions (delq #'process-kill-buffer-query-function kill-buffer-query-functions))
+;; don't prompt whether to kill processes in buffers
+(setq kill-buffer-query-functions (delq #'process-kill-buffer-query-function kill-buffer-query-functions))
 #+end_src
-
-Make align-regexp use spaces:
+** Make align-regexp use spaces:
 #+begin_src elisp
-  (defun align-with-spaces (align-regexp &rest args)
-    (let ((indent-tabs-mode nil))
-      (apply align-regexp args)))
-  (advice-add #'align-regexp :around #'align-with-spaces)
+(defun align-with-spaces (align-regexp &rest args)
+  (let ((indent-tabs-mode nil))
+    (apply align-regexp args)))
+(advice-add #'align-regexp :around #'align-with-spaces)
 #+end_src
-
-Make narrowing restore font size:
+** Make narrowing restore font size:
 #+begin_src elisp
-  (require 'face-remap)
-  (defvar-local before-narrow-scale 0
-    "The `text-scale-mode-amount' before narrowing")
-  (advice-add #'narrow-to-region :before
-        	    (lambda (_ _) (when (boundp 'text-scale-mode-amount)
-  			    (setq before-narrow-scale text-scale-mode-amount))))
-  (advice-add #'widen :after
-        	    (lambda () (text-scale-set before-narrow-scale)))
+(require 'face-remap)
+(defvar-local before-narrow-scale 0
+  "The `text-scale-mode-amount' before narrowing")
+(advice-add #'narrow-to-region :before
+      	    (lambda (_ _) (when (boundp 'text-scale-mode-amount)
+			    (setq before-narrow-scale text-scale-mode-amount))))
+(advice-add #'widen :after
+      	    (lambda () (text-scale-set before-narrow-scale)))
 #+end_src
-
+** Bookmarks
 Save bookmarks when a new one is added:
 #+begin_src elisp
-  (advice-add #'bookmark-set :after (lambda (&optional _ _) (bookmark-save)))
+(advice-add #'bookmark-set :after (lambda (&optional _ _) (bookmark-save)))
+#+end_src
+
+Save bookmark position for PDFs
+#+begin_src elisp
 #+end_src
 * misc packages
 #+begin_src elisp
-  (use-package 2048-game :defer t)
+(use-package 2048-game :defer t)
 
-  ;; analyze emacs startup
-  (setq esup-depth 0)
-  (use-package esup
-    :defer t)
+;; analyze emacs startup
+(setq esup-depth 0)
+(use-package esup
+  :defer t)
 
-  (use-package magit :defer t)
+(use-package magit :defer t)
 
-  (use-package fireplace)
+(use-package fireplace)
 
-  (use-package exec-path-from-shell)
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize))
+(use-package exec-path-from-shell)
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
 #+end_src
 
