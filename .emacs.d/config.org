@@ -786,14 +786,14 @@ Fix PDF file displaying when windows are changed
 ;; don't prompt whether to kill processes in buffers
 (setq kill-buffer-query-functions (delq #'process-kill-buffer-query-function kill-buffer-query-functions))
 #+end_src
-** Make align-regexp use spaces:
+** Make align-regexp use spaces
 #+begin_src elisp
 (defun align-with-spaces (align-regexp &rest args)
   (let ((indent-tabs-mode nil))
     (apply align-regexp args)))
 (advice-add #'align-regexp :around #'align-with-spaces)
 #+end_src
-** Make narrowing restore font size:
+** Make narrowing restore font size
 #+begin_src elisp
 (require 'face-remap)
 (defvar-local before-narrow-scale 0
@@ -807,11 +807,25 @@ Fix PDF file displaying when windows are changed
 ** Bookmarks
 Save bookmarks when a new one is added:
 #+begin_src elisp
-(advice-add #'bookmark-set :after (lambda (&optional _ _) (bookmark-save)))
+(advice-add #'bookmark-set :after
+	    (lambda (&optional _ _)
+	      (let ((inhibit-message t))
+		(bookmark-save))))
 #+end_src
 
 Save bookmark position for PDFs
 #+begin_src elisp
+(defvar-local bookmark-used nil)
+(advice-add #'bookmark-jump :after
+	    (lambda (bookmark &optional _)
+	      (when (and
+		     buffer-file-name
+		     (equal (file-name-extension buffer-file-name) "pdf"))
+	      (setq bookmark-used bookmark))))
+(advice-add #'kill-buffer :before
+	    (lambda (&optional _)
+	      (when bookmark-used
+		(bookmark-set bookmark-used))))
 #+end_src
 * misc packages
 #+begin_src elisp
