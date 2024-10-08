@@ -6,7 +6,7 @@
 - make org headings different sizes
 - get aliases working (k)
 - rust json
-- compile mode add year, time elapsed
+- compile mode add year
 - fix evil-auto-indent
 - evil registers (@ and pasting macros)
 - artist make work when changing font size
@@ -35,11 +35,6 @@
 
 (push "~/.emacs.d/lisp" load-path)
 (use-package dash)
-
-(defun remove-all-advice (symbol)
-  (advice-mapc
-   (lambda (advice _) (advice-remove symbol advice))
-   symbol))
 #+end_src
 ** clean up temp files
 make sure temp files don't litter .emacs.d
@@ -502,11 +497,8 @@ make mode line look nice (has to be done after theme)
 (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
 (add-hook 'web-mode-hook
   	  (lambda ()
-  	    (set-command (progn
-  			   (add-to-list 'display-buffer-alist '("*compilation*" display-buffer-no-window (nil)))
-  			   (run-with "firefox" "html")
-  			   (sleep-for 0.2)
-  			   (delete '("*compilation*" display-buffer-no-window (nil)) display-buffer-alist)))
+  	    (set-command
+	     (with-file-name "html" (concat "firefox " file-name)))
   	    (set-normal-tab 2)))
 (setq web-mode-hook nil)
 #+end_src
@@ -739,7 +731,7 @@ Fix PDF file displaying when windows are changed
 	    (lambda ()
 	      (dolist (w (window-list))
 		(with-selected-window w
-		  (when (eq major-mode 'pdf-view-mode)
+		  (when (equal major-mode 'pdf-view-mode)
 		    (pdf-view-redisplay t))))))
 #+end_src
 ** org config
@@ -804,29 +796,6 @@ Fix PDF file displaying when windows are changed
 (advice-add #'widen :after
       	    (lambda () (text-scale-set before-narrow-scale)))
 #+end_src
-** Bookmarks
-Save bookmarks when a new one is added:
-#+begin_src elisp
-(advice-add #'bookmark-set :after
-	    (lambda (&optional _ _)
-	      (let ((inhibit-message t))
-		(bookmark-save))))
-#+end_src
-
-Save bookmark position for PDFs
-#+begin_src elisp
-(defvar-local bookmark-used nil)
-(advice-add #'bookmark-jump :after
-	    (lambda (bookmark &optional _)
-	      (when (and
-		     buffer-file-name
-		     (equal (file-name-extension buffer-file-name) "pdf"))
-	      (setq bookmark-used bookmark))))
-(advice-add #'kill-buffer :before
-	    (lambda (&optional _)
-	      (when bookmark-used
-		(bookmark-set bookmark-used))))
-#+end_src
 * misc packages
 #+begin_src elisp
 (use-package 2048-game :defer t)
@@ -844,4 +813,71 @@ Save bookmark position for PDFs
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
 #+end_src
+* bookmarks
+Save bookmarks when a new one is added:
+#+begin_src elisp
+(advice-add #'bookmark-set :after
+	    (lambda (&optional _ _)
+	      (let ((inhibit-message t))
+		(bookmark-save))))
+#+end_src
+** PDFs
+Save bookmark position for PDFs, and rename their buffers to the bookmark name
+#+begin_src elisp
+(defvar-local bookmark-used nil)
+(defvar-local before-jump-page nil)
+(advice-add #'bookmark-jump :before
+	    (lambda (_ &optional _) (setq before-jump-page (and (equal major-mode 'pdf-view-mode) (pdf-view-current-page)))))
+(defun mark-bookmark-for-saving (name)
+  (when (equal major-mode 'pdf-view-mode)
+    (setq bookmark-used name)
+    (rename-buffer name t)))
+(defun dup-pdf-buffer-if-needed (name)
+  (when bookmark-used ; this pdf already is accessed with a bookmark
+    (let ((target-page (pdf-view-current-page)))
+      ;; to back to the original page
+      (pdf-view-goto-page before-jump-page)
+      (if-let ((buf (get-buffer name))
+	       ((equal name (with-current-buffer buf bookmark-used))))
+	  ;; target bookmark is already a buffer, switch to it
+	  (switch-to-buffer name)
+	(let ((filename (buffer-file-name))
+	      (buf (get-buffer-create name)))
+	  ;; use a copied buffer so the original bookmark doesn't get clobbered
+	  ;; need to manually copy since pdf-tools doesn't play nice with indirect buffers
+	  (copy-to-buffer buf (point-min) (point-max))
+	  (switch-to-buffer buf)
+	  (set-buffer-modified-p nil)
+	  (read-only-mode)
+	  (setq buffer-file-name filename) ; trick pdf-view-mode
+	  (pdf-view-mode)
+	  (pdf-view-goto-page target-page))))))
+(advice-add #'bookmark-jump :after
+	    (lambda (name &optional _)
+	      (dup-pdf-buffer-if-needed name)
+	      (mark-bookmark-for-saving name)))
+(advice-add #'bookmark-store :before
+	    (lambda (name _ _) (mark-bookmark-for-saving name)))
+(advice-add #'kill-buffer :before
+	    (lambda (&optional _)
+	      (when bookmark-used
+		(bookmark-set bookmark-used))))
+#+end_src
 
+* misc utility functions
+#+begin_src elisp
+(defun remove-all-advice (symbol)
+  (advice-mapc
+   (lambda (advice _) (advice-remove symbol advice))
+   symbol))
+
+(defun latin ()
+  (interactive)
+  (let* ((days (date-to-day (current-time-string)))
+	 (d2 (= (mod days 2) 0))
+	 (d3 (= (mod days 4) 1)))
+    (cond
+     (d2 (message "Decks 1 and 2"))
+     (d3 (message "Decks 1 and 3"))
+     (t  (message "Deck 1")))))
+#+end_src
