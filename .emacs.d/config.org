@@ -47,6 +47,23 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
 (setq auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
 (setq lock-file-name-transforms      `((".*" ,temporary-file-directory t)))
 #+end_src
+* misc utility functions
+#+begin_src elisp
+(defun remove-all-advice (symbol)
+  (advice-mapc
+   (lambda (advice _) (advice-remove symbol advice))
+   symbol))
+
+(defun latin ()
+  (interactive)
+  (let* ((days (date-to-day (current-time-string)))
+	 (d2 (= (mod days 2) 0))
+	 (d3 (= (mod days 4) 1)))
+    (cond
+     (d2 (message "Decks 1 and 2"))
+     (d3 (message "Decks 1 and 3"))
+     (t  (message "Deck 1")))))
+#+end_src
 * keybinds and evil
 #+begin_src elisp
 ;; evil
@@ -418,7 +435,7 @@ make mode line look nice (has to be done after theme)
   (dolist (symbol pretty-list)
     (push (assoc symbol pretty-alist) prettify-symbols-alist)))
 (defun add-pretty (new-alist)
-  (setq prettify-symbols-alist(append new-alist prettify-symbols-alist)))
+  (setq prettify-symbols-alist (append new-alist prettify-symbols-alist)))
 #+end_src
 ** tab
 #+begin_src elisp
@@ -578,6 +595,7 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** c
 #+begin_src elisp
+(add-to-list 'auto-mode-alist '("\\.ino\\'" . c-mode))
 (add-hook 'c-mode-hook
 	    (lambda ()
 	      (set-command
@@ -826,8 +844,12 @@ Save bookmark position for PDFs, and rename their buffers to the bookmark name
 #+begin_src elisp
 (defvar-local bookmark-used nil)
 (defvar-local before-jump-page nil)
+;; todo: what if the bookmarked buffer isn't currently selected
 (advice-add #'bookmark-jump :before
-	    (lambda (_ &optional _) (setq before-jump-page (and (equal major-mode 'pdf-view-mode) (pdf-view-current-page)))))
+	    (lambda (_ &optional _)
+	      (dolist (buf (buffer-list))
+		(with-current-buffer buf
+		  (setq before-jump-page (and (equal major-mode 'pdf-view-mode) (pdf-view-current-page)))))))
 (defun mark-bookmark-for-saving (name)
   (when (equal major-mode 'pdf-view-mode)
     (setq bookmark-used name)
@@ -844,7 +866,7 @@ Save bookmark position for PDFs, and rename their buffers to the bookmark name
 	(let ((filename (buffer-file-name))
 	      (buf (get-buffer-create name)))
 	  ;; use a copied buffer so the original bookmark doesn't get clobbered
-	  ;; need to manually copy since pdf-tools doesn't play nice with indirect buffers
+	  ;; need to manually copy since killing the base of an indirect buffer kills the indirect buffers as well
 	  (copy-to-buffer buf (point-min) (point-max))
 	  (switch-to-buffer buf)
 	  (set-buffer-modified-p nil)
@@ -864,20 +886,3 @@ Save bookmark position for PDFs, and rename their buffers to the bookmark name
 		(bookmark-set bookmark-used))))
 #+end_src
 
-* misc utility functions
-#+begin_src elisp
-(defun remove-all-advice (symbol)
-  (advice-mapc
-   (lambda (advice _) (advice-remove symbol advice))
-   symbol))
-
-(defun latin ()
-  (interactive)
-  (let* ((days (date-to-day (current-time-string)))
-	 (d2 (= (mod days 2) 0))
-	 (d3 (= (mod days 4) 1)))
-    (cond
-     (d2 (message "Decks 1 and 2"))
-     (d3 (message "Decks 1 and 3"))
-     (t  (message "Deck 1")))))
-#+end_src
