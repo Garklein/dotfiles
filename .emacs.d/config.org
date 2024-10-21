@@ -274,7 +274,6 @@ run a command
   	([?\s-o] . (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
   	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
   	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
-  	([?\s-q] . (lambda () (interactive) (run "pkill LockDownBrowser")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 
@@ -353,24 +352,25 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** don't show cursor/mode line in empty buffers
 #+begin_src elisp
-(defvar-local clean-mode-state nil)
+(defvar-local clean-mode-saved-mode-line-format nil)
+(defvar-local clean-mode-saved-evil-normal-state-cursor nil)
+(defvar-local in-clean-mode nil)
 (define-minor-mode clean-mode
   "Hides the cursor and mode line."
   :global nil
   :init-value nil
   (if clean-mode
-      (when (not clean-mode-state)
-	(progn
-	  ;(when (not (member (buffer-name) '(" *work*" " *bar*")))
-	  ;  (message "Enabling clean-mode in buffer %s" (buffer-name)))
-	  (setq clean-mode-state
-      		(buffer-local-set-state
-      		 mode-line-format nil
-      		 cursor           nil
-      		 evil-normal-state-cursor '(bar . 0)))))
-    (when clean-mode-state
-      (buffer-local-restore-state clean-mode-state)
-      (setq clean-mode-state nil))))
+      (unless in-clean-mode
+	(setq clean-mode-saved-mode-line-format         mode-line-format
+	      clean-mode-saved-evil-normal-state-cursor evil-normal-state-cursor
+  	      mode-line-format                          nil
+	      in-clean-mode                             t)
+	;; for some reason, with `setq', this doesn't work (the variable gets set before saving it)
+	(setq-local evil-normal-state-cursor            '(bar . 0)))
+    (when in-clean-mode
+      (setq mode-line-format         clean-mode-saved-mode-line-format
+	    evil-normal-state-cursor clean-mode-saved-evil-normal-state-cursor
+	    in-clean-mode            nil))))
 
 (setq inhibit-modification-hooks nil)
 (dolist (hook '(window-state-change-functions after-change-functions))
