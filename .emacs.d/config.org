@@ -736,12 +736,12 @@ Make the page resize on opening
 Make the file size limit larger on PDF files
 #+begin_src elisp
 (advice-add #'abort-if-file-too-large :around
-	      (lambda (oldfun size op-type filename &optional offer-raw)
-		(let ((large-file-warning-threshold
-		       (if (equal (file-name-extension filename) "pdf")
-			   100000000
-			 large-file-warning-threshold)))
-		  (funcall oldfun size op-type filename offer-raw))))
+	    (lambda (oldfun size op-type filename &optional offer-raw)
+	      (let ((large-file-warning-threshold
+		     (if (equal (file-name-extension filename) "pdf")
+			 150000000
+		       large-file-warning-threshold)))
+		(funcall oldfun size op-type filename offer-raw))))
 #+end_src
 Fix PDF file displaying when windows are changed
 #+begin_src elisp
@@ -880,9 +880,13 @@ Save bookmark position for PDFs, and rename their buffers to the bookmark name
 	      (mark-bookmark-for-saving name)))
 (advice-add #'bookmark-store :before
 	    (lambda (name _ _) (mark-bookmark-for-saving name)))
-(advice-add #'kill-buffer :before
-	    (lambda (&optional _)
-	      (when bookmark-used
-		(bookmark-set bookmark-used))))
+(defun pdf-save-bookmark ()
+  (when bookmark-used
+    (bookmark-set bookmark-used)))
+(advice-add #'kill-buffer :before (lambda (&optional _) (pdf-save-bookmark)))
+(add-hook 'kill-emacs-hook
+	  (lambda ()
+	    (dolist (b (buffer-list))
+	      (with-current-buffer b (pdf-save-bookmark)))))
 #+end_src
 
