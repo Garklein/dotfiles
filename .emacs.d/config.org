@@ -728,9 +728,9 @@ Make the page resize on opening
 #+begin_src elisp
 (add-hook 'pdf-view-mode-hook
 	    (lambda ()
-	      (run-with-timer 0.5 nil
+	      (display-line-numbers-mode 0)
+	      (run-with-timer 0.2 nil
 			      (lambda ()
-				(display-line-numbers-mode 0)
 				(pdf-view-fit-height-to-window)))))
 #+end_src
 Make the file size limit larger on PDF files
@@ -844,7 +844,8 @@ Save bookmark position for PDFs, and rename their buffers to the bookmark name
 #+begin_src elisp
 (defvar-local bookmark-used nil)
 (defvar-local before-jump-page nil)
-;; todo: what if the bookmarked buffer isn't currently selected
+;; todo: fix sizing and stuff
+;; since it resizes the original buffer
 (advice-add #'bookmark-jump :before
 	    (lambda (_ &optional _)
 	      (dolist (buf (buffer-list))
@@ -883,10 +884,6 @@ Save bookmark position for PDFs, and rename their buffers to the bookmark name
 (defun pdf-save-bookmark ()
   (when bookmark-used
     (bookmark-set bookmark-used)))
-(advice-add #'kill-buffer :before (lambda (&optional _) (pdf-save-bookmark)))
-(add-hook 'kill-emacs-hook
-	  (lambda ()
-	    (dolist (b (buffer-list))
-	      (with-current-buffer b (pdf-save-bookmark)))))
+(advice-add #'pdf-view-goto-page :after (lambda (_ &optional _) (pdf-save-bookmark)))
 #+end_src
 
