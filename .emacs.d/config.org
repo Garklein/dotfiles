@@ -108,6 +108,9 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   (evil-define-key 'normal 'global (kbd "M-n")
     (lambda () (interactive) (scroll-up (/ (window-total-height (selected-window)) 2))))
 
+  (evil-define-key 'normal 'global (kbd "C-x C-<backspace>")
+    (lambda () (interactive) (text-scale-set 0)))
+
   (evil-define-key 'insert 'global (kbd "C-<return>")
     (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative)))))
 
@@ -169,7 +172,7 @@ run a command
   (let ((file (make-temp-file ""))
 	(buf (generate-new-buffer (concat " *" command " output*"))))
     (with-temp-file file
-      (insert "(when-let ((output (eshell-command-result \"") (insert command) (insert "\")))")
+      (insert "(when-let* ((output (eshell-command-result \"") (insert command) (insert "\")))")
       (insert "  (message output))"))
     (async-shell-command (concat "cd ~/emacs && src/emacs --script " file " 2>&1 | tail -n +28") buf)))
 #+end_src
@@ -182,16 +185,18 @@ run a command
 (setq exwm-layout-show-all-buffers t)
 
 (defun adjust-frame-transparency ()
-  (let* ((wallpaper
-	    (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
-	   (brightness
-	    (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
-		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
-	   (alpha (+ (* -0.37 brightness) 1.11)))
+  (let* (;(wallpaper
+	 ;   (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
+	 ;  (brightness
+	 ;   (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
+         ;		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
+	 ;  (alpha (+ (* -0.37 brightness) 1.11))
+	 )
     (dolist (frame (frame-list))
 	(with-selected-frame frame
 	  (modify-all-frames-parameters
 	   `((alpha-background      . 0.87)
+	     (borders-respect-alpha-background . t)
 	     (right-divider-width   . 20)
 	     (bottom-divider-width  . 20)
 	     (internal-border-width . 20)))))))
@@ -230,6 +235,7 @@ run a command
 (add-hook 'exwm-init-hook #'bar)
 
 (run "picom")
+(run "easyeffects --gapplication-service")
 (run "setxkbmap us,ca -option 'grp:win_space_toggle'")
 
 (defvar sleep-minutes
@@ -803,17 +809,6 @@ Fix PDF file displaying when windows are changed
     (apply align-regexp args)))
 (advice-add #'align-regexp :around #'align-with-spaces)
 #+end_src
-** Make narrowing restore font size
-#+begin_src elisp
-(require 'face-remap)
-(defvar-local before-narrow-scale 0
-  "The `text-scale-mode-amount' before narrowing")
-(advice-add #'narrow-to-region :before
-      	    (lambda (_ _) (when (boundp 'text-scale-mode-amount)
-			    (setq before-narrow-scale text-scale-mode-amount))))
-(advice-add #'widen :after
-      	    (lambda () (text-scale-set before-narrow-scale)))
-#+end_src
 * misc packages
 #+begin_src elisp
 (use-package 2048-game :defer t)
@@ -860,7 +855,7 @@ Save bookmark position for PDFs, and rename their buffers to the bookmark name
     (let ((target-page (pdf-view-current-page)))
       ;; to back to the original page
       (pdf-view-goto-page before-jump-page)
-      (if-let ((buf (get-buffer name))
+      (if-let* ((buf (get-buffer name))
 	       ((equal name (with-current-buffer buf bookmark-used))))
 	  ;; target bookmark is already a buffer, switch to it
 	  (switch-to-buffer name)

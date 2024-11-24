@@ -3,7 +3,7 @@
 (defvar edit-var-buffers nil
   "Associates variable editing buffers with the symbol being edited.")
 (defun save-var (&rest _)
-  (when-let ((sym (alist-get (current-buffer) edit-var-buffers)))
+  (when-let* ((sym (alist-get (current-buffer) edit-var-buffers)))
     (set sym (thread-first (buffer-string) read-from-string car eval))
     (kill-buffer)
     (setq edit-var-buffers (seq-filter #'buffer-live-p edit-var-buffers)) ; also remove any killed variable editing buffers
