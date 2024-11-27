@@ -280,6 +280,8 @@ run a command
   	([?\s-o] . (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
   	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
   	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
+  	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
+  	;([?\s-f] . (lambda () (interactive) (start-app "wine 'c:\\GreenArrays\\EVB002\\Okad2-42c-pd.exe'")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 
@@ -401,13 +403,22 @@ make mode line look nice (has to be done after theme)
 #+begin_src elisp
 (setq-default show-trailing-whitespace t)
 (dolist (mode '(shell-mode-hook
-		  term-mode-hook
-		  eshell-mode-hook
-		  inferior-elisp-mode-hook
-		  Buffer-menu-mode-hook))
+		term-mode-hook
+		eshell-mode-hook
+		inferior-elisp-mode-hook
+		Buffer-menu-mode-hook
+		calendar-mode-hook))
   (add-hook mode (lambda ()
-		     (display-line-numbers-mode 0)
-		     (setq show-trailing-whitespace nil))))
+		   (display-line-numbers-mode 0)
+		   (setq show-trailing-whitespace nil))))
+(defun toggle-trailing-whitespace-and-numbers ()
+  (interactive)
+  (if show-trailing-whitespace
+      (progn
+	(display-line-numbers-mode 0)
+	(setq show-trailing-whitespace nil))
+    (display-line-numbers-mode t)
+    (setq show-trailing-whitespace t)))
 #+end_src
 * languages
 ** pretty
