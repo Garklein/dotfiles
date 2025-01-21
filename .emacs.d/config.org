@@ -571,7 +571,8 @@ make mode line look nice (has to be done after theme)
 (add-hook 'java-mode-hook
 	    (lambda ()
 	      (set-command (run-with "java" "java"))
-	      (set-normal-tab 4)))
+	      (set-normal-tab 4)
+	      (set-pretty '("=" "==" "!="))))
 #+end_src
 ** haskell
 #+begin_src elisp
@@ -593,12 +594,13 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** js
 #+begin_src elisp
-(add-hook 'js-mode-hook
-   (lambda ()
-     (set-command (run-with "node" "js"))
-     (set-normal-tab 4)
-     (setq prettify-symbols-compose-predicate #'operator-prettify-compose-p)
-     (set-pretty '("=" "===" "!==" "*"))))
+(dolist (h '(js-mode-hook web-mode-hook))
+  (add-hook h
+	    (lambda ()
+	      (set-command (run-with "node" "js"))
+	      (set-normal-tab 4)
+	      ; (setq prettify-symbols-compose-predicate #'operator-prettify-compose-p)
+	      (set-pretty '("=" "==" "!=" "*")))))
 #+end_src
 ** c++
 #+begin_src elisp
@@ -752,11 +754,12 @@ Make the page resize on opening
 #+end_src
 Make the file size limit larger on PDF files
 #+begin_src elisp
+(remove-all-advice #'abort-if-file-too-large)
 (advice-add #'abort-if-file-too-large :around
 	    (lambda (oldfun size op-type filename &optional offer-raw)
 	      (let ((large-file-warning-threshold
 		     (if (equal (file-name-extension filename) "pdf")
-			 150000000
+			 500000000
 		       large-file-warning-threshold)))
 		(funcall oldfun size op-type filename offer-raw))))
 #+end_src
@@ -784,9 +787,13 @@ Fix PDF file displaying when windows are changed
 #+begin_src elisp
 (require 'eshell)
 (require 'em-smart)
-(setq eshell-where-to-jump 'begin)
-(setq eshell-review-quick-commands nil)
-(add-to-list 'eshell-modules-list 'eshell-smart)
+; (setq eshell-where-to-jump 'begin)
+; (setq eshell-where-to-jump 'end)
+; (setq eshell-review-quick-commands t)
+; (add-to-list 'eshell-modules-list 'eshell-smart)
+; (setq eshell-where-to-jump 'begin)
+; (setq eshell-review-quick-commands t)
+; (setq eshell-smart-space-goes-to-end t)
 
 (setq eshell-prompt-function
 	(lambda ()
@@ -819,6 +826,11 @@ Fix PDF file displaying when windows are changed
   (let ((indent-tabs-mode nil))
     (apply align-regexp args)))
 (advice-add #'align-regexp :around #'align-with-spaces)
+#+end_src
+** make scratch default to k
+#+begin_src elisp
+(with-current-buffer (get-buffer "*scratch*")
+  (k-mode))
 #+end_src
 * misc packages
 #+begin_src elisp

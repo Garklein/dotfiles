@@ -11,4 +11,4 @@ alias p="yes | paru; emacs --script ~/.emacs.d/lisp/update-packages.el; ~/.confi
 alias mlatu="rlwrap ~/dormant/mlatu/repl"
 alias ls="ls --color=auto"
 alias grep='grep --color=auto'
-alias emacs='cd ~/emacs; ./src/emacs'
+alias emacs='cd ~/others/emacs; ./src/emacs'
