@@ -568,9 +568,16 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** java
 #+begin_src elisp
+(require 'files)
 (add-hook 'java-mode-hook
 	    (lambda ()
-	      (set-command (run-with "java" "java"))
+	      (set-command (with-file-name "java"
+			    (let ((name (-> file-name
+              				    file-name-sans-extension
+              				    (split-string "/")
+              				    last
+              				    car)))
+			      (concat "javac -encoding ISO-8859-1 *.java && java " name))))
 	      (set-normal-tab 4)
 	      (set-pretty '("=" "==" "!="))))
 #+end_src
@@ -819,6 +826,9 @@ Fix PDF file displaying when windows are changed
 
 ;; don't prompt whether to kill processes in buffers
 (setq kill-buffer-query-functions (delq #'process-kill-buffer-query-function kill-buffer-query-functions))
+
+;; don't show native comp warnings
+(setq native-comp-async-report-warnings-errors nil)
 #+end_src
 ** Make align-regexp use spaces
 #+begin_src elisp

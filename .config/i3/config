@@ -110,7 +110,7 @@ exec_always --no-startup-id ~/.config/i3/settings
 bindsym Print       exec --no-startup-id maim -suq | xclip -selection clipboard -t image/png
 bindsym $mod+Return exec --no-startup-id alacritty
 bindsym $mod+p      exec --no-startup-id rofi -modi drun -show drun
-bindsym $mod+o      exec --no-startup-id emacs
+bindsym $mod+o      exec --no-startup-id cd ~/others/emacs && ./src/emacs
 bindsym $mod+i      exec --no-startup-id firefox
 bindsym $mod+u      exec --no-startup-id webcord
 bindsym $mod+9      exec --no-startup-id drawterm -h 9p.sdf.org -a 9p.sdf.org -u garklein
