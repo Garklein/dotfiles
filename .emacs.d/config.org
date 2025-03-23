@@ -419,6 +419,7 @@ make mode line look nice (has to be done after theme)
 	(setq show-trailing-whitespace nil))
     (display-line-numbers-mode t)
     (setq show-trailing-whitespace t)))
+(evil-define-key 'normal 'global (kbd "C-c SPC") #'toggle-trailing-whitespace-and-numbers)
 #+end_src
 * languages
 ** pretty
@@ -577,7 +578,7 @@ make mode line look nice (has to be done after theme)
               				    (split-string "/")
               				    last
               				    car)))
-			      (concat "javac -encoding ISO-8859-1 *.java && java " name))))
+			      (concat "javac -encoding ISO-8859-1 *.java && java " name "; rm *.class"))))
 	      (set-normal-tab 4)
 	      (set-pretty '("=" "==" "!="))))
 #+end_src
@@ -841,6 +842,19 @@ Fix PDF file displaying when windows are changed
 #+begin_src elisp
 (with-current-buffer (get-buffer "*scratch*")
   (k-mode))
+#+end_src
+** command to delete buffers
+don't convert to buffer-names at the beginning because that can mess up when multiple buffers are named the same, but in different directories
+#+begin_src elisp
+(defun clean-up-buffers ()
+  (interactive)
+  (let ((buffers
+  	 (seq-remove
+  	  #'(lambda (b) (string-prefix-p " " (buffer-name b)))
+  	  (buffer-list))))
+    (dolist (b buffers)
+      (unless (member (buffer-name b) '("*scratch*" "firefox" "webcord"))
+    	(kill-buffer b)))))
 #+end_src
 * misc packages
 #+begin_src elisp
