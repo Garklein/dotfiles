@@ -474,6 +474,24 @@ make mode line look nice (has to be done after theme)
 	    (delete-process (get-buffer-process (current-buffer))))))))
 (evil-define-key 'normal 'global (kbd "C-c DEL") #'kill-compilation-process)
 
+(defun show-compilation-buffer ()
+  (let ((buffer-present
+	 (->> (window-list)
+	      (mapcar #'window-buffer)
+	      (member (get-buffer "*compilation*"))))
+	(fullscreen
+	 (->> (window-list)
+	      (seq-remove #'(lambda (w) (window-parameter w 'no-other-window)))
+	      length
+	      (= 1))))
+    (unless buffer-present
+      (if fullscreen
+	  (vertical-split)
+	(unless (window-in-direction 'below)
+      	  (horizontal-split)))
+      (let ((target (window-in-direction 'below)))
+	(set-window-buffer target (get-buffer-create "*compilation*"))))))
+
 (setq compilation-ask-about-save nil) ; save all buffers when compiling
 (defmacro set-command (exp)
   `(evil-local-set-key 'normal (kbd "C-c C-c") (lambda () (interactive) ,exp)))
@@ -488,7 +506,8 @@ make mode line look nice (has to be done after theme)
      (let* ((file-name (buffer-file-name))
 	      (in-path   (file-name-with-extension file-name "in"))
 	      (in        (if (file-exists-p in-path) (concat " < " in-path) "")))
-	 (compile (concat ,command in) (equal in "")))))
+       (show-compilation-buffer)
+       (compile (concat ,command in) (equal in "")))))
 (defun run-with (command extension)
   (with-file-name extension (concat command " " file-name)))
 
