@@ -86,6 +86,7 @@
 (defvar old-global-map nil
   "The global map that was used before the lock.")
 
+(defun noop (&rest _))
 (define-derived-mode cuendillar-mode fundamental-mode "Cuendillar"
   "Lock Emacs."
   (setf old-global-map global-map)
@@ -102,6 +103,7 @@
   (face-remap-add-relative 'show-paren-match '(:underline nil))
   ;; evil messes with the cursor so need to special case it
   (setq-local evil-normal-state-cursor '(bar . 0))
+  (advice-add #'message :override #'noop)
   (cuendillar/clear))
 
 (defun lock ()
@@ -115,6 +117,7 @@
   (kill-buffer (get-buffer-create "*cuendillar*"))
   (cuendillar/restore-windows)
   (use-global-map old-global-map)
+  (advice-remove #'message #'noop)
   (setf overriding-local-map old-overriding-local-map
 	overriding-terminal-local-map old-overriding-terminal-local-map))
 
