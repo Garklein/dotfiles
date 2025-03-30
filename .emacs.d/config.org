@@ -238,6 +238,13 @@ run a command
 (run "easyeffects --gapplication-service")
 (run "setxkbmap us,ca -option 'grp:win_space_toggle'")
 
+
+(require 'cuendillar)
+(server-start)
+(defun exwm-sleep ()
+  (interactive)
+  (lock)
+  (run "systemctl suspend"))
 (defvar sleep-minutes
   "Idle minutes until sleep")
 (defun set-sleep-minutes (minutes)
@@ -247,7 +254,7 @@ run a command
 	  "pkill xidlehook ;"
 	  "xidlehook --not-when-audio --timer "
 	  (number-to-string (round (* minutes 60)))
-	  " 'systemctl suspend' ''")))
+	  " 'cd ~/others/emacs; lib-src/emacsclient --eval \"(exwm-sleep)\"' ''")))
 (set-sleep-minutes 2)
 
 (setq inhibit-startup-screen t)

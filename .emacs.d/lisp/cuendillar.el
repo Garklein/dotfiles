@@ -2,7 +2,6 @@
   (window-configuration-to-register ?W)
   (delete-other-windows))
 (defun cuendillar/restore-windows ()
-  (interactive)
   (jump-to-register ?W))
 
 (defvar cuendillar/password ""
@@ -118,3 +117,5 @@
   (use-global-map old-global-map)
   (setf overriding-local-map old-overriding-local-map
 	overriding-terminal-local-map old-overriding-terminal-local-map))
+
+(provide 'cuendillar)
