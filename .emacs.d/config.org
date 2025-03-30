@@ -240,6 +240,8 @@ run a command
 
 
 (require 'cuendillar)
+;; emacs needs to be a service so that xidlehook can send a message to it
+;; to toggle cuendillar and sleep
 (server-start)
 (defun exwm-sleep ()
   (interactive)

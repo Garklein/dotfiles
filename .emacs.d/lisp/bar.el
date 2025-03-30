@@ -82,7 +82,6 @@
 ;; string-pixel-width doesn't work for some reason
 (defun bar/string-pixel-width (s)
   (with-selected-window (bar/get-bar-window)
-    (string-width s)
     (let ((old (buffer-substring-no-properties (point-min) (point-max))))
       (erase-buffer)
       (insert s)
@@ -98,18 +97,17 @@
       ;; need to disable read only up here since bar/string-pixel-width modifies the buffer
       (read-only-mode -1)
 
-      ;; as far as i can figure out, the width of the right margin which displays the / on too-long lines
-      ;; is the width of one character.
-      ;; however, we can't display there, so we also need to add a space to the right side,
-      ;; to balance it.
+      ;; window-body-width includes the column reserved for the continuation glyph
+      ;; this means we need to subtract 2 characters from the width,
+      ;; and we will also need to add a space to the left side to balance it.
       (let* ((w (- (window-body-width nil t) (* 2 (car (window-text-pixel-size nil 1 2)))))
 	     (left   (compute-module left-modules))
 	     (centre (compute-module centre-modules))
 	     (right  (compute-module right-modules))
 	     (left-spacing
-	      (- (floor (/ w 2.0))
+	      (- (/ w 2)
 		 (bar/string-pixel-width left)
-		 (floor (/ (bar/string-pixel-width centre) 2.0))))
+		 (/ (bar/string-pixel-width centre) 2)))
 	     (right-spacing
 	      (- (ceiling (/ w 2.0))
 		 (bar/string-pixel-width right)
