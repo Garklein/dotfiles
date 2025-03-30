@@ -79,8 +79,10 @@
   (remove-hook 'exwm-workspace-list-change-hook #'bar/bar-all-workspaces)
   (when (timerp bar-timer) (cancel-timer bar-timer)))
 
+;; string-pixel-width doesn't work for some reason
 (defun bar/string-pixel-width (s)
   (with-selected-window (bar/get-bar-window)
+    (string-width s)
     (let ((old (buffer-substring-no-properties (point-min) (point-max))))
       (erase-buffer)
       (insert s)
@@ -93,6 +95,9 @@
 (defun update-bar ()
   (when (bar/get-bar-window)
     (with-selected-window (bar/get-bar-window)
+      ;; need to disable read only up here since bar/string-pixel-width modifies the buffer
+      (read-only-mode -1)
+
       ;; as far as i can figure out, the width of the right margin which displays the / on too-long lines
       ;; is the width of one character.
       ;; however, we can't display there, so we also need to add a space to the right side,
@@ -115,7 +120,8 @@
 	(erase-buffer)
 	(insert line)
 	(add-display-text-property left-space (1+ left-space) 'display `(space . (:width (,left-spacing))))
- 	(add-display-text-property right-space (1+ right-space) 'display `(space . (:width (,right-spacing))))))))
+ 	(add-display-text-property right-space (1+ right-space) 'display `(space . (:width (,right-spacing))))
+	(read-only-mode)))))
 
 
 (defun file-to-string (file)
