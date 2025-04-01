@@ -240,8 +240,7 @@ run a command
 
 
 (require 'cuendillar)
-;; emacs needs to be a service so that xidlehook can send a message to it
-;; to toggle cuendillar and sleep
+;; emacs needs to be a server so that shells can send it commands to toggle cuendillar
 (server-start)
 (defun exwm-sleep ()
   (interactive)
@@ -256,7 +255,7 @@ run a command
 	  "pkill xidlehook ;"
 	  "xidlehook --not-when-audio --timer "
 	  (number-to-string (round (* minutes 60)))
-	  " 'cd ~/others/emacs; lib-src/emacsclient --eval \"(exwm-sleep)\"' ''")))
+	  " 'systemctl suspend' ''")))
 (set-sleep-minutes 2)
 
 (setq inhibit-startup-screen t)
