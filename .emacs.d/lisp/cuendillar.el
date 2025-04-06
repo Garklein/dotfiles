@@ -121,10 +121,11 @@
 
 (defun lock ()
   (interactive)
-  (cuendillar/fullscreen)
-  (switch-to-buffer (get-buffer-create "*cuendillar*"))
-  (cuendillar-mode)
-  (clean-mode))
+  (unless (eq major-mode 'cuendillar-mode)
+    (cuendillar/fullscreen)
+    (switch-to-buffer (get-buffer-create "*cuendillar*"))
+    (cuendillar-mode)
+    (clean-mode)))
 
 (defun cuendillar/unlock ()
   (kill-buffer (get-buffer-create "*cuendillar*"))
@@ -132,6 +133,7 @@
   (use-global-map old-global-map)
   (advice-remove #'message #'noop)
   (setf overriding-local-map old-overriding-local-map
-	overriding-terminal-local-map old-overriding-terminal-local-map))
+	overriding-terminal-local-map old-overriding-terminal-local-map)
+  (message "welcome"))
 
 (provide 'cuendillar)
