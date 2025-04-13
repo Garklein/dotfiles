@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 {
   imports = [
@@ -26,22 +26,20 @@
   i18n.defaultLocale = "en_CA.UTF-8";
 
   # Enable the X11 windowing system.
-  services.xserver.enable = true;
-
-  # https://www.reddit.com/r/NixOS/comments/15mrrez/tuigreet_configuration_for_hyprland/
-  # services.greetd = {
-  #   enable = true;
-  #   settings = {
-  #     default_session = {
-  #       command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --remember-session --sessions ${config.services.displayManager.sessionData.desktops}/share/xsessions";
-  #       # command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --remember-session";
-  #       user = "greeter";
-  #     };
-  #   };
-  # };
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.windowManager.exwm.enable = true;
-  # services.xserver.desktopManager.gnome.enable = true;
+  services.xserver = {
+    enable = true;
+    displayManager.startx.enable = true;
+    windowManager.exwm.enable = true;
+  };
+  services.greetd = {
+    enable = true;
+    settings = {
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --remember --remember-session -x ${config.services.displayManager.sessionData.desktops}/share/xsessions";
+        user = "greeter";
+      };
+    };
+  };
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -71,7 +69,7 @@
     description = "gator";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-      emacs30-pgtk
+      emacs
     ];
   };
   security.sudo.extraRules = [{
