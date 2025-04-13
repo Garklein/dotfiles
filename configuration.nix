@@ -1,9 +1,9 @@
 { config, pkgs, inputs, ... }:
 
 {
-  imports =
-    [ inputs.home-manager.nixosModules.default
-    ];
+  imports = [
+    inputs.home-manager.nixosModules.default
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -60,15 +60,8 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-
-    # use the example session manager (no others are packaged yet so this is enabled by default,
-    # no need to redefine it in your config for now)
-    #media-session.enable = true;
   };
 
-  services.picom.enable = true;
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
@@ -78,15 +71,13 @@
     description = "gator";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-    #  thunderbird
-      vim alacritty discord neofetch easyeffects emacs30-pgtk unzip git feh openssl python3 perl alsa-utils
+      emacs30-pgtk
     ];
   };
-  security.sudo.extraRules = [
-    { users = [ "gator" ]
-    ; commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }]
-    ; }
-  ];
+  security.sudo.extraRules = [{
+    users = [ "gator" ];
+    commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }];
+  }];
 
   # services.emacs.package = pkgs.emacs-unstable;
   nixpkgs.overlays = [
@@ -101,18 +92,19 @@
     # })
   ];
 
-  # Install firefox.
-  # programs.firefox.enable = true;
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
 
   home-manager = {
     extraSpecialArgs = { inherit inputs; };
     users = {
       "gator" = import ./home.nix;
     };
-  };
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+    # allow unfree packages
+    useGlobalPkgs = true;
+    useUserPackages = true;
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

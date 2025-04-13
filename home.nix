@@ -1,10 +1,10 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ modules/firefox.nix
-      modules/git.nix
-    ];
+  imports = [
+    modules/firefox.nix
+    modules/git.nix
+  ];
 
   home.username = "gator";
   home.homeDirectory = "/home/gator";
@@ -19,14 +19,13 @@
   home.stateVersion = "24.11"; # Please read the comment before changing.
 
   home.packages = with pkgs; [
-    agave gh
+    agave gh feh python3 perl alsa-utils unzip easyeffects neofetch vim alacritty webcord
   ];
 
+  services.picom.enable = true;
+
   home.file = {
-    ".emacs.d/init.el".source = dotfiles/.emacs.d/init.el;
-    ".emacs.d/config.org".source = dotfiles/.emacs.d/config.org;
-    ".emacs.d/custom.el".source = dotfiles/.emacs.d/custom.el;
-    ".emacs.d/lisp".source = dotfiles/.emacs.d/lisp;
+    ".emacs.d".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos/dotfiles/.emacs.d";
   };
 
   home.sessionVariables = {
