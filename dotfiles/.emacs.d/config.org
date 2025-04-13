@@ -292,7 +292,7 @@ run a command
   	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
   	;([?\s-f] . (lambda () (interactive) (start-app "wine 'c:\\GreenArrays\\EVB002\\Okad2-42c-pd.exe'")))
 
-  	([?\s-h] . (lambda () (interactive) (find-file "~/nixos/bog/configuration.nix")))
+  	([?\s-h] . (lambda () (interactive) (find-file "~/nixos/configuration.nix")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 
