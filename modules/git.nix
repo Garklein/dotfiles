@@ -1,10 +1,10 @@
-{ ... }: {
+{ pkgs, ... }: {
   programs.git = {
     enable = true;
     userName = "Garklein";
     userEmail = "garklein97@gmail.com";
-    config = {
-      credential.helper = "libsecret";
+    extraConfig = {
+      credential.helper = "/etc/profiles/per-user/gator/bin/gh auth git-credential";
     };
   };
 }

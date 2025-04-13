@@ -19,7 +19,8 @@
   home.stateVersion = "24.11"; # Please read the comment before changing.
 
   home.packages = with pkgs; [
-    git agave gh feh python3 perl alsa-utils unzip easyeffects neofetch vim alacritty webcord emacs xclip maim
+    agave gh feh python3 perl alsa-utils unzip easyeffects neofetch vim alacritty webcord emacs xclip maim
+    git-credential-oauth gh
   ];
 
   services.picom.enable = true;
