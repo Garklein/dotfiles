@@ -35,6 +35,7 @@
 
 (push "~/.emacs.d/lisp" load-path)
 (use-package dash)
+(load-file "~/.emacs.d/custom.el")
 #+end_src
 ** clean up temp files
 make sure temp files don't litter .emacs.d
@@ -185,7 +186,7 @@ run a command
     (dolist (frame (frame-list))
 	(with-selected-frame frame
 	  (modify-all-frames-parameters
-	   `((alpha-background      . 0.87)
+	   `((alpha-background      . 87)
 	     (borders-respect-alpha-background . t)
 	     (right-divider-width   . 20)
 	     (bottom-divider-width  . 20)

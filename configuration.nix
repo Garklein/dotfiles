@@ -15,6 +15,8 @@
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  # let me shebang
+  services.envfs.enable = true;
 
   # Enable networking
   networking.networkmanager.enable = true;
@@ -28,10 +30,21 @@
   zramSwap.enable = true;
 
   # Enable the X11 windowing system.
+
   services.xserver = {
     enable = true;
     displayManager.startx.enable = true;
-    windowManager.exwm.enable = true;
+
+    windowManager.session = lib.singleton {
+      name = "exwm";
+      start = "${pkgs.emacs-gtk}/bin/emacs";
+    };
+
+    # Configure keymap in X11
+    xkb = {
+      layout = "us";
+      variant = "";
+    };
   };
   services.greetd = {
     enable = true;
@@ -42,12 +55,14 @@
       };
     };
   };
+  nixpkgs.overlays = [
+    (final: prev: {
+      emacs = prev.emacs.overrideAttrs (old: {
+        patches = old.patches ++ [ patches/borders-respect-alpha-background.patch ];
+      });
+    })
+  ];
 
-  # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "";
-  };
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -70,27 +85,11 @@
     isNormalUser = true;
     description = "gator";
     extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-      emacs
-    ];
   };
   security.sudo.extraRules = [{
     users = [ "gator" ];
     commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }];
   }];
-
-  # services.emacs.package = pkgs.emacs-unstable;
-  nixpkgs.overlays = [
-    # (import (builtins.fetchTarball {
-    #   url = "https://github.com/nix-community/emacs-overlay/archive/master.tar.gz";
-    #   sha256 = "";
-    # }))
-    # (final: prev: {
-    #   emacs = prev.emacs.overrideAttrs (old: {
-    #     patches = old.patches ++ [ /home/gator/borders-respect-alpha-background.patch ];
-    #   });
-    # })
-  ];
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;

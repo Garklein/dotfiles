@@ -3,6 +3,7 @@
     enable = true;
 
     policies = {
+      DisablePocket = true;
       # install extensions like this, since configurating them with
       # home-manager doesn't enable them by default.
       ExtensionSettings = {
