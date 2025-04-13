@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 
-{
+let link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos/dotfiles/${path}";
+in {
   imports = [
     modules/firefox.nix
     modules/git.nix
@@ -25,7 +26,8 @@
   services.picom.enable = true;
 
   home.file = {
-    ".emacs.d".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos/dotfiles/.emacs.d";
+    ".emacs.d".source = link ".emacs.d";
+    ".config/alacritty".source = link ".config/alacritty";
   };
 
   home.sessionVariables = {

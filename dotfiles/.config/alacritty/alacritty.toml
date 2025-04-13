@@ -1,1 +1,42 @@
-/home/gator/.config/alacritty/alacritty.toml
+[colors.bright]
+black = "#000000"
+blue = "#52b7ff"
+cyan = "#61d6b9"
+green = "#11a10e"
+magenta = "#9016b5"
+red = "#ff3636"
+white = "#e8e8e8"
+yellow = "#f1fa8c"
+
+[colors.normal]
+black = "#000000"
+blue = "#52b7ff"
+cyan = "#61d6b9"
+green = "#11a10e"
+magenta = "#9016b5"
+red = "#ff3636"
+white = "#e8e8e8"
+yellow = "#f1fa8c"
+
+[colors.primary]
+background = "#0c0c0c"
+foreground = "#f3f3f3"
+
+[font]
+size = 7
+
+[font.bold]
+family = "agave"
+style = "Bold"
+
+[font.bold_italic]
+family = "agave"
+style = "Bold Italic"
+
+[font.italic]
+family = "agave"
+style = "Italic"
+
+[font.normal]
+family = "agave"
+style = "Regular"
