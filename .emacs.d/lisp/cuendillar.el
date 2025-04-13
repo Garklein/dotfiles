@@ -8,11 +8,15 @@
   "The password being typed.")
 
 (defun cuendillar/check-password (pass)
-  (let ((correct-hash
-	 (shell-command-to-string "sudo getent shadow gator | cut -d: -f2"))
-	(entered-hash
-	 (shell-command-to-string
-	  (concat "openssl passwd -6 -salt $(sudo getent shadow gator | cut -d$ -f3) '" pass "'"))))
+  (let* ((correct-hash
+	  (shell-command-to-string "sudo getent shadow gator | cut -d: -f2"))
+	 (salt
+	  (concat "$"
+		  (shell-command-to-string "sudo getent shadow gator | cut -d$ -f2-4 | tr -d '\n'")
+		  "$"))
+	 (entered-hash
+	  (shell-command-to-string
+	   (concat "export PASS=" pass " SALT='" salt "'; perl -le 'print crypt($ENV{PASS}, $ENV{SALT})'"))))
     (equal correct-hash entered-hash)))
 
 (defconst cuendillar/combinators

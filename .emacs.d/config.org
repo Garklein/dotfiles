@@ -53,16 +53,6 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   (advice-mapc
    (lambda (advice _) (advice-remove symbol advice))
    symbol))
-
-(defun latin ()
-  (interactive)
-  (let* ((days (date-to-day (current-time-string)))
-	 (d2 (= (mod days 2) 0))
-	 (d3 (= (mod days 4) 1)))
-    (cond
-     (d2 (message "Decks 1 and 2"))
-     (d3 (message "Decks 1 and 3"))
-     (t  (message "Deck 1")))))
 #+end_src
 * keybinds and evil
 #+begin_src elisp
@@ -221,6 +211,7 @@ run a command
 	     ('fall   "bach-wallpaper.png"))))
     (run (concat "feh --bg-center /home/gator/keep/images/wallpapers/" wallpaper))
     (adjust-frame-transparency)))
+(run (concat "feh --bg-center /home/gator/strav.png"))
 
 (set-wallpaper-by-season)
 #+end_src
@@ -282,6 +273,16 @@ run a command
   	(switch-to-buffer existing-buffer)
       (run name))))
 
+;; change is from -1.0 to 1.0
+(defun change-brightness (change)
+  (let* ((max-brightness (file-to-float "/sys/class/backlight/intel_backlight/max_brightness"))
+	 (actual-brightness (file-to-float "/sys/class/backlight/intel_backlight/actual_brightness"))
+	 (new-brightness (+ actual-brightness (* change max-brightness)))
+	 (command (concat "echo "
+			  (number-to-string (round new-brightness))
+			  " | sudo tee /sys/class/backlight/intel_backlight/brightness")))
+    (run command)))
+
 ;; Global keybindings.
 (setq exwm-input-global-keys
       `(([?\s-p] . start-app)
@@ -291,6 +292,8 @@ run a command
   	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
   	;([?\s-f] . (lambda () (interactive) (start-app "wine 'c:\\GreenArrays\\EVB002\\Okad2-42c-pd.exe'")))
 
+  	([?\s-h] . (lambda () (interactive) (find-file "~/nixos/bog/configuration.nix")))
+
   	(,(kbd "s-<backspace>") . delete-window)
 
   	([?\M-:]  . eval-expression)
@@ -299,12 +302,12 @@ run a command
 
   	(,(kbd "s-S") . screenshot)
 
-  	(,(kbd "<XF86AudioMute>") . (lambda () (interactive) (run "pactl set-sink-mute @DEFAULT_SINK@ toggle") (update-bar)))
-  	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ +5%") (update-bar)))
-  	(,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (run "pactl set-sink-volume @DEFAULT_SINK@ -5%") (update-bar)))
+  	(,(kbd "<XF86AudioMute>") . (lambda () (interactive) (run "amixer set Master toggle") (update-bar)))
+  	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "amixer set Master 5%+") (update-bar)))
+  	(,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (run "amixer set Master 5%-") (update-bar)))
 
-  	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (run "xbacklight -inc 3") (update-bar)))
-  	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (run "xbacklight -dec 3") (update-bar)))
+  	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (change-brightness 0.03) (update-bar)))
+  	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (change-brightness -0.03) (update-bar)))
 
   	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
   	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch-create 1)))
@@ -532,6 +535,11 @@ make mode line look nice (has to be done after theme)
 	(comment-region compilation-start (point-max)))))
 (evil-define-key 'normal 'global (kbd "C-c C-a") #'append-compilation)
 #+end_src
+** nix
+#+begin_src elisp
+(use-package nix-mode
+  :mode "\\.nix\\'")
+#+end_src
 ** elisp
 #+begin_src elisp
 (add-hook 'emacs-lisp-mode-hook
@@ -696,7 +704,7 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** mlatu
 #+begin_src elisp
-(require 'mlatu-mode)
+;(require 'mlatu-mode)
 #+end_src
 ** typescript
 #+begin_src elisp
@@ -857,6 +865,9 @@ Fix PDF file displaying when windows are changed
 
 ;; don't show native comp warnings
 (setq native-comp-async-report-warnings-errors nil)
+
+;; don't ask to save sudo password
+(setq auth-source-save-behavior nil)
 #+end_src
 ** Make align-regexp use spaces
 #+begin_src elisp

@@ -1,4 +1,3 @@
-;; -*- lexical-binding: t; -*-
 (require 'thingatpt)
 
 (defvar edit-var-buffers nil

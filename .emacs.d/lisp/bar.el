@@ -126,6 +126,8 @@
   (with-temp-buffer
     (insert-file-contents file)
     (string-trim (buffer-string))))
+(defun file-to-float (file)
+  (-> file file-to-string string-to-number float))
 
 (defun battery ()
   (let* ((plug-status (file-to-string "/sys/class/power_supply/AC0/online"))
@@ -147,12 +149,10 @@
 	"muted"
       (concat "vol " (substring level 1 -1)))))
 (defun light ()
-  (let ((level
-	 (->> (shell-command-to-string "brightnessctl | grep %")
-	      (split-string)
-	      (last)
-	      (car))))
-    (concat "light " (substring level 1 -1))))
+  (let* ((max-brightness (float (string-to-number (file-to-string "/sys/class/backlight/intel_backlight/max_brightness"))))
+	 (actual-brightness (float (string-to-number (file-to-string "/sys/class/backlight/intel_backlight/actual_brightness"))))
+	 (level (round (* 100 (/ actual-brightness max-brightness)))))
+    (concat "light " (number-to-string level) "%")))
 (defun internet ()
   (unless (equal "up" (file-to-string "/sys/class/net/wlo1/operstate"))
     "not connected"))
