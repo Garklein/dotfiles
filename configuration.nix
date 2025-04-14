@@ -10,27 +10,20 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "bog"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   # let me shebang
   services.envfs.enable = true;
 
   # Enable networking
   networking.networkmanager.enable = true;
 
-  # Set your time zone.
   time.timeZone = "America/Toronto";
 
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_CA.UTF-8";
 
   zramSwap.enable = true;
 
   # Enable the X11 windowing system.
-
   services.xserver = {
     enable = true;
     displayManager.startx.enable = true;
@@ -55,9 +48,10 @@
       };
     };
   };
+  environment.systemPackages = [ pkgs.emacs-gtk ];
   nixpkgs.overlays = [
     (final: prev: {
-      emacs = prev.emacs.overrideAttrs (old: {
+      emacs-gtk = prev.emacs-gtk.overrideAttrs (old: {
         patches = old.patches ++ [ patches/borders-respect-alpha-background.patch ];
       });
     })
@@ -77,10 +71,6 @@
     pulse.enable = true;
   };
 
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.gator = {
     isNormalUser = true;
     description = "gator";
@@ -91,7 +81,6 @@
     commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }];
   }];
 
-  # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   home-manager = {
@@ -100,7 +89,7 @@
       "gator" = import ./home.nix;
     };
 
-    # allow unfree packages
+    # allow unfree packages for home manager
     useGlobalPkgs = true;
     useUserPackages = true;
   };
@@ -115,8 +104,8 @@
 
   boot.kernelPackages = pkgs.linuxPackages_6_12;
 
-  nix.settings.experimental-features =
-    [ "nix-command"
-      "flakes"
-    ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 }
