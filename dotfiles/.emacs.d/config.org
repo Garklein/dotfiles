@@ -210,9 +210,8 @@ run a command
 	     ('spring "kandinsky-wallpaper.png")
 	     ('summer "fluff-blossom-wallpaper.png")
 	     ('fall   "bach-wallpaper.png"))))
-    (run (concat "feh --bg-center /home/gator/keep/images/wallpapers/" wallpaper))
+    (run (concat "feh --bg-center ~/.nixos/dotfiles/wallpapers/" wallpaper))
     (adjust-frame-transparency)))
-(run (concat "feh --bg-center /home/gator/strav.png"))
 
 (set-wallpaper-by-season)
 #+end_src
@@ -291,9 +290,10 @@ run a command
   	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
   	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
   	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
-  	;([?\s-f] . (lambda () (interactive) (start-app "wine 'c:\\GreenArrays\\EVB002\\Okad2-42c-pd.exe'")))
 
-  	([?\s-h] . (lambda () (interactive) (find-file "~/.nixos/configuration.nix")))
+  	([?\s-J] . (lambda () (interactive) (find-file "~/.nixos/home.nix")))
+  	([?\s-K] . (lambda () (interactive) (find-file "~/.nixos/configuration.nix")))
+  	([?\s-;] . (lambda () (interactive) (async-shell-command "sudo nixos-rebuild switch" "sudo nixos-rebuild switch")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 
@@ -301,7 +301,7 @@ run a command
   	([?\s-:]  . evil-ex)
   	([?\s-m]  . exwm-input-toggle-keyboard)
 
-  	(,(kbd "s-S") . screenshot)
+  	(,(kbd "s-s") . screenshot)
 
   	(,(kbd "<XF86AudioMute>") . (lambda () (interactive) (run "amixer set Master toggle") (update-bar)))
   	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "amixer set Master 5%+") (update-bar)))

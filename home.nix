@@ -4,6 +4,8 @@
   imports = [
     modules/firefox.nix
     modules/git.nix
+    modules/wmpackages.nix
+    modules/languages.nix
   ];
 
   home.username = "gator";
@@ -14,8 +16,11 @@
     userDirs = {
       enable = true;
       desktop = "$HOME";
-      download = "/tmp";
       documents = "$HOME";
+      download = "/tmp";
+      music = "$HOME/bloat/music";
+      pictures = "$HOME/keep/photos";
+      videos = "$HOME/keep/photos";
     };
   };
 
@@ -29,11 +34,21 @@
   home.stateVersion = "24.11"; # Please read the comment before changing.
 
   home.packages = with pkgs; [
-    agave feh python3 perl alsa-utils unzip easyeffects neofetch vim alacritty webcord xclip maim snobol4
-    xidlehook
+    webcord easyeffects
+    vim ed wine
+    alacritty neofetch
+    feh
+    unzip ffmpeg cmus
   ];
 
   services.picom.enable = true;
+
+  programs.bash = {
+    enable = true;
+    initExtra = ''
+      PS1='\e[0;31m[\u@\h \W]$\e[m '
+    '';
+  };
 
   home.file = let
     link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.nixos/dotfiles/${path}";
