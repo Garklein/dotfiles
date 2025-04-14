@@ -30,12 +30,13 @@
 
   home.packages = with pkgs; [
     agave feh python3 perl alsa-utils unzip easyeffects neofetch vim alacritty webcord emacs xclip maim snobol4
+    xidlehook
   ];
 
   services.picom.enable = true;
 
   home.file = let
-    link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/nixos/dotfiles/${path}";
+    link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.nixos/dotfiles/${path}";
   in {
     ".emacs.d".source = link ".emacs.d";
     ".config/alacritty".source = link ".config/alacritty";

@@ -228,7 +228,7 @@ run a command
 
 (run "picom")
 (run "easyeffects --gapplication-service")
-(run "setxkbmap us,ca -option 'grp:win_space_toggle'")
+;(run "setxkbmap us,ca -option 'grp:win_space_toggle'")
 
 
 (require 'cuendillar)
@@ -293,7 +293,7 @@ run a command
   	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
   	;([?\s-f] . (lambda () (interactive) (start-app "wine 'c:\\GreenArrays\\EVB002\\Okad2-42c-pd.exe'")))
 
-  	([?\s-h] . (lambda () (interactive) (find-file "~/nixos/configuration.nix")))
+  	([?\s-h] . (lambda () (interactive) (find-file "~/.nixos/configuration.nix")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 

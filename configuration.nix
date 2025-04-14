@@ -35,8 +35,8 @@
 
     # Configure keymap in X11
     xkb = {
-      layout = "us";
-      variant = "";
+      layout = "us,ca";
+      options = "grp:win_space_toggle";
     };
   };
   services.greetd = {
@@ -56,6 +56,16 @@
       });
     })
   ];
+  systemd.services.cuendillar = {
+    wantedBy = [ "sleep.target" ];
+    before = [ "sleep.target" ];
+    description = "Lock screen on sleep";
+    serviceConfig = {
+      User = "gator";
+      Type = "forking";
+      ExecStart = "${pkgs.emacs-gtk}/bin/emacsclient -s /run/user/1000/emacs/server --eval \"(lock)\"";
+    };
+  };
 
 
   # Enable CUPS to print documents.
