@@ -1,7 +1,8 @@
-{ config, pkgs, lib, inputs, ... }:
+{ pkgs, inputs, ... }:
 
 {
   imports = [
+    modules/wm.nix
     inputs.home-manager.nixosModules.default
   ];
 
@@ -9,7 +10,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = "bog"; # Define your hostname.
+  networking.hostName = "bog";
 
   # let me shebang
   services.envfs.enable = true;
@@ -22,51 +23,6 @@
   i18n.defaultLocale = "en_CA.UTF-8";
 
   zramSwap.enable = true;
-
-  # Enable the X11 windowing system.
-  services.xserver = {
-    enable = true;
-    displayManager.startx.enable = true;
-
-    windowManager.session = lib.singleton {
-      name = "exwm";
-      start = "${pkgs.emacs-gtk}/bin/emacs";
-    };
-
-    # Configure keymap in X11
-    xkb = {
-      layout = "us,ca";
-      options = "grp:win_space_toggle";
-    };
-  };
-  services.greetd = {
-    enable = true;
-    settings = {
-      default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --remember --remember-session -x ${config.services.displayManager.sessionData.desktops}/share/xsessions";
-        user = "greeter";
-      };
-    };
-  };
-  environment.systemPackages = [ pkgs.emacs-gtk ];
-  nixpkgs.overlays = [
-    (final: prev: {
-      emacs-gtk = prev.emacs-gtk.overrideAttrs (old: {
-        patches = old.patches ++ [ patches/borders-respect-alpha-background.patch ];
-      });
-    })
-  ];
-  systemd.services.cuendillar = {
-    wantedBy = [ "sleep.target" ];
-    before = [ "sleep.target" ];
-    description = "Lock screen on sleep";
-    serviceConfig = {
-      User = "gator";
-      Type = "forking";
-      ExecStart = "${pkgs.emacs-gtk}/bin/emacsclient -s /run/user/1000/emacs/server --eval \"(lock)\"";
-    };
-  };
-
 
   # Enable CUPS to print documents.
   services.printing.enable = true;

@@ -29,7 +29,7 @@
   home.stateVersion = "24.11"; # Please read the comment before changing.
 
   home.packages = with pkgs; [
-    agave feh python3 perl alsa-utils unzip easyeffects neofetch vim alacritty webcord emacs xclip maim snobol4
+    agave feh python3 perl alsa-utils unzip easyeffects neofetch vim alacritty webcord xclip maim snobol4
     xidlehook
   ];
 
