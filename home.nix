@@ -6,6 +6,7 @@
     modules/git.nix
     modules/wmpackages.nix
     modules/languages.nix
+    modules/visuals.nix
   ];
 
   home.username = "gator";
@@ -40,16 +41,6 @@
     feh
     unzip ffmpeg cmus
   ];
-
-  # default cursor doesn't look good with firefox
-  home.pointerCursor = {
-    name = "Quintom_Ink";
-    package = pkgs.quintom-cursor-theme;
-    size = 16;
-    gtk.enable = true;
-  };
-
-  services.picom.enable = true;
 
   programs.bash = {
     enable = true;
