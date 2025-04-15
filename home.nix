@@ -41,6 +41,14 @@
     unzip ffmpeg cmus
   ];
 
+  # default cursor doesn't look good with firefox
+  home.pointerCursor = {
+    name = "Quintom_Ink";
+    package = pkgs.quintom-cursor-theme;
+    size = 16;
+    gtk.enable = true;
+  };
+
   services.picom.enable = true;
 
   programs.bash = {
