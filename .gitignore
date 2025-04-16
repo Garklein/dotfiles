@@ -4,7 +4,6 @@ dotfiles/.emacs.d/elpa
 dotfiles/.emacs.d/etc
 dotfiles/.emacs.d/.last-package-update-day
 dotfiles/.emacs.d/config.el
-dotfiles/.emacs.d/custom.el
 dotfiles/.emacs.d/straight/*
 dotfiles/.emacs.d/undo/*
 dotfiles/.emacs.d/eshell
