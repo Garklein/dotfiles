@@ -38,7 +38,7 @@
     webcord easyeffects
     vim ed wine
     alacritty neofetch
-    feh
+    feh silver-searcher
     unzip ffmpeg cmus
   ];
 

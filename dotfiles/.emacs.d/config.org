@@ -301,7 +301,7 @@ run a command
   	([?\s-:]  . evil-ex)
   	([?\s-m]  . exwm-input-toggle-keyboard)
 
-  	(,(kbd "s-s") . screenshot)
+  	(,(kbd "s-S") . screenshot)
 
   	(,(kbd "<XF86AudioMute>") . (lambda () (interactive) (run "amixer set Master toggle") (update-bar)))
   	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "amixer set Master 5%+") (update-bar)))
@@ -696,7 +696,7 @@ make mode line look nice (has to be done after theme)
   k-mode-hook)
 (add-hook 'k-mode-hook
 	    (lambda ()
-	      (set-command (run-with "~/others/ngnk/k" "k"))))
+	      (set-command (run-with "k" "k"))))
 #+end_src
 ** lilypond
 #+begin_src elisp
