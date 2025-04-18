@@ -293,7 +293,7 @@ run a command
 
   	([?\s-J] . (lambda () (interactive) (find-file "~/.nixos/home.nix")))
   	([?\s-K] . (lambda () (interactive) (find-file "~/.nixos/configuration.nix")))
-  	([?\s-;] . (lambda () (interactive) (async-shell-command "sudo nixos-rebuild switch" "sudo nixos-rebuild switch")))
+  	([?\s-;] . (lambda () (interactive) (async-shell-command "sudo nixos-rebuild switch --impure" "sudo nixos-rebuild switch")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 

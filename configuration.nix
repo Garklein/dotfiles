@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, lib, inputs, ... }:
 
 {
   imports = [
@@ -12,7 +12,7 @@
 
   networking.hostName = "bog";
 
-  # let me shebang
+  # me shebang
   services.envfs.enable = true;
 
   # Enable networking
@@ -35,6 +35,12 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+  };
+
+  # mount ios devices
+  services.usbmuxd = {
+    enable = true;
+    package = pkgs.usbmuxd2;
   };
 
   users.users.gator = {
@@ -69,6 +75,7 @@
   system.stateVersion = "24.11"; # Did you read the comment?
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.tmp.cleanOnBoot = true;
 
   nix.settings.experimental-features = [
     "nix-command"

@@ -4,6 +4,8 @@
 
 let emacs = pkgs.emacs-gtk;
 in {
+  disabledModules = [ "services/x11/window-managers/exwm.nix" ];
+  imports = [ /home/gator/nixpkgs/nixos/modules/services/x11/window-managers/exwm.nix ];
   # transparent emacs
   nixpkgs.overlays = [
     (final: prev: {
@@ -17,9 +19,13 @@ in {
   services.xserver = {
     enable = true;
     displayManager.startx.enable = true;
-    windowManager.session = lib.singleton {
-      name = "exwm";
-      start = "${emacs}/bin/emacs";
+    # windowManager.session = lib.singleton {
+    #   name = "exwm";
+    #   start = "${emacs}/bin/emacs";
+    # };
+    windowManager.exwm = {
+      enable = true;
+      package = pkgs.emacs-gtk;
     };
   };
 
