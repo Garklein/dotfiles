@@ -6,17 +6,23 @@
     inputs.home-manager.nixosModules.default
   ];
 
-  # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+      timeout = 1;
+    };
+    kernelPackages = pkgs.linuxPackages_latest;
+    tmp.cleanOnBoot = true;
+  };
 
-  networking.hostName = "bog";
+  networking = {
+    hostName = "bog";
+    networkmanager.enable = true;
+  };
 
-  # me shebang
+  # let me shebang
   services.envfs.enable = true;
-
-  # Enable networking
-  networking.networkmanager.enable = true;
 
   time.timeZone = "America/Toronto";
 
@@ -24,10 +30,9 @@
 
   zramSwap.enable = true;
 
-  # Enable CUPS to print documents.
   services.printing.enable = true;
 
-  # Enable sound with pipewire.
+  # enable sound with pipewire
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -66,6 +71,11 @@
     useUserPackages = true;
   };
 
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
@@ -73,12 +83,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.11"; # Did you read the comment?
-
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.tmp.cleanOnBoot = true;
-
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
 }

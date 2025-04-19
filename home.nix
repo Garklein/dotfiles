@@ -7,36 +7,9 @@
     modules/wmpackages.nix
     modules/languages.nix
     modules/visuals.nix
+    modules/bash.nix
+    modules/xdg.nix
   ];
-
-  home.username = "gator";
-  home.homeDirectory = "/home/gator";
-
-  xdg = {
-    enable = true;
-    userDirs = {
-      enable = true;
-      desktop = "$HOME";
-      documents = "$HOME";
-      download = "/tmp";
-      music = "$HOME/bloat/music";
-      pictures = "$HOME/keep/photos";
-      videos = "$HOME/keep/photos";
-    };
-  };
-
-  home.sessionPath = [
-    "$HOME/.local/bin"
-  ];
-
-  # This value determines the Home Manager release that your configuration is
-  # compatible with. This helps avoid breakage when a new Home Manager release
-  # introduces backwards incompatible changes.
-  #
-  # You should not change this value, even if you update Home Manager. If you do
-  # want to update the value, then make sure to first check the Home Manager
-  # release notes.
-  home.stateVersion = "24.11"; # Please read the comment before changing.
 
   home.packages = with pkgs; [
     webcord easyeffects
@@ -48,14 +21,11 @@
     ifuse libimobiledevice # for mounting ios
   ];
 
-  programs.bash = {
-    enable = true;
-    initExtra = ''
-      PS1='\e[0;31m[\u@\h \W]$\e[m '
-    '';
-  };
+  home.username = "gator";
+  home.homeDirectory = "/home/gator";
 
   home.file = let
+    # editable symlink
     link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.nixos/dotfiles/${path}";
   in {
     ".emacs.d".source = link ".emacs.d";
@@ -64,4 +34,14 @@
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
+
+  # This value determines the Home Manager release that your configuration is
+  # compatible with. This helps avoid breakage when a new Home Manager release
+  # introduces backwards incompatible changes.
+  #
+  # You should not change this value, even if you update Home Manager. If you do
+  # want to update the value, then make sure to first check the Home Manager
+  # release notes.
+  home.stateVersion = "24.11"; # Please read the comment before changing.
+
 }
