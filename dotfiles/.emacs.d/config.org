@@ -226,6 +226,8 @@ run a command
 
 (run "picom")
 (run "easyeffects --gapplication-service")
+;; this should really be done in nix, but i can't get it working
+(run "xinput --set-prop \"Logitech USB Optical Mouse\" \"Coordinate Transformation Matrix\" 0.5 0 0 0 0.5 0 0 0 1")
 ;(run "setxkbmap us,ca -option 'grp:win_space_toggle'")
 
 

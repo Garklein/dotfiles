@@ -61,13 +61,10 @@ in {
     options = "grp:win_space_toggle";
   };
 
+  # speed configured in exwm
   services.libinput = {
     mouse.accelProfile = "flat";
-    # centre is (960, 540)
-    # s 0 (1-s)x 0 s (1-s)y 0 0 1
-    mouse.calibrationMatrix = "0.3 0 672 0 0.3 378 0 0 1";
     touchpad.accelProfile = "flat";
-    touchpad.calibrationMatrix = "0.3 0 672 0 0.3 378 0 0 1";
   };
 }
 
