@@ -218,7 +218,12 @@ run a command
 ** make buffer names class names
 #+begin_src elisp
 (add-hook 'exwm-update-class-hook
-	    (lambda () (exwm-workspace-rename-buffer (downcase exwm-class-name))))
+	    (lambda () (exwm-workspace-rename-buffer
+			(downcase
+			 (pcase exwm-class-name
+			   ("okad2-42c-pd.exe" "colorforth")
+			   ("conhost.exe" " conhost.exe")
+			   (_ exwm-class-name))))))
 #+end_src
 ** initial config
 #+begin_src elisp
@@ -283,6 +288,11 @@ run a command
 			  " | sudo tee /sys/class/backlight/intel_backlight/brightness")))
     (run command)))
 
+;; make the wine buffer close when colorForth is killed
+(add-hook 'kill-buffer-hook
+	  (lambda () (when (equal (buffer-name (current-buffer)) "colorforth")
+		       (kill-buffer " conhost.exe"))))
+
 ;; Global keybindings.
 (setq exwm-input-global-keys
       `(([?\s-p] . start-app)
@@ -290,6 +300,7 @@ run a command
   	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
   	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
   	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
+  	([?\s-f] . (lambda () (interactive) (start-app "colorforth")))
 
   	([?\s-J] . (lambda () (interactive) (find-file "~/.nixos/home.nix")))
   	([?\s-K] . (lambda () (interactive) (find-file "~/.nixos/configuration.nix")))
@@ -502,7 +513,7 @@ make mode line look nice (has to be done after theme)
 	      (member (get-buffer "*compilation*"))))
 	(fullscreen
 	 (->> (window-list)
-	      (seq-remove #'(lambda (w) (window-parameter w 'no-other-window)))
+	      (seq-remove (lambda (w) (window-parameter w 'no-other-window)))
 	      length
 	      (= 1))))
     (unless buffer-present
@@ -898,7 +909,7 @@ don't convert to buffer-names at the beginning because that can mess up when mul
   (interactive)
   (let ((buffers
   	 (seq-remove
-  	  #'(lambda (b) (string-prefix-p " " (buffer-name b)))
+  	  (lambda (b) (string-prefix-p " " (buffer-name b)))
   	  (buffer-list))))
     (dolist (b buffers)
       (unless (member (buffer-name b) '("*scratch*" "firefox" "webcord"))
