@@ -337,6 +337,31 @@ run a command
                                  (delq xcb:Atom:_NET_WM_STATE_HIDDEN exwm--ewmh-state))
                            (exwm-layout--set-ewmh-state id)
                            (xcb:flush exwm--connection))))
+
+;; make sure floating windows are centred and do not exceed the size of the screen
+(defun adjust-floating-window ()
+  (let* ((frame (selected-frame))
+         (width (frame-pixel-width frame))
+         (height (frame-pixel-height frame))
+	 (full-width (x-display-pixel-width))
+	 (full-height (x-display-pixel-height))
+         (max-width (round (* 0.75 full-width)))
+         (max-height (round (* 0.75 full-height)))
+         (final-width (min width max-width))
+         (final-height (min height max-height))
+	 (floating-container
+	  (frame-parameter exwm--floating-frame 'exwm-container))
+	 (final-x (/ (- full-width final-width) 2))
+	 (final-y (/ (- full-height final-height) 2)))
+    (set-frame-size frame final-width final-height t)
+    (exwm--set-geometry floating-container final-x final-y nil nil)
+    (exwm--set-geometry exwm--id final-x final-y nil nil)
+    (xcb:flush exwm--connection)))
+(add-hook 'exwm-floating-setup-hook #'adjust-floating-window)
+#+end_src
+** transparency
+#+begin_src elisp
+;(require 'exwm-transparent-background)
 #+end_src
 * visuals
 ** theme
