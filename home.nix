@@ -19,6 +19,7 @@
     unzip ffmpeg cmus
     gimp vlc
     ifuse libimobiledevice # for mounting ios
+    emacs-gtk
   ];
 
   home.username = "gator";

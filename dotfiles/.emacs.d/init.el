@@ -1,4 +1,3 @@
 (org-babel-load-file "~/.emacs.d/config.org")
-(message nil)
-(setq inhibit-startup-echo-area-message "gator")
-(put 'list-timers 'disabled nil)
+;(setq inhibit-startup-echo-area-message "gator")
+;(put 'list-timers 'disabled nil)

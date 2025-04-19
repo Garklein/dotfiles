@@ -18,19 +18,20 @@
 (setq straight-process-buffer " *straight-process*")
 (defvar bootstrap-version)
 (let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
-	(url-retrieve-synchronously
-	 "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-	 'silent 'inhibit-cookies)
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
       (goto-char (point-max))
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 (setq straight-use-package-by-default t)
-					;(package-install 'use-package)
-					;(require 'use-package)
 (setq native-com-async-report-warning-errors 'silent)
 
 (push "~/.emacs.d/lisp" load-path)
@@ -158,14 +159,6 @@ run a command
 (add-to-list
  'display-buffer-alist
  '((lambda (s _) (string-match "output\\*" s)) display-buffer-no-window (nil)))
-
-(defun run_ (command)
-  (let ((file (make-temp-file ""))
-	(buf (generate-new-buffer (concat " *" command " output*"))))
-    (with-temp-file file
-      (insert "(when-let* ((output (eshell-command-result \"") (insert command) (insert "\")))")
-      (insert "  (message output))"))
-    (async-shell-command (concat "cd ~/emacs && src/emacs --script " file " 2>&1 | tail -n +28") buf)))
 #+end_src
 ** workspaces
 #+begin_src elisp
@@ -195,6 +188,7 @@ run a command
 #+end_src
 ** wallpaper
 #+begin_src elisp
+(require 'calendar)
 (defun season ()
   (let ((m (car (calendar-current-date 10))))
     (cond
@@ -297,6 +291,7 @@ run a command
 (setq exwm-input-global-keys
       `(([?\s-p] . start-app)
   	([?\s-o] . (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
+  	([?\s-O] . (lambda () (interactive) (run "emacs --script ~/.emacs.d/lisp/update-packages.el")))
   	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
   	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
   	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
@@ -805,7 +800,6 @@ make mode line look nice (has to be done after theme)
 ** pdf mode
 #+begin_src elisp
 (use-package pdf-tools)
-(pdf-tools-install)
 #+end_src
 Make the page resize on opening
 #+begin_src elisp
@@ -889,6 +883,12 @@ Fix PDF file displaying when windows are changed
 
 ;; don't ask to save sudo password
 (setq auth-source-save-behavior nil)
+
+;; allow M-x list-timers
+(put 'list-timers 'disabled nil)
+
+;; don't show default startup message
+(setq inhibit-startup-echo-area-message "gator")
 #+end_src
 ** Make align-regexp use spaces
 #+begin_src elisp
