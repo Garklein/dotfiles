@@ -2,7 +2,7 @@
 
 { config, pkgs, lib, ... }:
 
-let emacs = pkgs.emacs-gtk;
+let exwm-emacs = pkgs.emacs-gtk;
 in {
   disabledModules = [ "services/x11/window-managers/exwm.nix" ];
   imports = [ /home/gator/nixpkgs/nixos/modules/services/x11/window-managers/exwm.nix ];
@@ -21,11 +21,11 @@ in {
     displayManager.startx.enable = true;
     # windowManager.session = lib.singleton {
     #   name = "exwm";
-    #   start = "${emacs}/bin/emacs";
+    #   start = "${exwm-emacs}/bin/emacs";
     # };
     windowManager.exwm = {
       enable = true;
-      package = emacs;
+      package = exwm-emacs;
     };
   };
 
@@ -52,7 +52,7 @@ in {
     serviceConfig = {
       User = "gator";
       Type = "forking";
-      ExecStart = "${emacs}/bin/emacsclient -s /run/user/1000/emacs/server --eval \"(lock)\"";
+      ExecStart = "${exwm-emacs}/bin/emacsclient -s /run/user/1000/emacs/server --eval \"(lock)\"";
     };
   };
 

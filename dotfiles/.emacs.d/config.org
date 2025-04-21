@@ -286,8 +286,10 @@ run a command
 
 ;; make the wine buffer close when colorForth is killed
 (add-hook 'kill-buffer-hook
-	  (lambda () (when (equal (buffer-name (current-buffer)) "colorforth")
-		       (kill-buffer " conhost.exe"))))
+	  (lambda () (when-let* ((conhost
+			     (and (equal (buffer-name (current-buffer)) "colorforth")
+				  (get-buffer " conhost.exe"))))
+		    (kill-buffer conhost))))
 
 ;; Global keybindings.
 (setq exwm-input-global-keys
@@ -331,12 +333,12 @@ run a command
 
 ;; i have no idea what this does, but it makes firefox behave on nix
 (advice-add #'exwm-layout--hide
-                :after (lambda (id)
-                         (with-current-buffer (exwm--id->buffer id)
-                           (setq exwm--ewmh-state
-                                 (delq xcb:Atom:_NET_WM_STATE_HIDDEN exwm--ewmh-state))
-                           (exwm-layout--set-ewmh-state id)
-                           (xcb:flush exwm--connection))))
+            :after (lambda (id)
+                     (with-current-buffer (exwm--id->buffer id)
+                       (setq exwm--ewmh-state
+                             (delq xcb:Atom:_NET_WM_STATE_HIDDEN exwm--ewmh-state))
+                       (exwm-layout--set-ewmh-state id)
+                       (xcb:flush exwm--connection))))
 
 ;; make sure floating windows are centred and do not exceed the size of the screen
 (defun adjust-floating-window ()

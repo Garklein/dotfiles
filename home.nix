@@ -9,15 +9,16 @@
     modules/visuals.nix
     modules/bash.nix
     modules/xdg.nix
+    modules/alacritty.nix
   ];
 
   home.packages = with pkgs; [
     webcord easyeffects
     vim ed wine
-    alacritty neofetch
+    neofetch
     feh silver-searcher
     unzip ffmpeg cmus
-    gimp vlc
+    gimp vlc imagemagick ghostscript
     ifuse libimobiledevice # for mounting ios
     emacs-gtk
   ];
@@ -30,7 +31,6 @@
     link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.nixos/dotfiles/${path}";
   in {
     ".emacs.d".source = link ".emacs.d";
-    ".config/alacritty".source = link ".config/alacritty";
   };
 
   # Let Home Manager install and manage itself.
