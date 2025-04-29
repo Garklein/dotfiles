@@ -151,11 +151,12 @@ stop the sentinel from messaging when processes finish
 #+end_src
 run a command
 #+begin_src elisp
-(defun run (command)
-  (let ((inhibit-message t))
-    (inhibit-sentinel-messages
-     #'async-shell-command command
-     (generate-new-buffer (concat " *" command " output*")))))
+(defun run (command &optional message-when-done)
+  (let ((inhibit-message t)
+	(buf (generate-new-buffer (concat " *" command " output*"))))
+    (if message-when-done
+	(async-shell-command command buf)
+      (inhibit-sentinel-messages #'async-shell-command command buf))))
 (add-to-list
  'display-buffer-alist
  '((lambda (s _) (string-match "output\\*" s)) display-buffer-no-window (nil)))
@@ -295,7 +296,7 @@ run a command
 (setq exwm-input-global-keys
       `(([?\s-p] . start-app)
   	([?\s-o] . (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
-  	([?\s-O] . (lambda () (interactive) (run "emacs --script ~/.emacs.d/lisp/update-packages.el")))
+  	([?\s-O] . (lambda () (interactive) (run "emacs --script ~/.emacs.d/lisp/update-packages.el" t)))
   	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
   	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
   	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
@@ -303,7 +304,7 @@ run a command
 
   	([?\s-J] . (lambda () (interactive) (find-file "~/.nixos/home.nix")))
   	([?\s-K] . (lambda () (interactive) (find-file "~/.nixos/configuration.nix")))
-  	([?\s-;] . (lambda () (interactive) (async-shell-command "sudo nixos-rebuild switch --impure" "sudo nixos-rebuild switch")))
+  	([?\s-;] . (lambda () (interactive) (async-shell-command "sudo nixos-rebuild switch" "sudo nixos-rebuild switch")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 
@@ -557,7 +558,7 @@ make mode line look nice (has to be done after theme)
      (unless (and (buffer-file-name)
 		    (equal ,extension (file-name-extension (buffer-file-name))))
 	 (let ((old-buffer-name (buffer-name)))
-	   (set-visited-file-name (concat "/tmp/" (format-time-string "%H_%M_%S" before-init-time) "." ,extension))
+	   (set-visited-file-name (concat "/tmp/" (format-time-string "%H_%M_%S" (current-time)) "." ,extension))
 	   (rename-buffer old-buffer-name)))
      (let* ((file-name (buffer-file-name))
 	      (in-path   (file-name-with-extension file-name "in"))
@@ -750,6 +751,7 @@ make mode line look nice (has to be done after theme)
 ** mlatu
 #+begin_src elisp
 ;(require 'mlatu-mode)
+(load-file "~/dormant/mlatu/editors/emacs/mlatu-mode.el")
 #+end_src
 ** typescript
 #+begin_src elisp

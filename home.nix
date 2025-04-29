@@ -14,13 +14,16 @@
 
   home.packages = with pkgs; [
     webcord easyeffects
-    vim ed wine
+    vim ed wine rlwrap
     neofetch
     feh silver-searcher
     unzip ffmpeg cmus
     gimp vlc imagemagick ghostscript
     ifuse libimobiledevice # for mounting ios
     emacs-gtk
+    man-pages
+    gnumake
+    valgrind
   ];
 
   home.username = "gator";

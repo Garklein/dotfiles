@@ -4,8 +4,6 @@
 
 let exwm-emacs = pkgs.emacs-gtk;
 in {
-  disabledModules = [ "services/x11/window-managers/exwm.nix" ];
-  imports = [ /home/gator/nixpkgs/nixos/modules/services/x11/window-managers/exwm.nix ];
   # transparent emacs
   nixpkgs.overlays = [
     (final: prev: {
