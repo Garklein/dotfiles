@@ -12,7 +12,7 @@
       efi.canTouchEfiVariables = true;
       timeout = 1;
     };
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_5_15;
     tmp.cleanOnBoot = true;
   };
 
@@ -30,7 +30,10 @@
 
   zramSwap.enable = true;
 
-  services.printing.enable = true;
+  services.printing = {
+    enable = true;
+    drivers = [ pkgs.epson-escpr ];
+  };
 
   # enable sound with pipewire
   services.pulseaudio.enable = false;

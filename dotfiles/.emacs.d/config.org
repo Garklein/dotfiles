@@ -920,6 +920,9 @@ Fix PDF file displaying when windows are changed
 
 ;; don't show default startup message
 (setq inhibit-startup-echo-area-message "gator")
+
+;; don't prompt when reverting
+(setq revert-without-query '("."))
 #+end_src
 ** Make align-regexp use spaces
 #+begin_src elisp

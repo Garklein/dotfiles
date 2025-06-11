@@ -13,7 +13,7 @@
   ];
 
   home.packages = with pkgs; [
-    webcord easyeffects
+    webcord easyeffects discord
     vim ed wine rlwrap
     neofetch
     feh silver-searcher
@@ -24,6 +24,10 @@
     man-pages
     gnumake
     valgrind
+    emscripten
+    zoom-us
+    nodejs
+    claude-code
   ];
 
   home.username = "gator";

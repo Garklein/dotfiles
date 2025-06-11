@@ -17,10 +17,6 @@ in {
   services.xserver = {
     enable = true;
     displayManager.startx.enable = true;
-    # windowManager.session = lib.singleton {
-    #   name = "exwm";
-    #   start = "${exwm-emacs}/bin/emacs";
-    # };
     windowManager.exwm = {
       enable = true;
       package = exwm-emacs;

@@ -7,7 +7,10 @@
  '(ignored-local-variable-values
    '((eval run-term-command "cd ~/repos/mlatu" "make" "./repl")))
  '(safe-local-variable-values
-   '((eval unless (equal (buffer-name) "COMMIT_EDITMSG")
+   '((eval progn (electric-indent-local-mode 0)
+	   (setq indent-line-function
+		 (lambda nil (interactive) (insert "  "))))
+     (eval unless (equal (buffer-name) "COMMIT_EDITMSG")
 	   (set-command (compile "cd ~/garklein.github.io && ./build"))))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
