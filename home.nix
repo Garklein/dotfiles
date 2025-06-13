@@ -1,34 +1,27 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, inputs, lib, ... }:
 
-{
+let
+  languages = with pkgs; [python3 perl snobol4 gcc ngn-k ghc cargo ruby nodejs];
+  wmpackages = with pkgs; [agave alsa-utils xclip maim xidlehook]; # for exwm setup
+  editors = with pkgs; [vim ed emacs-gtk];
+  utils = with pkgs; [silver-searcher unzip man-pages gnumake valgrind emscripten rlwrap wine];
+  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus];
+  discords = with pkgs; [webcord easyeffects discord];
+  iostools = with pkgs; [ifuse libimobiledevice];
+  work = with pkgs; [zoom-us claude-code];
+  misc = with pkgs; [neofetch android-tools android-studio];
+in {
   imports = [
     modules/firefox.nix
     modules/git.nix
-    modules/wmpackages.nix
-    modules/languages.nix
     modules/visuals.nix
     modules/bash.nix
     modules/xdg.nix
     modules/alacritty.nix
   ];
 
-  home.packages = with pkgs; [
-    webcord easyeffects discord
-    vim ed wine rlwrap
-    neofetch
-    feh silver-searcher
-    unzip ffmpeg cmus
-    gimp vlc imagemagick ghostscript
-    ifuse libimobiledevice # for mounting ios
-    emacs-gtk
-    man-pages
-    gnumake
-    valgrind
-    emscripten
-    zoom-us
-    nodejs
-    claude-code
-  ];
+  home.packages = [inputs.claude-desktop.packages.x86_64-linux.claude-desktop-with-fhs]
+                  ++ (lib.lists.flatten [languages wmpackages editors utils tools discords iostools work misc]);
 
   home.username = "gator";
   home.homeDirectory = "/home/gator";
