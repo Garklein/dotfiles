@@ -128,15 +128,40 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
 #+end_src
 ** symex
 #+begin_src elisp
+;(use-package mantra
+;  :straight
+;  (mantra
+;   :type git
+;   :host github
+;   :repo "countvajhula/mantra"))
+;
+;(use-package repeat-ring
+;  :straight
+;  (repeat-ring
+;   :type git
+;   :host github
+;   :repo "countvajhula/repeat-ring"))
+;
+;(use-package symex-core
+;  :straight
+;  (symex-core
+;   :type git
+;   :host github
+;   :repo "drym-org/symex.el"
+;   :branch "2.0-integration"
+;   :files ("symex-core/symex*.el")))
+;
 ;(use-package symex
+;  :after (symex-core)
 ;  :straight
 ;  (symex
 ;   :type git
 ;   :host github
 ;   :repo "drym-org/symex.el"
-;   :branch "2.0-integration")
+;   :branch "2.0-integration"
+;   :files ("symex/symex*.el" "symex/doc/*.texi"))
 ;  :config
-;  ;(symex-mode 1)
+;  (symex-mode 1)
 ;  (symex-initialize)
 ;  (global-set-key (kbd "C-,") 'symex-mode-interface)
 ;  (evil-define-key 'normal symex-mode-map
@@ -239,6 +264,7 @@ run a command
 ** initial config
 #+begin_src elisp
 (require 'bar)
+(setq exwm-workspace-number 3)
 (add-hook 'exwm-init-hook #'bar)
 
 (run "picom")
@@ -246,7 +272,6 @@ run a command
 ;; this should really be done in nix, but i can't get it working
 (run "xinput --set-prop \"Logitech USB Optical Mouse\" \"Coordinate Transformation Matrix\" 0.5 0 0 0 0.5 0 0 0 1")
 ;(run "setxkbmap us,ca -option 'grp:win_space_toggle'")
-
 
 (require 'cuendillar)
 ;; emacs needs to be a server so that shells can send it commands to toggle cuendillar
@@ -337,9 +362,10 @@ run a command
   	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (change-brightness 0.03) (update-bar)))
   	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (change-brightness -0.03) (update-bar)))
 
-  	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch-create 0)))
-  	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch-create 1)))
-  	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch-create 2)))))
+	;; for some reason, setting exwm-workspace-number makes all the cursors dark grey
+  	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch-create 0) (set-cursor-color "gray")))
+  	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch-create 1) (set-cursor-color "gray")))
+  	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch-create 2) (set-cursor-color "gray")))))
 
 (setq exwm-input-prefix-keys '(?\C-x ?\C-w ?\M-x))
 (define-key exwm-mode-map (kbd "C-c") nil)
