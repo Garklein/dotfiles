@@ -1,15 +1,15 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
-  languages = with pkgs; [python3 perl snobol4 gcc ngn-k ghc cargo ruby nodejs];
+  languages = with pkgs; [python3 uv perl snobol4 gcc ngn-k ghc cargo ruby nodejs sbcl cabal-install];
   wmpackages = with pkgs; [agave alsa-utils xclip maim xidlehook]; # for exwm setup
   editors = with pkgs; [vim ed emacs-gtk];
   utils = with pkgs; [silver-searcher unzip man-pages gnumake valgrind emscripten rlwrap wine];
-  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus];
+  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc];
   discords = with pkgs; [webcord easyeffects discord];
   iostools = with pkgs; [ifuse libimobiledevice];
-  work = with pkgs; [zoom-us claude-code];
-  misc = with pkgs; [neofetch android-tools android-studio];
+  work = with pkgs; [zoom-us claude-code google-chrome];
+  misc = with pkgs; [neofetch];
 in {
   imports = [
     modules/firefox.nix

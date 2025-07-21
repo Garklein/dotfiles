@@ -1,6 +1,5 @@
 * todo
 - abbrev-mode
-- symex/paredit/lispy
 - helm, ivy, ido
 - term emulator
 - make org headings different sizes
@@ -57,6 +56,7 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
    symbol))
 #+end_src
 * keybinds and evil
+** evil
 #+begin_src elisp
 ;; evil
 (use-package evil
@@ -126,6 +126,24 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   :config
   (evil-collection-init))
 #+end_src
+** symex
+#+begin_src elisp
+;(use-package symex
+;  :straight
+;  (symex
+;   :type git
+;   :host github
+;   :repo "drym-org/symex.el"
+;   :branch "2.0-integration")
+;  :config
+;  ;(symex-mode 1)
+;  (symex-initialize)
+;  (global-set-key (kbd "C-,") 'symex-mode-interface)
+;  (evil-define-key 'normal symex-mode-map
+;    (kbd "<escape>") 'symex-mode-interface)
+;  (evil-define-key 'insert symex-mode-map
+;    (kbd "<escape>") 'symex-mode-interface))
+#+end_src
 * exwm
 ** requires
 #+begin_src elisp
@@ -163,8 +181,6 @@ run a command
 #+end_src
 ** workspaces
 #+begin_src elisp
-(setq exwm-workspace-number 3)
-
 ;; allow all buffers in all workspaces
 (setq exwm-workspace-show-all-buffers t)
 (setq exwm-layout-show-all-buffers t)
@@ -234,7 +250,7 @@ run a command
 
 (require 'cuendillar)
 ;; emacs needs to be a server so that shells can send it commands to toggle cuendillar
-(server-start)
+(unless (server-running-p) (server-start))
 (defun exwm-sleep ()
   (interactive)
   (lock)
@@ -330,7 +346,7 @@ run a command
 #+end_src
 ** enable exwm!
 #+begin_src elisp
-(exwm-enable)
+(exwm-wm-mode)
 
 ;; i have no idea what this does, but it makes firefox behave on nix
 (advice-add #'exwm-layout--hide
@@ -581,6 +597,18 @@ make mode line look nice (has to be done after theme)
 	(comment-region compilation-start (point-max)))))
 (evil-define-key 'normal 'global (kbd "C-c C-a") #'append-compilation)
 #+end_src
+** common lisp
+#+begin_src elisp
+(use-package slime)
+(setq inferior-lisp-program "sbcl")
+(setq common-lisp-hyperspec-root
+  (concat "file://" (expand-file-name "~/bloat/HyperSpec/")))
+(setq browse-url-browser-function
+      (lambda (url &optional new-window)
+     	(if (eq major-mode 'common-lisp-mode)
+     	    (eww-browse-url url new-window)
+     	  (browse-url-default-browser url new-window))))
+#+end_src
 ** nix
 #+begin_src elisp
 (use-package nix-mode
@@ -669,7 +697,8 @@ make mode line look nice (has to be done after theme)
 (add-hook #'haskell-mode-hook
    (lambda ()
      (set-command
-	 (unless (= 0 (shell-command "cabal run"))
+	 (if (equal "app" (--> buffer-file-name (or it "") file-name-split reverse (nth 1 it)))
+	     (with-file-name "hs" (concat "cd " (file-name-parent-directory buffer-file-name) ".. && cabal run" ))
 	   (run-with "runhaskell" "hs")))
      (electric-indent-local-mode 1)))
 #+end_src
@@ -736,17 +765,17 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** lilypond
 #+begin_src elisp
-(defvar lilypond-mode-hook)
-(define-generic-mode
-    'lilypond-mode
-  '("%")
-  nil
-  nil
-  '("\\.ly$")
-  lilypond-mode-hook)
-(add-hook 'lilypond-mode-hook
-	    (lambda () (set-normal-tab 4))
-	    (set-command (run-with "lilypond" "ly")))
+;(defvar lilypond-mode-hook)
+;(define-generic-mode
+;    'lilypond-mode
+;  '("%")
+;  nil
+;  nil
+;  '("\\.ly$")
+;  lilypond-mode-hook)
+;(add-hook 'lilypond-mode-hook
+;	    (lambda () (set-normal-tab 4))
+;	    (set-command (run-with "lilypond" "ly")))
 #+end_src
 ** mlatu
 #+begin_src elisp
@@ -818,15 +847,6 @@ make mode line look nice (has to be done after theme)
 	      (auto-revert-mode)
 	      (evil-local-set-key 'normal (kbd "C-c o") #'toggle-dired-omit-mode)))
 (add-hook 'image-mode-hook (lambda () (display-line-numbers-mode 0)))
-
-(use-package dired-preview
-  :config
-  (setq dired-preview-delay 0)
-  (setq dired-preview-ignored-extensions-regexp
-	  (replace-regexp-in-string
-	   "\\\\|pdf"
-	   ""
-	   dired-preview-ignored-extensions-regexp)))
 #+end_src
 ** pdf mode
 #+begin_src elisp
@@ -880,6 +900,7 @@ Fix PDF file displaying when windows are changed
 ; (setq eshell-where-to-jump 'end)
 ; (setq eshell-review-quick-commands t)
 ; (add-to-list 'eshell-modules-list 'eshell-smart)
+(add-to-list 'eshell-modules-list 'eshell-elecslash)
 ; (setq eshell-where-to-jump 'begin)
 ; (setq eshell-review-quick-commands t)
 ; (setq eshell-smart-space-goes-to-end t)
