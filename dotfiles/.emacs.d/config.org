@@ -264,6 +264,7 @@ run a command
 ** initial config
 #+begin_src elisp
 (require 'bar)
+
 (setq exwm-workspace-number 3)
 (add-hook 'exwm-init-hook #'bar)
 
@@ -340,7 +341,8 @@ run a command
   	([?\s-O] . (lambda () (interactive) (run "emacs --script ~/.emacs.d/lisp/update-packages.el" t)))
   	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
   	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
-  	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
+  	;(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
+  	(,(kbd "s-<return>") . (lambda () (interactive) (eshell)))
   	([?\s-f] . (lambda () (interactive) (start-app "colorforth")))
 
   	([?\s-J] . (lambda () (interactive) (find-file "~/.nixos/home.nix")))
@@ -349,9 +351,9 @@ run a command
 
   	(,(kbd "s-<backspace>") . delete-window)
 
-  	([?\M-:]  . eval-expression)
-  	([?\s-:]  . evil-ex)
-  	([?\s-m]  . exwm-input-toggle-keyboard)
+  	([?\M-:] . eval-expression)
+  	([?\s-:] . evil-ex)
+  	([?\s-m] . exwm-input-toggle-keyboard)
 
   	(,(kbd "s-S") . screenshot)
 
@@ -411,7 +413,9 @@ run a command
 * visuals
 ** theme
 #+begin_src elisp
-(load-theme 'wombat)
+(setq wombat-loaded nil)
+(unless wombat-loaded (load-theme 'wombat))
+(setq wombat-loaded t)
 #+end_src
 ** mode line
 make mode line look nice (has to be done after theme)
@@ -593,7 +597,8 @@ make mode line look nice (has to be done after theme)
 
 (setq compilation-ask-about-save nil) ; save all buffers when compiling
 (defmacro set-command (exp)
-  `(evil-local-set-key 'normal (kbd "C-c C-c") (lambda () (interactive) ,exp)))
+  `(unless (equal (buffer-name) "COMMIT_EDITMSG")
+    (evil-local-set-key 'normal (kbd "C-c C-c")(lambda () (interactive) ,exp))))
 (defmacro with-file-name (extension command)
   `(progn
      (kill-compilation-process)
@@ -732,7 +737,7 @@ make mode line look nice (has to be done after theme)
 #+begin_src elisp
 (add-hook 'python-mode-hook
    (lambda ()
-     (set-command (run-with "python3" "py"))
+     (set-command (run-with "uv run" "py"))
      (set-normal-tab 2)
      (set-pretty '("=" "==" "!="))))
 #+end_src
@@ -920,13 +925,27 @@ Fix PDF file displaying when windows are changed
 #+end_src
 ** eshell
 #+begin_src elisp
+(use-package eat
+  :straight
+  (eat
+   :type git
+   :host codeberg
+   :repo "akib/emacs-eat"
+   :files ("*.el" ("term" "term/*.el") "*.texi"
+	   "*.ti" ("terminfo/e" "terminfo/e/*")
+	   ("terminfo/65" "terminfo/65/*")
+	   ("integration" "integration/*")
+	   (:exclude ".dir-locals.el" "*-tests.el"))))
+(add-hook 'eshell-load-hook #'eat-eshell-mode)
+
+
 (require 'eshell)
 (require 'em-smart)
 ; (setq eshell-where-to-jump 'begin)
 ; (setq eshell-where-to-jump 'end)
 ; (setq eshell-review-quick-commands t)
 ; (add-to-list 'eshell-modules-list 'eshell-smart)
-(add-to-list 'eshell-modules-list 'eshell-elecslash)
+; (add-to-list 'eshell-modules-list 'eshell-elecslash)
 ; (setq eshell-where-to-jump 'begin)
 ; (setq eshell-review-quick-commands t)
 ; (setq eshell-smart-space-goes-to-end t)

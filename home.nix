@@ -1,7 +1,7 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
-  languages = with pkgs; [python3 uv perl snobol4 gcc ngn-k ghc cargo ruby nodejs sbcl cabal-install];
+  languages = with pkgs; [python3Full uv perl snobol4 gcc ngn-k ghc cargo ruby nodejs sbcl cabal-install];
   wmpackages = with pkgs; [agave alsa-utils xclip maim xidlehook]; # for exwm setup
   editors = with pkgs; [vim ed emacs-gtk];
   utils = with pkgs; [silver-searcher unzip man-pages gnumake valgrind emscripten rlwrap wine];

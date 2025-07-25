@@ -9,6 +9,14 @@
  '(safe-local-variable-values
    '((eval progn (electric-indent-local-mode 0)
 	   (setq indent-line-function
+		 (lambda nil (interactive) (insert "  ")))
+	   (set-command (with-file-name "py" "uv run main.py")))
+     (eval progn (electric-indent-local-mode 0)
+	   (setq indent-line-function
+		 (lambda nil (interactive) (insert "  ")))
+	   (set-command "uv run main.py"))
+     (eval progn (electric-indent-local-mode 0)
+	   (setq indent-line-function
 		 (lambda nil (interactive) (insert "  "))))
      (eval unless (equal (buffer-name) "COMMIT_EDITMSG")
 	   (set-command (compile "cd ~/garklein.github.io && ./build"))))))
