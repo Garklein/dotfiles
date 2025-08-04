@@ -210,23 +210,27 @@ run a command
 (setq exwm-workspace-show-all-buffers t)
 (setq exwm-layout-show-all-buffers t)
 
-(defun adjust-frame-transparency ()
+(defun adjust-frame-transparency (&rest _)
   (let* (;(wallpaper
 	 ;   (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
 	 ;  (brightness
 	 ;   (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
-         ;		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
+	 ;		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
 	 ;  (alpha (+ (* -0.37 brightness) 1.11))
 	 )
-    (dolist (frame (frame-list))
-	(with-selected-frame frame
-	  (modify-all-frames-parameters
-	   `((alpha-background      . 87)
-	     (borders-respect-alpha-background . t)
-	     (right-divider-width   . 20)
-	     (bottom-divider-width  . 20)
-	     (internal-border-width . 20)))))))
-(add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
+    (modify-all-frames-parameters
+     `((alpha-background      . 85)
+       (alpha-borders         . 0)
+       (right-divider-width   . 20)
+       (bottom-divider-width  . 20)
+       (internal-border-width . 20)))))
+(defun add-window-margins (&rest _)
+  (set-window-margins nil 2 2)
+  (setq-local header-line-format
+	      '((:propertize ,s display (raise 1)))))
+(add-hook 'after-make-frame-functions 'adjust-frame-transparency)
+(add-hook 'buffer-list-update-hook 'add-window-margins)
+;(add-hook 'window-selection-change-functions 'add-window-margins)
 #+end_src
 ** wallpaper
 #+begin_src elisp
@@ -420,22 +424,31 @@ run a command
 ** mode line
 make mode line look nice (has to be done after theme)
 #+begin_src elisp
-(setq-default mode-line-format
+(setq-default mode-line-unraised
 	      '((:eval (if buffer-read-only "" "  %*"))
-		"  %b"
+		(:eval "  %b")
 		mode-line-format-right-align
+		" "
 		(:eval
 		 (pcase major-mode
 		   ('exwm-mode "")
-		   ('pdf-view-mode (format "%s" (pdf-view-current-pagelabel)))
+		   ('pdf-view-mode "")
 		   (_ "%l-%C")))
 		"  "))
+(defun bottom-margin (s)
+  (if (symbolp s)
+      s
+    `(:propertize ,s display (raise 1))))
+(setq-default mode-line-format (mapcar 'bottom-margin mode-line-unraised))
+(setq-default header-line-format '(,(bottom-margin "")))
 ;; *Messages* doesn't want to change its mode line for some reason
 (with-current-buffer (get-buffer "*Messages*")
   (setq mode-line-format (default-value 'mode-line-format)))
-(dolist (face '(mode-line mode-line-inactive))
+(dolist (face '(mode-line mode-line-inactive header-line))
   (set-face-attribute face nil
-		      :background 'unspecified
+		      :background 'unspecified))
+(dolist (face '(mode-line))
+  (set-face-attribute face nil
 		      :overline   t))
 #+end_src
 ** window properties
@@ -813,35 +826,6 @@ make mode line look nice (has to be done after theme)
 ;(require 'mlatu-mode)
 (load-file "~/dormant/mlatu/editors/emacs/mlatu-mode.el")
 #+end_src
-** typescript
-#+begin_src elisp
-(use-package tide :defer t)
-(defun setup-tide-mode ()
-  (interactive)
-  (tide-setup)
-  (flycheck-mode +1)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
-  (setq tide-format-options '(:convertTabsToSpaces nil :tabSize 4 :indentStyle "none"))
-  (setq eldoc-idle-delay 0)
-  (eldoc-mode +1))
-
-;; aligns annotation to the right hand side
-(setq company-tooltip-align-annotations t)
-
-;; formats the buffer before saving
-(add-hook 'before-save-hook 'tide-format-before-save)
-
-(add-hook 'typescript-mode-hook #'setup-tide-mode)
-
-(add-hook 'typescript-mode-hook
-   (lambda () (set-normal-tab 4)))
-#+end_src
-** v
-#+begin_src elisp
-(use-package v-mode
-  :defer t
-  :mode ("\\(\\.v?v\\|\\.vsh\\)$" . 'v-mode))
-#+end_src
 ** prolog
 #+begin_src elisp
 (use-package ediprolog :defer t)
@@ -1017,16 +1001,12 @@ don't convert to buffer-names at the beginning because that can mess up when mul
 #+end_src
 * misc packages
 #+begin_src elisp
-(use-package 2048-game :defer t)
-
 ;; analyze emacs startup
 (setq esup-depth 0)
 (use-package esup
   :defer t)
 
 (use-package magit :defer t)
-
-(use-package fireplace)
 
 (use-package exec-path-from-shell)
 (when (memq window-system '(mac ns x))

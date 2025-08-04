@@ -45,10 +45,11 @@
       (with-selected-window window
 	(setq bar-buffer (switch-to-buffer " *bar*"))
 	(setq-local evil-normal-state-cursor '(bar . 0))
-	(setq mode-line-format nil)
+	(setq mode-line-format
+	      '((:eval (propertize "" 'display '(raise 1)))))
 	(face-remap-add-relative 'default :height 150)
 	(setq window-size-fixed nil)
-	(fit-window-to-buffer window nil 2)
+	(fit-window-to-buffer window nil 3)
       	(setq window-size-fixed t))
 
       ;; don't open other buffers in the window

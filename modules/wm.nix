@@ -8,7 +8,9 @@ in {
   nixpkgs.overlays = [
     (final: prev: {
       emacs-gtk = prev.emacs-gtk.overrideAttrs (old: {
-        patches = old.patches ++ [ ./../patches/borders-respect-alpha-background.patch ];
+        patches = old.patches ++ [
+          ./../patches/exwm-gaps.patch
+        ];
       });
     })
   ];

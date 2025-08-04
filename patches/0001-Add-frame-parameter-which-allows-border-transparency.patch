@@ -1,0 +1,442 @@
+From 4852ccd51c00ac25937b79bcbbc8bfd2cb3102d1 Mon Sep 17 00:00:00 2001
+From: Garklein <garklein97@gmail.com>
+Date: Sat, 26 Jul 2025 10:07:07 -0400
+Subject: [PATCH] Add frame parameter which allows border transparency
+
+The new 'borders-respect-alpha-background' frame parameter, when
+set to 't', will make window dividers and internal borders
+respect the 'alpha-background' frame parameter. This allows
+transparent gaps between windows.
+* doc/lispref/frames.texi (Font and Color Parameters):
+Document the change.
+* src/frame.c (frame_parm_table, syms_of_frame)
+(gui_set_borders_respect_alpha_background):
+* src/frame.h (struct frame):
+Add frame parameter.
+* src/androidfns.c (x_create_frame, android_create_tip_frame)
+(android_frame_parm_handlers):
+* src/haikufns.c (haiku_create_frame, haiku_create_tip_frame)
+(haiku_frame_parm_handlers):
+* src/nsfns.m (ns_frame_parm_handlers, x_create_frame):
+* src/w32fns.c (x_create_frame, w32_create_tip_frame)
+(w32_frame_parm_handlers):
+Add dummy parameters for backends that don't support opacity.
+* src/pgtkfns.c (pgtk_frame_parm_handlers, x_create_frame)
+(pgtk_create_tip_frame):
+* src/pgtkterm.c (pgtk_draw_window_divider):
+* src/xfns.c (x_create_frame, x_create_tip_frame)
+(x_frame_parm_handlers)
+* src/xterm.c (x_draw_window_divider)
+(x_clear_under_internal_border):
+Implement parameter on backends that support opacity.
+---
+ doc/lispref/frames.texi |  7 +++++++
+ src/androidfns.c        |  7 +++++++
+ src/frame.c             | 10 ++++++++++
+ src/frame.h             |  6 ++++++
+ src/haikufns.c          |  7 +++++++
+ src/nsfns.m             |  4 ++++
+ src/pgtkfns.c           |  7 +++++++
+ src/pgtkterm.c          | 21 ++++++++++++++-------
+ src/w32fns.c            | 10 ++++++++++
+ src/xfns.c              |  7 +++++++
+ src/xterm.c             | 33 ++++++++++++++++++++++-----------
+ 11 files changed, 101 insertions(+), 18 deletions(-)
+
+diff --git a/doc/lispref/frames.texi b/doc/lispref/frames.texi
+index 7f14e002892..740ea43a90f 100644
+--- a/doc/lispref/frames.texi
++++ b/doc/lispref/frames.texi
+@@ -2581,6 +2581,13 @@ Font and Color Parameters
+ while keeping foreground elements such as text fully opaque.  It
+ should be an integer between 0 and 100, where 0 means
+ completely transparent and 100 means completely opaque (default).
++
++@vindex borders-respect-alpha-background@r{, a frame parameter}
++@item borders-respect-alpha-background
++@cindex opacity, frame
++@cindex transparency, frame
++When non-@code{nil}, internal borders and window dividers are
++transparent according to @code{alpha-background}.
+ @end table
+ 
+ The following frame parameters are semi-obsolete in that they are
+diff --git a/src/androidfns.c b/src/androidfns.c
+index 8ea06fc4405..4d9e03e1267 100644
+--- a/src/androidfns.c
++++ b/src/androidfns.c
+@@ -1110,6 +1110,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   if (!NILP (parent_frame))
+     {
+@@ -2097,6 +2100,9 @@ android_create_tip_frame (struct android_display_info *dpyinfo,
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   /* Add `tooltip' frame parameter's default value. */
+   if (NILP (Fframe_parameter (frame, Qtooltip)))
+@@ -3183,6 +3189,7 @@ android_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
+   gui_set_no_special_glyphs,
+   NULL,
+   NULL,
++  NULL,
+ };
+ 
+ 
+diff --git a/src/frame.c b/src/frame.c
+index 36ce36436f3..6a93945ce33 100644
+--- a/src/frame.c
++++ b/src/frame.c
+@@ -4617,6 +4617,8 @@ DEFUN ("frame-scale-factor", Fframe_scale_factor, Sframe_scale_factor,
+   {"override-redirect",		SYMBOL_INDEX (Qoverride_redirect)},
+   {"no-special-glyphs",		SYMBOL_INDEX (Qno_special_glyphs)},
+   {"alpha-background",		SYMBOL_INDEX (Qalpha_background)},
++  {"borders-respect-alpha-background",
++				SYMBOL_INDEX (Qborders_respect_alpha_background)},
+   {"use-frame-synchronization",	SYMBOL_INDEX (Quse_frame_synchronization)},
+ #ifdef HAVE_X_WINDOWS
+   {"shaded",			SYMBOL_INDEX (Qshaded)},
+@@ -5818,6 +5820,13 @@ gui_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+   SET_FRAME_GARBAGED (f);
+ }
+ 
++void
++gui_set_borders_respect_alpha_background (struct frame *f, Lisp_Object arg,
++					  Lisp_Object oldval)
++{
++  f->borders_respect_alpha_background = !NILP (arg);
++}
++
+ /**
+  * gui_set_no_special_glyphs:
+  *
+@@ -7009,6 +7018,7 @@ syms_of_frame (void)
+ 
+   DEFSYM (Qalpha, "alpha");
+   DEFSYM (Qalpha_background, "alpha-background");
++  DEFSYM (Qborders_respect_alpha_background, "borders-respect-alpha-background");
+   DEFSYM (Qauto_lower, "auto-lower");
+   DEFSYM (Qauto_raise, "auto-raise");
+   DEFSYM (Qborder_color, "border-color");
+diff --git a/src/frame.h b/src/frame.h
+index 62b2edcb315..9238b4ccd6e 100644
+--- a/src/frame.h
++++ b/src/frame.h
+@@ -531,6 +531,10 @@ #define EMACS_FRAME_H
+      selected window in the frame, assuming there is still an active
+      minibuffer in that mini-window.  */
+   bool_bf select_mini_window_flag : 1;
++
++  /* Set to true when borders' transparencies should match the
++     background opacity.  */
++  bool_bf borders_respect_alpha_background : 1;
+   /* Bitfield area ends here.  */
+ 
+   /* This frame's change stamp, set the last time window change
+@@ -1849,6 +1853,8 @@ #define EMACS_CLASS "Emacs"
+ 
+ extern void gui_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
+ extern void gui_set_alpha_background (struct frame *, Lisp_Object, Lisp_Object);
++extern void gui_set_borders_respect_alpha_background (struct frame *, Lisp_Object,
++                                                      Lisp_Object);
+ extern void gui_set_no_special_glyphs (struct frame *, Lisp_Object, Lisp_Object);
+ 
+ extern void validate_x_resource_name (void);
+diff --git a/src/haikufns.c b/src/haikufns.c
+index 298a27ccc02..5cca95ee90a 100644
+--- a/src/haikufns.c
++++ b/src/haikufns.c
+@@ -938,6 +938,9 @@ haiku_create_frame (Lisp_Object parms)
+ 			 "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qfullscreen, Qnil,
+ 			 "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
+ 
+@@ -1162,6 +1165,9 @@ haiku_create_tip_frame (Lisp_Object parms)
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   initial_setup_back_buffer (f);
+ 
+@@ -3189,6 +3195,7 @@ DEFUN ("haiku-display-monitor-attributes-list",
+     haiku_set_override_redirect,
+     gui_set_no_special_glyphs,
+     gui_set_alpha_background,
++    gui_set_borders_respect_alpha_background,
+     haiku_set_use_frame_synchronization,
+   };
+ 
+diff --git a/src/nsfns.m b/src/nsfns.m
+index c4f73691ba3..3528c4acd50 100644
+--- a/src/nsfns.m
++++ b/src/nsfns.m
+@@ -1106,6 +1106,7 @@ Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
+   0, /* x_set_override_redirect */
+   gui_set_no_special_glyphs,
+   gui_set_alpha_background,
++  gui_set_borders_respect_alpha_background,
+   NULL,
+ #ifdef NS_IMPL_COCOA
+   ns_set_appearance,
+@@ -1532,6 +1533,9 @@ Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qfullscreen, Qnil,
+                          "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
+ 
+diff --git a/src/pgtkfns.c b/src/pgtkfns.c
+index b55728b579c..917c9e7ab67 100644
+--- a/src/pgtkfns.c
++++ b/src/pgtkfns.c
+@@ -985,6 +985,7 @@ DEFUN ("x-export-frames", Fx_export_frames, Sx_export_frames, 0, 2, 0,
+     pgtk_set_override_redirect,
+     gui_set_no_special_glyphs,
+     pgtk_set_alpha_background,
++    gui_set_borders_respect_alpha_background,
+     NULL,
+   };
+ 
+@@ -1571,6 +1572,9 @@ #define INSTALL_CURSOR(FIELD, NAME) \
+ 			 "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   if (!NILP (parent_frame))
+     {
+@@ -2730,6 +2734,9 @@ pgtk_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, str
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   /* Add `tooltip' frame parameter's default value. */
+   if (NILP (Fframe_parameter (frame, Qtooltip)))
+diff --git a/src/pgtkterm.c b/src/pgtkterm.c
+index 9e21fe01b4c..a7be2d90899 100644
+--- a/src/pgtkterm.c
++++ b/src/pgtkterm.c
+@@ -3361,32 +3361,39 @@ pgtk_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+   if (y1 - y0 > x1 - x0 && x1 - x0 > 2)
+     /* Vertical.  */
+     {
+-      pgtk_set_cr_source_with_color (f, color_first, false);
++      pgtk_set_cr_source_with_color (f, color_first,
++                                     f->borders_respect_alpha_background);
+       cairo_rectangle (cr, x0, y0, 1, y1 - y0);
+       cairo_fill (cr);
+-      pgtk_set_cr_source_with_color (f, color, false);
++      pgtk_set_cr_source_with_color (f, color,
++                                     f->borders_respect_alpha_background);
+       cairo_rectangle (cr, x0 + 1, y0, x1 - x0 - 2, y1 - y0);
+       cairo_fill (cr);
+-      pgtk_set_cr_source_with_color (f, color_last, false);
++      pgtk_set_cr_source_with_color (f, color_last,
++                                     f->borders_respect_alpha_background);
+       cairo_rectangle (cr, x1 - 1, y0, 1, y1 - y0);
+       cairo_fill (cr);
+     }
+   else if (x1 - x0 > y1 - y0 && y1 - y0 > 3)
+     /* Horizontal.  */
+     {
+-      pgtk_set_cr_source_with_color (f, color_first, false);
++      pgtk_set_cr_source_with_color (f, color_first,
++                                     f->borders_respect_alpha_background);
+       cairo_rectangle (cr, x0, y0, x1 - x0, 1);
+       cairo_fill (cr);
+-      pgtk_set_cr_source_with_color (f, color, false);
++      pgtk_set_cr_source_with_color (f, color,
++                                     f->borders_respect_alpha_background);
+       cairo_rectangle (cr, x0, y0 + 1, x1 - x0, y1 - y0 - 2);
+       cairo_fill (cr);
+-      pgtk_set_cr_source_with_color (f, color_last, false);
++      pgtk_set_cr_source_with_color (f, color_last,
++                                     f->borders_respect_alpha_background);
+       cairo_rectangle (cr, x0, y1 - 1, x1 - x0, 1);
+       cairo_fill (cr);
+     }
+   else
+     {
+-      pgtk_set_cr_source_with_color (f, color, false);
++      pgtk_set_cr_source_with_color (f, color,
++                                     f->borders_respect_alpha_background);
+       cairo_rectangle (cr, x0, y0, x1 - x0, y1 - y0);
+       cairo_fill (cr);
+     }
+diff --git a/src/w32fns.c b/src/w32fns.c
+index fd64b04691d..b38ad449924 100644
+--- a/src/w32fns.c
++++ b/src/w32fns.c
+@@ -6487,6 +6487,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+                          NULL, NULL, RES_TYPE_BOOLEAN);
+   gui_default_parameter (f, parameters, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   /* Process alpha here (Bug#16619).  On XP this fails with child
+      frames.  For `no-focus-on-map' frames delay processing of alpha
+@@ -6630,6 +6633,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+ 
+   gui_default_parameter (f, parameters, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   /* Make the window appear on the frame and enable display, unless
+      the caller says not to.  However, with explicit parent, Emacs
+@@ -7563,6 +7569,9 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
+                          "inhibitDoubleBuffering", "InhibitDoubleBuffering",
+                          RES_TYPE_BOOLEAN);
+@@ -11022,6 +11031,7 @@ DEFUN ("w32-set-wallpaper", Fw32_set_wallpaper, Sw32_set_wallpaper, 1, 1, 0,
+   0, /* x_set_override_redirect */
+   gui_set_no_special_glyphs,
+   gui_set_alpha_background,
++  gui_set_borders_respect_alpha_background,
+   0, /* x_set_use_frame_synchronization */
+ };
+ 
+diff --git a/src/xfns.c b/src/xfns.c
+index 4f7be935000..c547d45fe3a 100644
+--- a/src/xfns.c
++++ b/src/xfns.c
+@@ -5333,6 +5333,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   if (!NILP (parent_frame))
+     {
+@@ -8657,6 +8660,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
++                         "bordersRespectAlphaBackground",
++                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
+ 
+   /* Add `tooltip' frame parameter's default value. */
+   if (NILP (Fframe_parameter (frame, Qtooltip)))
+@@ -10196,6 +10202,7 @@ DEFUN ("x-test-string-conversion", Fx_test_string_conversion,
+   x_set_override_redirect,
+   gui_set_no_special_glyphs,
+   x_set_alpha_background,
++  gui_set_borders_respect_alpha_background,
+   x_set_use_frame_synchronization,
+   x_set_shaded,
+ };
+diff --git a/src/xterm.c b/src/xterm.c
+index 398669d39a4..02151fd2ced 100644
+--- a/src/xterm.c
++++ b/src/xterm.c
+@@ -7493,13 +7493,16 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+     {
+       XSetForeground (display, f->output_data.x->normal_gc, color_first);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y0, 1, y1 - y0, false);
++			x0, y0, 1, y1 - y0,
++                        f->borders_respect_alpha_background);
+       XSetForeground (display, f->output_data.x->normal_gc, color);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0 + 1, y0, x1 - x0 - 2, y1 - y0, false);
++			x0 + 1, y0, x1 - x0 - 2, y1 - y0,
++                        f->borders_respect_alpha_background);
+       XSetForeground (display, f->output_data.x->normal_gc, color_last);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x1 - 1, y0, 1, y1 - y0, false);
++			x1 - 1, y0, 1, y1 - y0,
++                        f->borders_respect_alpha_background);
+     }
+   else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
+     /* A horizontal divider, at least three pixels high: Draw first and
+@@ -7507,13 +7510,16 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+     {
+       XSetForeground (display, f->output_data.x->normal_gc, color_first);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y0, x1 - x0, 1, false);
++			x0, y0, x1 - x0, 1,
++                        f->borders_respect_alpha_background);
+       XSetForeground (display, f->output_data.x->normal_gc, color);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y0 + 1, x1 - x0, y1 - y0 - 2, false);
++			x0, y0 + 1, x1 - x0, y1 - y0 - 2,
++                        f->borders_respect_alpha_background);
+       XSetForeground (display, f->output_data.x->normal_gc, color_last);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y1 - 1, x1 - x0, 1, false);
++			x0, y1 - 1, x1 - x0, 1,
++                        f->borders_respect_alpha_background);
+     }
+   else
+     {
+@@ -7521,7 +7527,8 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+        differently.  */
+       XSetForeground (display, f->output_data.x->normal_gc, color);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y0, x1 - x0, y1 - y0, false);
++			x0, y0, x1 - x0, y1 - y0,
++                        f->borders_respect_alpha_background);
+     }
+ }
+ 
+@@ -7722,11 +7729,15 @@ x_clear_under_internal_border (struct frame *f)
+ 	  GC gc = f->output_data.x->normal_gc;
+ 
+ 	  XSetForeground (display, gc, color);
+-	  x_fill_rectangle (f, gc, 0, margin, width, border, false);
+-	  x_fill_rectangle (f, gc, 0, 0, border, height, false);
+-	  x_fill_rectangle (f, gc, width - border, 0, border, height, false);
++	  x_fill_rectangle (f, gc, 0, margin, width, border,
++                            f->borders_respect_alpha_background);
++	  x_fill_rectangle (f, gc, 0, 0, border, height,
++                            f->borders_respect_alpha_background);
++	  x_fill_rectangle (f, gc, width - border, 0, border, height,
++                            f->borders_respect_alpha_background);
+ 	  x_fill_rectangle (f, gc, 0, height - bottom_margin - border,
+-			    width, border, false);
++			    width, border,
++                            f->borders_respect_alpha_background);
+ 	  XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
+ 	}
+       else
+-- 
+2.49.0
+

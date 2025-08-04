@@ -1,0 +1,1526 @@
+diff --git a/doc/lispref/frames.texi b/doc/lispref/frames.texi
+index 7f14e002892..b7f1e704d83 100644
+--- a/doc/lispref/frames.texi
++++ b/doc/lispref/frames.texi
+@@ -2581,6 +2581,14 @@ Font and Color Parameters
+ while keeping foreground elements such as text fully opaque.  It
+ should be an integer between 0 and 100, where 0 means
+ completely transparent and 100 means completely opaque (default).
++
++@vindex alpha-borders@r{, a frame parameter}
++@item alpha-borders
++@cindex opacity, frame
++@cindex transparency, frame
++Sets the background transparency of borders (window dividers
++and internal borders).  Just like @code{alpha-background}, it
++should be an integer between 0 and 100.
+ @end table
+ 
+ The following frame parameters are semi-obsolete in that they are
+diff --git a/src/androidfns.c b/src/androidfns.c
+index 8ea06fc4405..a74c65f0311 100644
+--- a/src/androidfns.c
++++ b/src/androidfns.c
+@@ -1110,6 +1110,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   if (!NILP (parent_frame))
+     {
+@@ -2097,6 +2099,8 @@ android_create_tip_frame (struct android_display_info *dpyinfo,
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   /* Add `tooltip' frame parameter's default value. */
+   if (NILP (Fframe_parameter (frame, Qtooltip)))
+@@ -3182,6 +3186,7 @@ android_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
+   NULL,
+   gui_set_no_special_glyphs,
+   NULL,
++  gui_set_alpha_borders,
+   NULL,
+ };
+ 
+diff --git a/src/frame.c b/src/frame.c
+index 36ce36436f3..45d26b2fc40 100644
+--- a/src/frame.c
++++ b/src/frame.c
+@@ -4617,6 +4617,7 @@ DEFUN ("frame-scale-factor", Fframe_scale_factor, Sframe_scale_factor,
+   {"override-redirect",		SYMBOL_INDEX (Qoverride_redirect)},
+   {"no-special-glyphs",		SYMBOL_INDEX (Qno_special_glyphs)},
+   {"alpha-background",		SYMBOL_INDEX (Qalpha_background)},
++  {"alpha-borders",		SYMBOL_INDEX (Qalpha_borders)},
+   {"use-frame-synchronization",	SYMBOL_INDEX (Quse_frame_synchronization)},
+ #ifdef HAVE_X_WINDOWS
+   {"shaded",			SYMBOL_INDEX (Qshaded)},
+@@ -5818,6 +5819,32 @@ gui_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+   SET_FRAME_GARBAGED (f);
+ }
+ 
++void
++gui_set_alpha_borders (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
++{
++  double alpha = 1.0;
++
++  if (NILP (arg))
++    alpha = 1.0;
++  else if (FLOATP (arg))
++    {
++      alpha = XFLOAT_DATA (arg);
++      if (! (0 <= alpha && alpha <= 1.0))
++	args_out_of_range (make_float (0.0), make_float (1.0));
++    }
++  else if (FIXNUMP (arg))
++    {
++      EMACS_INT ialpha = XFIXNUM (arg);
++      if (! (0 <= ialpha && ialpha <= 100))
++	args_out_of_range (make_fixnum (0), make_fixnum (100));
++      alpha = ialpha / 100.0;
++    }
++  else
++    wrong_type_argument (Qnumberp, arg);
++
++  f->alpha_borders = alpha;
++}
++
+ /**
+  * gui_set_no_special_glyphs:
+  *
+@@ -7009,6 +7036,7 @@ syms_of_frame (void)
+ 
+   DEFSYM (Qalpha, "alpha");
+   DEFSYM (Qalpha_background, "alpha-background");
++  DEFSYM (Qalpha_borders, "alpha-borders");
+   DEFSYM (Qauto_lower, "auto-lower");
+   DEFSYM (Qauto_raise, "auto-raise");
+   DEFSYM (Qborder_color, "border-color");
+diff --git a/src/frame.h b/src/frame.h
+index 62b2edcb315..292cb529654 100644
+--- a/src/frame.h
++++ b/src/frame.h
+@@ -706,6 +706,9 @@ #define EMACS_FRAME_H
+   /* Background opacity */
+   double alpha_background;
+ 
++  /* Border opactiy */
++  double alpha_borders;
++
+   /* Exponent for gamma correction of colors.  1/(VIEWING_GAMMA *
+      SCREEN_GAMMA) where viewing_gamma is 0.4545 and SCREEN_GAMMA is a
+      frame parameter.  0 means don't do gamma correction.  */
+@@ -1849,6 +1852,7 @@ #define EMACS_CLASS "Emacs"
+ 
+ extern void gui_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
+ extern void gui_set_alpha_background (struct frame *, Lisp_Object, Lisp_Object);
++extern void gui_set_alpha_borders (struct frame *, Lisp_Object, Lisp_Object);
+ extern void gui_set_no_special_glyphs (struct frame *, Lisp_Object, Lisp_Object);
+ 
+ extern void validate_x_resource_name (void);
+diff --git a/src/ftcrfont.c b/src/ftcrfont.c
+index 42ee6c3e572..e5715f4e936 100644
+--- a/src/ftcrfont.c
++++ b/src/ftcrfont.c
+@@ -586,10 +586,15 @@ ftcrfont_draw (struct glyph_string *s,
+     {
+ #ifndef USE_BE_CAIRO
+ #ifdef HAVE_X_WINDOWS
+-      x_set_cr_source_with_gc_background (f, s->gc, s->hl != DRAW_CURSOR);
++      double alpha = s->hl != DRAW_CURSOR
++        ? x_get_frame_alpha_background (f)
++        : 1.0;
++      x_set_cr_source_with_gc_background (f, s->gc, alpha);
+ #else
+-      pgtk_set_cr_source_with_color (f, s->xgcv.background,
+-				     s->hl != DRAW_CURSOR);
++      double alpha = s->hl != DRAW_CURSOR
++        ? pgtk_get_frame_alpha_background (f)
++        : 1.0;
++      pgtk_set_cr_source_with_color (f, s->xgcv.background, alpha);
+ #endif
+ #else
+       uint32_t col = be_background;
+@@ -615,9 +620,9 @@ ftcrfont_draw (struct glyph_string *s,
+     }
+ #ifndef USE_BE_CAIRO
+ #ifdef HAVE_X_WINDOWS
+-  x_set_cr_source_with_gc_foreground (f, s->gc, false);
++  x_set_cr_source_with_gc_foreground (f, s->gc, 1.0);
+ #else
+-  pgtk_set_cr_source_with_color (f, s->xgcv.foreground, false);
++  pgtk_set_cr_source_with_color (f, s->xgcv.foreground, 1.0);
+ #endif
+ #else
+   uint32_t col = be_foreground;
+diff --git a/src/haikufns.c b/src/haikufns.c
+index 298a27ccc02..aa79fe6f375 100644
+--- a/src/haikufns.c
++++ b/src/haikufns.c
+@@ -938,6 +938,8 @@ haiku_create_frame (Lisp_Object parms)
+ 			 "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qfullscreen, Qnil,
+ 			 "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
+ 
+@@ -1162,6 +1164,8 @@ haiku_create_tip_frame (Lisp_Object parms)
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   initial_setup_back_buffer (f);
+ 
+@@ -3189,6 +3193,7 @@ DEFUN ("haiku-display-monitor-attributes-list",
+     haiku_set_override_redirect,
+     gui_set_no_special_glyphs,
+     gui_set_alpha_background,
++    gui_set_alpha_borders,
+     haiku_set_use_frame_synchronization,
+   };
+ 
+diff --git a/src/nsfns.m b/src/nsfns.m
+index c4f73691ba3..f2b76e6301b 100644
+--- a/src/nsfns.m
++++ b/src/nsfns.m
+@@ -1106,6 +1106,7 @@ Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
+   0, /* x_set_override_redirect */
+   gui_set_no_special_glyphs,
+   gui_set_alpha_background,
++  gui_set_alpha_borders,
+   NULL,
+ #ifdef NS_IMPL_COCOA
+   ns_set_appearance,
+@@ -1532,6 +1533,8 @@ Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qfullscreen, Qnil,
+                          "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
+ 
+diff --git a/src/pgtkfns.c b/src/pgtkfns.c
+index b55728b579c..35a74079307 100644
+--- a/src/pgtkfns.c
++++ b/src/pgtkfns.c
+@@ -221,24 +221,40 @@ pgtk_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+   unblock_input ();
+ }
+ 
++/* Used for frame parameters like alpha-background and alpha-borders,
++   which make only part of the frame transparent */
++
+ static void
+-pgtk_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
++pgtk_set_up_partial_alpha (struct frame *f)
+ {
+-  gui_set_alpha_background (f, arg, oldval);
++  bool partial_alpha = f->alpha_background != 1.0 || f->alpha_borders != 1.0;
+ 
+   /* This prevents GTK from painting the window's background, which
+      interferes with transparent background in some environments */
+ 
+-  gtk_widget_set_app_paintable (FRAME_GTK_OUTER_WIDGET (f),
+-				f->alpha_background != 1.0);
++  gtk_widget_set_app_paintable (FRAME_GTK_OUTER_WIDGET (f), partial_alpha);
+ 
+   if (FRAME_GTK_OUTER_WIDGET (f)
+       && gtk_widget_get_realized (FRAME_GTK_OUTER_WIDGET (f))
+-      && f->alpha_background != 1.0)
++      && partial_alpha)
+     gdk_window_set_opaque_region (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
+ 				  NULL);
+ }
+ 
++static void
++pgtk_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
++{
++  gui_set_alpha_background (f, arg, oldval);
++  pgtk_set_up_partial_alpha (f);
++}
++
++static void
++pgtk_set_alpha_borders (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
++{
++  gui_set_alpha_borders (f, arg, oldval);
++  pgtk_set_up_partial_alpha (f);
++}
++
+ static void
+ pgtk_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+ {
+@@ -985,6 +1001,7 @@ DEFUN ("x-export-frames", Fx_export_frames, Sx_export_frames, 0, 2, 0,
+     pgtk_set_override_redirect,
+     gui_set_no_special_glyphs,
+     pgtk_set_alpha_background,
++    pgtk_set_alpha_borders,
+     NULL,
+   };
+ 
+@@ -1571,6 +1588,8 @@ #define INSTALL_CURSOR(FIELD, NAME) \
+ 			 "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   if (!NILP (parent_frame))
+     {
+@@ -2730,6 +2749,8 @@ pgtk_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, str
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   /* Add `tooltip' frame parameter's default value. */
+   if (NILP (Fframe_parameter (frame, Qtooltip)))
+diff --git a/src/pgtkterm.c b/src/pgtkterm.c
+index 9e21fe01b4c..c07e85278b0 100644
+--- a/src/pgtkterm.c
++++ b/src/pgtkterm.c
+@@ -111,7 +111,7 @@ #define FRAME_CR_SURFACE(f)		(cairo_get_target (FRAME_CR_CONTEXT (f)))
+ static void pgtk_delete_display (struct pgtk_display_info *);
+ static void pgtk_clear_frame_area (struct frame *, int, int, int, int);
+ static void pgtk_fill_rectangle (struct frame *, unsigned long, int, int,
+-				 int, int, bool);
++				 int, int, double);
+ static void pgtk_clip_to_row (struct window *, struct glyph_row *,
+ 			      enum glyph_row_area, cairo_t *);
+ static struct frame *pgtk_any_window_to_frame (GdkWindow *);
+@@ -1308,9 +1308,10 @@ pgtk_compute_glyph_string_overhangs (struct glyph_string *s)
+ pgtk_clear_glyph_string_rect (struct glyph_string *s, int x, int y,
+ 			      int w, int h)
+ {
+-  pgtk_fill_rectangle (s->f, s->xgcv.background, x, y, w, h,
+-		       (s->first_glyph->type != STRETCH_GLYPH
+-			|| s->hl != DRAW_CURSOR));
++  double alpha = (s->first_glyph->type != STRETCH_GLYPH || s->hl != DRAW_CURSOR)
++    ? s->f->alpha_background
++    : 1.0;
++  pgtk_fill_rectangle (s->f, s->xgcv.background, x, y, w, h, alpha);
+ }
+ 
+ static void
+@@ -1394,12 +1395,12 @@ pgtk_draw_glyph_string_background (struct glyph_string *s, bool force_p)
+ 
+ static void
+ pgtk_draw_rectangle (struct frame *f, unsigned long color, int x, int y,
+-		     int width, int height, bool respect_alpha_background)
++		     int width, int height, double alpha)
+ {
+   cairo_t *cr;
+ 
+   cr = pgtk_begin_cr_clip (f);
+-  pgtk_set_cr_source_with_color (f, color, respect_alpha_background);
++  pgtk_set_cr_source_with_color (f, color, alpha);
+   cairo_rectangle (cr, x + 0.5, y + 0.5, width, height);
+   cairo_set_line_width (cr, 1);
+   cairo_stroke (cr);
+@@ -1429,7 +1430,7 @@ pgtk_draw_glyph_string_foreground (struct glyph_string *s)
+ 	  pgtk_draw_rectangle (s->f,
+ 			       s->face->foreground, x, s->y,
+ 			       g->pixel_width - 1, s->height - 1,
+-			       false);
++			       1.0);
+ 	  x += g->pixel_width;
+ 	}
+     }
+@@ -1478,7 +1479,7 @@ pgtk_draw_composite_glyph_string_foreground (struct glyph_string *s)
+     {
+       if (s->cmp_from == 0)
+ 	pgtk_draw_rectangle (s->f, s->face->foreground, x, s->y,
+-			     s->width - 1, s->height - 1, false);
++			     s->width - 1, s->height - 1, 1.0);
+     }
+   else if (!s->first_glyph->u.cmp.automatic)
+     {
+@@ -1622,7 +1623,7 @@ pgtk_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
+ 			     x, s->ybase - glyph->ascent,
+ 			     glyph->pixel_width - 1,
+ 			     glyph->ascent + glyph->descent - 1,
+-			     false);
++			     1.0);
+       x += glyph->pixel_width;
+     }
+ 
+@@ -1722,7 +1723,7 @@ pgtk_fill_trapezoid_for_relief (struct frame *f, unsigned long color, int x,
+   cairo_t *cr;
+ 
+   cr = pgtk_begin_cr_clip (f);
+-  pgtk_set_cr_source_with_color (f, color, false);
++  pgtk_set_cr_source_with_color (f, color, 1.0);
+   cairo_move_to (cr, top_p ? x : x + height, y);
+   cairo_line_to (cr, x, y + height);
+   cairo_line_to (cr, top_p ? x + width - height : x + width, y + height);
+@@ -1749,7 +1750,7 @@ pgtk_erase_corners_for_relief (struct frame *f, unsigned long color, int x,
+   int i;
+ 
+   cr = pgtk_begin_cr_clip (f);
+-  pgtk_set_cr_source_with_color (f, color, false);
++  pgtk_set_cr_source_with_color (f, color, 1.0);
+   for (i = 0; i < CORNER_LAST; i++)
+     if (corners & (1 << i))
+       {
+@@ -1871,7 +1872,7 @@ pgtk_draw_relief_rect (struct frame *f,
+   if (left_p)
+     {
+       pgtk_fill_rectangle (f, top_left_color, left_x, top_y,
+-			   vwidth, bottom_y + 1 - top_y, false);
++			   vwidth, bottom_y + 1 - top_y, 1.0);
+       if (top_p)
+ 	corners |= 1 << CORNER_TOP_LEFT;
+       if (bot_p)
+@@ -1880,7 +1881,7 @@ pgtk_draw_relief_rect (struct frame *f,
+   if (right_p)
+     {
+       pgtk_fill_rectangle (f, bottom_right_color, right_x + 1 - vwidth, top_y,
+-			   vwidth, bottom_y + 1 - top_y, false);
++			   vwidth, bottom_y + 1 - top_y, 1.0);
+       if (top_p)
+ 	corners |= 1 << CORNER_TOP_RIGHT;
+       if (bot_p)
+@@ -1890,7 +1891,7 @@ pgtk_draw_relief_rect (struct frame *f,
+     {
+       if (!right_p)
+ 	pgtk_fill_rectangle (f, top_left_color, left_x, top_y,
+-			     right_x + 1 - left_x, hwidth, false);
++			     right_x + 1 - left_x, hwidth, 1.0);
+       else
+ 	pgtk_fill_trapezoid_for_relief (f, top_left_color, left_x, top_y,
+ 					right_x + 1 - left_x, hwidth, 1);
+@@ -1900,7 +1901,7 @@ pgtk_draw_relief_rect (struct frame *f,
+       if (!left_p)
+ 	pgtk_fill_rectangle (f, bottom_right_color, left_x,
+ 			     bottom_y + 1 - hwidth, right_x + 1 - left_x,
+-			     hwidth, false);
++			     hwidth, 1.0);
+       else
+ 	pgtk_fill_trapezoid_for_relief (f, bottom_right_color,
+ 					left_x, bottom_y + 1 - hwidth,
+@@ -1908,10 +1909,10 @@ pgtk_draw_relief_rect (struct frame *f,
+     }
+   if (left_p && vwidth > 1)
+     pgtk_fill_rectangle (f, bottom_right_color, left_x, top_y,
+-			 1, bottom_y + 1 - top_y, false);
++			 1, bottom_y + 1 - top_y, 1.0);
+   if (top_p && hwidth > 1)
+     pgtk_fill_rectangle (f, bottom_right_color, left_x, top_y,
+-			 right_x + 1 - left_x, 1, false);
++			 right_x + 1 - left_x, 1, 1.0);
+   if (corners)
+     pgtk_erase_corners_for_relief (f, FRAME_BACKGROUND_PIXEL (f), left_x,
+ 				   top_y, right_x - left_x + 1,
+@@ -1945,24 +1946,24 @@ pgtk_draw_box_rect (struct glyph_string *s, int left_x,
+   /* Top.  */
+   pgtk_fill_rectangle (s->f, s->xgcv.foreground,
+ 		       left_x, top_y, right_x - left_x + 1, hwidth,
+-		       false);
++		       1.0);
+ 
+   /* Left.  */
+   if (left_p)
+     pgtk_fill_rectangle (s->f, s->xgcv.foreground,
+ 			 left_x, top_y, vwidth, bottom_y - top_y + 1,
+-			 false);
++			 1.0);
+ 
+   /* Bottom.  */
+   pgtk_fill_rectangle (s->f, s->xgcv.foreground,
+ 		       left_x, bottom_y - hwidth + 1, right_x - left_x + 1,
+-		       hwidth, false);
++		       hwidth, 1.0);
+ 
+   /* Right.  */
+   if (right_p)
+     pgtk_fill_rectangle (s->f, s->xgcv.foreground,
+ 			 right_x - vwidth + 1, top_y, vwidth,
+-			 bottom_y - top_y + 1, false);
++			 bottom_y - top_y + 1, 1.0);
+ 
+   s->xgcv.foreground = foreground_backup;
+ 
+@@ -2026,7 +2027,7 @@ pgtk_draw_horizontal_wave (struct frame *f, unsigned long color, int x, int y,
+   int xoffset, n;
+ 
+   cr = pgtk_begin_cr_clip (f);
+-  pgtk_set_cr_source_with_color (f, color, false);
++  pgtk_set_cr_source_with_color (f, color, 1.0);
+   cairo_rectangle (cr, x, y, width, height);
+   cairo_clip (cr);
+ 
+@@ -2183,7 +2184,7 @@ pgtk_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
+     cairo_rectangle (cr, dest_x, dest_y, width, height);
+   else
+     {
+-      pgtk_set_cr_source_with_gc_background (f, gc, false);
++      pgtk_set_cr_source_with_gc_background (f, gc, 1.0);
+       cairo_rectangle (cr, dest_x, dest_y, width, height);
+       cairo_fill_preserve (cr);
+     }
+@@ -2200,7 +2201,7 @@ pgtk_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
+     }
+   else
+     {
+-      pgtk_set_cr_source_with_gc_foreground (f, gc, false);
++      pgtk_set_cr_source_with_gc_foreground (f, gc, 1.0);
+       cairo_clip (cr);
+       cairo_mask (cr, image);
+     }
+@@ -2250,7 +2251,7 @@ pgtk_draw_image_foreground (struct glyph_string *s)
+ 	      int relief = eabs (s->img->relief);
+ 	      pgtk_draw_rectangle (s->f, s->xgcv.foreground, x - relief,
+ 				   y - relief, s->slice.width + relief * 2 - 1,
+-				   s->slice.height + relief * 2 - 1, false);
++				   s->slice.height + relief * 2 - 1, 1.0);
+ 	    }
+ 	}
+       pgtk_end_cr_clip (s->f);
+@@ -2258,7 +2259,7 @@ pgtk_draw_image_foreground (struct glyph_string *s)
+   else
+     /* Draw a rectangle if image could not be loaded.  */
+     pgtk_draw_rectangle (s->f, s->xgcv.foreground, x, y,
+-			 s->slice.width - 1, s->slice.height - 1, false);
++			 s->slice.width - 1, s->slice.height - 1, 1.0);
+ }
+ 
+ /* Draw image glyph string S.
+@@ -2398,7 +2399,7 @@ pgtk_draw_stretch_glyph_string (struct glyph_string *s)
+ 	    fill_background (s, x, y, w, h);
+ 	  else
+ 	    pgtk_fill_rectangle (s->f, color, x, y, w, h,
+-				 true);
++				 s->f->alpha_background);
+ 
+ 	  pgtk_end_cr_clip (s->f);
+ 	}
+@@ -2438,7 +2439,7 @@ pgtk_draw_dash (struct frame *f, struct glyph_string *s,
+   double cr_segment, y_center;
+ 
+   cr = pgtk_begin_cr_clip (s->f);
+-  pgtk_set_cr_source_with_color (f, foreground, false);
++  pgtk_set_cr_source_with_color (f, foreground, 1.0);
+   cr_segment = (double) segment;
+   y_center = s->ybase + offset + (thickness / 2.0);
+ 
+@@ -2472,7 +2473,7 @@ pgtk_fill_underline (struct frame *f, struct glyph_string *s,
+     case FACE_UNDERLINE_SINGLE:
+     case FACE_UNDERLINE_DOUBLE_LINE:
+       pgtk_fill_rectangle (f, foreground, s->x, s->ybase + position,
+-			   decoration_width, thickness, false);
++			   decoration_width, thickness, 1.0);
+       break;
+ 
+     case FACE_UNDERLINE_DOTS:
+@@ -2701,10 +2702,10 @@ pgtk_draw_glyph_string (struct glyph_string *s)
+ 
+ 	  if (s->face->overline_color_defaulted_p)
+ 	    pgtk_fill_rectangle (s->f, s->xgcv.foreground, s->x, s->y + dy,
+-				 s->width, h, false);
++				 s->width, h, 1.0);
+ 	  else
+ 	    pgtk_fill_rectangle (s->f, s->face->overline_color, s->x,
+-				 s->y + dy, s->width, h, false);
++				 s->y + dy, s->width, h, 1.0);
+ 	}
+ 
+       /* Draw strike-through.  */
+@@ -2724,10 +2725,10 @@ pgtk_draw_glyph_string (struct glyph_string *s)
+ 
+ 	  if (s->face->strike_through_color_defaulted_p)
+ 	    pgtk_fill_rectangle (s->f, s->xgcv.foreground, s->x, glyph_y + dy,
+-				 s->width, h, false);
++				 s->width, h, 1.0);
+ 	  else
+ 	    pgtk_fill_rectangle (s->f, s->face->strike_through_color, s->x,
+-				 glyph_y + dy, s->width, h, false);
++				 glyph_y + dy, s->width, h, 1.0);
+ 	}
+ 
+       if (s->prev)
+@@ -2864,7 +2865,7 @@ pgtk_draw_hollow_cursor (struct window *w, struct glyph_row *row)
+   /* The foreground of cursor_gc is typically the same as the normal
+      background color, which can cause the cursor box to be invisible.  */
+   cairo_t *cr = pgtk_begin_cr_clip (f);
+-  pgtk_set_cr_source_with_color (f, FRAME_X_OUTPUT (f)->cursor_color, false);
++  pgtk_set_cr_source_with_color (f, FRAME_X_OUTPUT (f)->cursor_color, 1.0);
+ 
+   /* When on R2L character, show cursor at the right edge of the
+      glyph, unless the cursor box is as wide as the glyph or wider
+@@ -2879,7 +2880,7 @@ pgtk_draw_hollow_cursor (struct window *w, struct glyph_row *row)
+   /* Set clipping, draw the rectangle, and reset clipping again.  */
+   pgtk_clip_to_row (w, row, TEXT_AREA, cr);
+   pgtk_draw_rectangle (f, FRAME_X_OUTPUT (f)->cursor_color,
+-		       x, y, wd, h - 1, false);
++		       x, y, wd, h - 1, 1.0);
+   pgtk_end_cr_clip (f);
+ }
+ 
+@@ -2953,7 +2954,7 @@ pgtk_draw_bar_cursor (struct window *w, struct glyph_row *row, int width,
+ 
+ 	  pgtk_fill_rectangle (f, color, x,
+ 			       WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+-			       width, row->height, false);
++			       width, row->height, 1.0);
+ 	}
+       else			/* HBAR_CURSOR */
+ 	{
+@@ -2974,7 +2975,7 @@ pgtk_draw_bar_cursor (struct window *w, struct glyph_row *row, int width,
+ 	  pgtk_fill_rectangle (f, color, x,
+ 			       WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+ 							row->height - width),
+-			       w->phys_cursor_width - 1, width, false);
++			       w->phys_cursor_width - 1, width, 1.0);
+ 	}
+ 
+       pgtk_end_cr_clip (f);
+@@ -3330,7 +3331,7 @@ pgtk_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
+ 
+   face = FACE_FROM_ID_OR_NULL (f, VERTICAL_BORDER_FACE_ID);
+   if (face)
+-    pgtk_set_cr_source_with_color (f, face->foreground, false);
++    pgtk_set_cr_source_with_color (f, face->foreground, 1.0);
+ 
+   cairo_rectangle (cr, x, y0, 1, y1 - y0);
+   cairo_fill (cr);
+@@ -3361,32 +3362,32 @@ pgtk_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+   if (y1 - y0 > x1 - x0 && x1 - x0 > 2)
+     /* Vertical.  */
+     {
+-      pgtk_set_cr_source_with_color (f, color_first, false);
++      pgtk_set_cr_source_with_color (f, color_first, f->alpha_borders);
+       cairo_rectangle (cr, x0, y0, 1, y1 - y0);
+       cairo_fill (cr);
+-      pgtk_set_cr_source_with_color (f, color, false);
++      pgtk_set_cr_source_with_color (f, color, f->alpha_borders);
+       cairo_rectangle (cr, x0 + 1, y0, x1 - x0 - 2, y1 - y0);
+       cairo_fill (cr);
+-      pgtk_set_cr_source_with_color (f, color_last, false);
++      pgtk_set_cr_source_with_color (f, color_last, f->alpha_borders);
+       cairo_rectangle (cr, x1 - 1, y0, 1, y1 - y0);
+       cairo_fill (cr);
+     }
+   else if (x1 - x0 > y1 - y0 && y1 - y0 > 3)
+     /* Horizontal.  */
+     {
+-      pgtk_set_cr_source_with_color (f, color_first, false);
++      pgtk_set_cr_source_with_color (f, color_first, f->alpha_borders);
+       cairo_rectangle (cr, x0, y0, x1 - x0, 1);
+       cairo_fill (cr);
+-      pgtk_set_cr_source_with_color (f, color, false);
++      pgtk_set_cr_source_with_color (f, color, f->alpha_borders);
+       cairo_rectangle (cr, x0, y0 + 1, x1 - x0, y1 - y0 - 2);
+       cairo_fill (cr);
+-      pgtk_set_cr_source_with_color (f, color_last, false);
++      pgtk_set_cr_source_with_color (f, color_last, f->alpha_borders);
+       cairo_rectangle (cr, x0, y1 - 1, x1 - x0, 1);
+       cairo_fill (cr);
+     }
+   else
+     {
+-      pgtk_set_cr_source_with_color (f, color, false);
++      pgtk_set_cr_source_with_color (f, color, f->alpha_borders);
+       cairo_rectangle (cr, x0, y0, x1 - x0, y1 - y0);
+       cairo_fill (cr);
+     }
+@@ -4985,11 +4986,11 @@ pgtk_handle_event (GtkWidget *widget, GdkEvent *event, gpointer *data)
+ 
+ static void
+ pgtk_fill_rectangle (struct frame *f, unsigned long color, int x, int y,
+-		     int width, int height, bool respect_alpha_background)
++		     int width, int height, double alpha)
+ {
+   cairo_t *cr;
+   cr = pgtk_begin_cr_clip (f);
+-  pgtk_set_cr_source_with_color (f, color, respect_alpha_background);
++  pgtk_set_cr_source_with_color (f, color, alpha);
+   cairo_rectangle (cr, x, y, width, height);
+   cairo_fill (cr);
+   pgtk_end_cr_clip (f);
+@@ -7412,7 +7413,7 @@ pgtk_clear_area (struct frame *f, int x, int y, int width, int height)
+ 
+   cr = pgtk_begin_cr_clip (f);
+   pgtk_set_cr_source_with_color (f, FRAME_X_OUTPUT (f)->background_color,
+-				 true);
++				 f->alpha_background);
+   cairo_rectangle (cr, x, y, width, height);
+   cairo_fill (cr);
+   pgtk_end_cr_clip (f);
+@@ -7563,31 +7564,35 @@ pgtk_end_cr_clip (struct frame *f)
+   cairo_restore (FRAME_CR_CONTEXT (f));
+ }
+ 
++double
++pgtk_get_frame_alpha_background (struct frame *f)
++{
++  return f->alpha_background;
++}
++
+ void
+ pgtk_set_cr_source_with_gc_foreground (struct frame *f, Emacs_GC *gc,
+-				       bool respects_alpha_background)
++				       double alpha)
+ {
+-  pgtk_set_cr_source_with_color (f, gc->foreground,
+-				 respects_alpha_background);
++  pgtk_set_cr_source_with_color (f, gc->foreground, alpha);
+ }
+ 
+ void
+ pgtk_set_cr_source_with_gc_background (struct frame *f, Emacs_GC *gc,
+-				       bool respects_alpha_background)
++				       double alpha)
+ {
+-  pgtk_set_cr_source_with_color (f, gc->background,
+-				 respects_alpha_background);
++  pgtk_set_cr_source_with_color (f, gc->background, alpha);
+ }
+ 
+ void
+ pgtk_set_cr_source_with_color (struct frame *f, unsigned long color,
+-			       bool respects_alpha_background)
++			       double alpha)
+ {
+   Emacs_Color col;
+   col.pixel = color;
+   pgtk_query_color (f, &col);
+ 
+-  if (!respects_alpha_background)
++  if (alpha == 1.0)
+     {
+       cairo_set_source_rgb (FRAME_CR_CONTEXT (f), col.red / 65535.0,
+ 			    col.green / 65535.0, col.blue / 65535.0);
+@@ -7597,7 +7602,7 @@ pgtk_set_cr_source_with_color (struct frame *f, unsigned long color,
+     {
+       cairo_set_source_rgba (FRAME_CR_CONTEXT (f), col.red / 65535.0,
+ 			     col.green / 65535.0, col.blue / 65535.0,
+-			     f->alpha_background);
++			     alpha);
+       cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_SOURCE);
+     }
+ }
+diff --git a/src/pgtkterm.h b/src/pgtkterm.h
+index 94a40b823c8..f97775d1c4f 100644
+--- a/src/pgtkterm.h
++++ b/src/pgtkterm.h
+@@ -611,9 +611,10 @@ #define SELECTION_EVENT_TIME(eventp)	\
+ extern void pgtk_cr_update_surface_desired_size (struct frame *, int, int, bool);
+ extern cairo_t *pgtk_begin_cr_clip (struct frame *);
+ extern void pgtk_end_cr_clip (struct frame *);
+-extern void pgtk_set_cr_source_with_gc_foreground (struct frame *, Emacs_GC *, bool);
+-extern void pgtk_set_cr_source_with_gc_background (struct frame *, Emacs_GC *, bool);
+-extern void pgtk_set_cr_source_with_color (struct frame *, unsigned long, bool);
++extern double pgtk_get_frame_alpha_background (struct frame *);
++extern void pgtk_set_cr_source_with_gc_foreground (struct frame *, Emacs_GC *, double);
++extern void pgtk_set_cr_source_with_gc_background (struct frame *, Emacs_GC *, double);
++extern void pgtk_set_cr_source_with_color (struct frame *, unsigned long, double);
+ extern void pgtk_cr_draw_frame (cairo_t *, struct frame *);
+ extern void pgtk_cr_destroy_frame_context (struct frame *);
+ extern Lisp_Object pgtk_cr_export_frames (Lisp_Object , cairo_surface_type_t);
+diff --git a/src/w32fns.c b/src/w32fns.c
+index fd64b04691d..336b65047b4 100644
+--- a/src/w32fns.c
++++ b/src/w32fns.c
+@@ -6487,6 +6487,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+                          NULL, NULL, RES_TYPE_BOOLEAN);
+   gui_default_parameter (f, parameters, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parameters, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   /* Process alpha here (Bug#16619).  On XP this fails with child
+      frames.  For `no-focus-on-map' frames delay processing of alpha
+@@ -6630,6 +6632,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+ 
+   gui_default_parameter (f, parameters, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parameters, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   /* Make the window appear on the frame and enable display, unless
+      the caller says not to.  However, with explicit parent, Emacs
+@@ -7563,6 +7567,8 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
+                          "inhibitDoubleBuffering", "InhibitDoubleBuffering",
+                          RES_TYPE_BOOLEAN);
+@@ -11022,6 +11028,7 @@ DEFUN ("w32-set-wallpaper", Fw32_set_wallpaper, Sw32_set_wallpaper, 1, 1, 0,
+   0, /* x_set_override_redirect */
+   gui_set_no_special_glyphs,
+   gui_set_alpha_background,
++  gui_set_alpha_borders,
+   0, /* x_set_use_frame_synchronization */
+ };
+ 
+diff --git a/src/xfns.c b/src/xfns.c
+index 4f7be935000..4285850cc60 100644
+--- a/src/xfns.c
++++ b/src/xfns.c
+@@ -729,9 +729,14 @@ x_set_wait_for_wm (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
+   f->output_data.x->wait_for_wm = !NILP (new_value);
+ }
+ 
++/* Used for frame parameters like alpha-background and alpha-borders,
++   which make only part of the frame transparent */
++
+ static void
+-x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
++x_set_up_partial_alpha (struct frame *f)
+ {
++  bool partial_alpha = f->alpha_background != 1.0 || f->alpha_borders != 1.0;
++
+   unsigned long opaque_region[] = {0, 0, FRAME_PIXEL_WIDTH (f),
+ 				   FRAME_PIXEL_HEIGHT (f)};
+ #ifdef HAVE_GTK3
+@@ -739,33 +744,19 @@ x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+   GtkWidgetClass *class;
+ #endif
+ 
+-  gui_set_alpha_background (f, arg, oldval);
+-
+-#ifdef HAVE_XRENDER
+-  /* Setting `alpha_background' to something other than opaque on a
+-     display that doesn't support the required features leads to
+-     confusing results.  */
+-  if (f->alpha_background < 1.0
+-      && !FRAME_DISPLAY_INFO (f)->alpha_bits
+-      && !FRAME_CHECK_XR_VERSION (f, 0, 2))
+-    f->alpha_background = 1.0;
+-#else
+-  f->alpha_background = 1.0;
+-#endif
+-
+ #ifdef USE_GTK
+   /* This prevents GTK from painting the window's background, which
+      interferes with transparent background in some environments */
+ 
+   if (!FRAME_TOOLTIP_P (f))
+     gtk_widget_set_app_paintable (FRAME_GTK_OUTER_WIDGET (f),
+-				  f->alpha_background != 1.0);
++				  partial_alpha);
+ #endif
+ 
+   if (!FRAME_DISPLAY_INFO (f)->alpha_bits)
+     return;
+ 
+-  if (f->alpha_background != 1.0)
++  if (partial_alpha)
+     {
+       XChangeProperty (FRAME_X_DISPLAY (f),
+ 		       FRAME_X_WINDOW (f),
+@@ -801,6 +792,47 @@ x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+ #endif
+ }
+ 
++static bool
++x_partial_alpha_supported (struct frame *f)
++{
++  bool partial_alpha = f->alpha_background != 1.0 || f->alpha_borders != 1.0;
++
++#ifdef HAVE_XRENDER
++  /* Setting `alpha_background' to something other than opaque on a
++     display that doesn't support the required features leads to
++     confusing results.  */
++  if (partial_alpha
++      && !FRAME_DISPLAY_INFO (f)->alpha_bits
++      && !FRAME_CHECK_XR_VERSION (f, 0, 2))
++    return false;
++  return true;
++#else
++  return false;
++#endif
++}
++
++
++static void
++x_set_alpha_background (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
++{
++  gui_set_alpha_background (f, arg, oldval);
++
++  if (!x_partial_alpha_supported (f))
++    f->alpha_background = 1.0;
++
++  x_set_up_partial_alpha(f);
++}
++
++static void
++x_set_alpha_borders (struct frame *f, Lisp_Object arg, Lisp_Object oldval) {
++  gui_set_alpha_borders (f, arg, oldval);
++
++  if (!x_partial_alpha_supported (f))
++    f->alpha_borders = 1.0;
++
++  x_set_up_partial_alpha(f);
++}
++
+ static void
+ x_set_tool_bar_position (struct frame *f,
+                          Lisp_Object new_value,
+@@ -5333,6 +5365,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   if (!NILP (parent_frame))
+     {
+@@ -8657,6 +8691,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
+                          "alpha", "Alpha", RES_TYPE_NUMBER);
+   gui_default_parameter (f, parms, Qalpha_background, Qnil,
+                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
++  gui_default_parameter (f, parms, Qalpha_borders, Qnil,
++                         "alphaBorders", "AlphaBorders", RES_TYPE_NUMBER);
+ 
+   /* Add `tooltip' frame parameter's default value. */
+   if (NILP (Fframe_parameter (frame, Qtooltip)))
+@@ -10196,6 +10232,7 @@ DEFUN ("x-test-string-conversion", Fx_test_string_conversion,
+   x_set_override_redirect,
+   gui_set_no_special_glyphs,
+   x_set_alpha_background,
++  x_set_alpha_borders,
+   x_set_use_frame_synchronization,
+   x_set_shaded,
+ };
+diff --git a/src/xterm.c b/src/xterm.c
+index 398669d39a4..20769024a69 100644
+--- a/src/xterm.c
++++ b/src/xterm.c
+@@ -6052,9 +6052,15 @@ x_end_cr_clip (struct frame *f)
+ #endif
+ }
+ 
++double
++x_get_frame_alpha_background (struct frame *f)
++{
++  return f->alpha_background;
++}
++
+ void
+ x_set_cr_source_with_gc_foreground (struct frame *f, GC gc,
+-				    bool respect_alpha_background)
++				    double alpha)
+ {
+   XGCValues xgcv;
+   XColor color;
+@@ -6065,12 +6071,11 @@ x_set_cr_source_with_gc_foreground (struct frame *f, GC gc,
+   x_query_colors (f, &color, 1);
+   depth = FRAME_DISPLAY_INFO (f)->n_planes;
+ 
+-  if (f->alpha_background < 1.0 && depth == 32
+-      && respect_alpha_background)
++  if (alpha < 1.0 && depth == 32)
+     {
+       cairo_set_source_rgba (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+ 			     color.green / 65535.0, color.blue / 65535.0,
+-			     f->alpha_background);
++			     alpha);
+ 
+       cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_SOURCE);
+     }
+@@ -6084,7 +6089,7 @@ x_set_cr_source_with_gc_foreground (struct frame *f, GC gc,
+ 
+ void
+ x_set_cr_source_with_gc_background (struct frame *f, GC gc,
+-				    bool respect_alpha_background)
++				    double alpha)
+ {
+   XGCValues xgcv;
+   XColor color;
+@@ -6097,12 +6102,11 @@ x_set_cr_source_with_gc_background (struct frame *f, GC gc,
+ 
+   depth = FRAME_DISPLAY_INFO (f)->n_planes;
+ 
+-  if (f->alpha_background < 1.0 && depth == 32
+-      && respect_alpha_background)
++  if (alpha < 1.0 && depth == 32)
+     {
+       cairo_set_source_rgba (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+ 			     color.green / 65535.0, color.blue / 65535.0,
+-			     f->alpha_background);
++			     alpha);
+ 
+       cairo_set_operator (FRAME_CR_CONTEXT (f), CAIRO_OPERATOR_SOURCE);
+     }
+@@ -6296,7 +6300,7 @@ x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
+     cairo_rectangle (cr, dest_x, dest_y, width, height);
+   else
+     {
+-      x_set_cr_source_with_gc_background (f, gc, false);
++      x_set_cr_source_with_gc_background (f, gc, 1.0);
+       cairo_rectangle (cr, dest_x, dest_y, width, height);
+       cairo_fill_preserve (cr);
+     }
+@@ -6313,7 +6317,7 @@ x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
+     }
+   else
+     {
+-      x_set_cr_source_with_gc_foreground (f, gc, false);
++      x_set_cr_source_with_gc_foreground (f, gc, 1.0);
+       cairo_clip (cr);
+       cairo_mask (cr, image);
+     }
+@@ -6571,7 +6575,7 @@ x_xrender_color_from_gc_background (struct frame *f, GC gc, XRenderColor *color,
+ 
+ static void
+ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+-		  bool respect_alpha_background)
++		  double alpha)
+ {
+ #ifdef USE_CAIRO
+   Display *dpy = FRAME_X_DISPLAY (f);
+@@ -6587,7 +6591,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+ 	 regarded as Pixmap of unspecified size filled with ones.  */
+       || (xgcv.stipple & ((Pixmap) 7 << (sizeof (Pixmap) * CHAR_BIT - 3))))
+     {
+-      x_set_cr_source_with_gc_foreground (f, gc, respect_alpha_background);
++      x_set_cr_source_with_gc_foreground (f, gc, alpha);
+       cairo_rectangle (cr, x, y, width, height);
+       cairo_fill (cr);
+     }
+@@ -6595,14 +6599,14 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+     {
+       eassert (xgcv.fill_style == FillOpaqueStippled);
+       eassert (xgcv.stipple != None);
+-      x_set_cr_source_with_gc_background (f, gc, respect_alpha_background);
++      x_set_cr_source_with_gc_background (f, gc, alpha);
+       cairo_rectangle (cr, x, y, width, height);
+       cairo_fill_preserve (cr);
+ 
+       cairo_pattern_t *pattern = x_bitmap_stipple (f, xgcv.stipple);
+       if (pattern)
+ 	{
+-	  x_set_cr_source_with_gc_foreground (f, gc, respect_alpha_background);
++	  x_set_cr_source_with_gc_foreground (f, gc, alpha);
+ 	  cairo_clip (cr);
+ 	  cairo_mask (cr, pattern);
+ 	}
+@@ -6610,8 +6614,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+   x_end_cr_clip (f);
+ #else
+ #if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+-  if (respect_alpha_background
+-      && f->alpha_background != 1.0
++  if (alpha != 1.0
+       && FRAME_DISPLAY_INFO (f)->alpha_bits
+       && FRAME_CHECK_XR_VERSION (f, 0, 2))
+     {
+@@ -6624,7 +6627,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+ #if RENDER_MAJOR > 0 || (RENDER_MINOR >= 10)
+ 	  XGCValues xgcv;
+ 	  XRenderPictureAttributes attrs;
+-	  XRenderColor alpha;
++	  XRenderColor alphaColor;
+ 	  Picture stipple, fill;
+ #endif
+ 
+@@ -6637,7 +6640,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+ 	  if (xgcv.fill_style == FillOpaqueStippled
+ 	      && FRAME_CHECK_XR_VERSION (f, 0, 10))
+ 	    {
+-	      x_xrender_color_from_gc_background (f, gc, &alpha, true);
++	      x_xrender_color_from_gc_background (f, gc, &alphaColor, true);
+ 	      x_xrender_color_from_gc_foreground (f, gc, &xc, true);
+ 	      attrs.repeat = RepeatNormal;
+ 
+@@ -6649,7 +6652,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+ 
+ 	      XRenderFillRectangle (FRAME_X_DISPLAY (f), PictOpSrc,
+ 				    FRAME_X_PICTURE (f),
+-				    &alpha, x, y, width, height);
++				    &alphaColor, x, y, width, height);
+ 
+ 	      fill = XRenderCreateSolidFill (FRAME_X_DISPLAY (f), &xc);
+ 
+@@ -6685,20 +6688,19 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+ 
+ static void
+ x_clear_rectangle (struct frame *f, GC gc, int x, int y, int width, int height,
+-		   bool respect_alpha_background)
++		   double alpha)
+ {
+ #ifdef USE_CAIRO
+   cairo_t *cr;
+ 
+   cr = x_begin_cr_clip (f, gc);
+-  x_set_cr_source_with_gc_background (f, gc, respect_alpha_background);
++  x_set_cr_source_with_gc_background (f, gc, alpha);
+   cairo_rectangle (cr, x, y, width, height);
+   cairo_fill (cr);
+   x_end_cr_clip (f);
+ #else
+ #if defined HAVE_XRENDER && (RENDER_MAJOR > 0 || (RENDER_MINOR >= 2))
+-  if (respect_alpha_background
+-      && f->alpha_background != 1.0
++  if (alpha != 1.0
+       && FRAME_DISPLAY_INFO (f)->alpha_bits
+       && FRAME_CHECK_XR_VERSION (f, 0, 2))
+     {
+@@ -6738,7 +6740,7 @@ x_draw_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
+   cairo_t *cr;
+ 
+   cr = x_begin_cr_clip (f, gc);
+-  x_set_cr_source_with_gc_foreground (f, gc, false);
++  x_set_cr_source_with_gc_foreground (f, gc, 1.0);
+   cairo_rectangle (cr, x + 0.5, y + 0.5, width, height);
+   cairo_set_line_width (cr, 1);
+   cairo_stroke (cr);
+@@ -6756,7 +6758,8 @@ x_clear_window (struct frame *f)
+   cairo_t *cr;
+ 
+   cr = x_begin_cr_clip (f, NULL);
+-  x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc, true);
++  x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc,
++				      f->alpha_background);
+   cairo_paint (cr);
+   x_end_cr_clip (f);
+ #else
+@@ -6784,7 +6787,7 @@ x_fill_trapezoid_for_relief (struct frame *f, GC gc, int x, int y,
+   cairo_t *cr;
+ 
+   cr = x_begin_cr_clip (f, gc);
+-  x_set_cr_source_with_gc_foreground (f, gc, false);
++  x_set_cr_source_with_gc_foreground (f, gc, 1.0);
+   cairo_move_to (cr, top_p ? x : x + height, y);
+   cairo_line_to (cr, x, y + height);
+   cairo_line_to (cr, top_p ? x + width - height : x + width, y + height);
+@@ -6811,7 +6814,7 @@ x_erase_corners_for_relief (struct frame *f, GC gc, int x, int y,
+   int i;
+ 
+   cr = x_begin_cr_clip (f, gc);
+-  x_set_cr_source_with_gc_background (f, gc, false);
++  x_set_cr_source_with_gc_background (f, gc, 1.0);
+   for (i = 0; i < CORNER_LAST; i++)
+     if (corners & (1 << i))
+       {
+@@ -6844,7 +6847,7 @@ x_draw_horizontal_wave (struct frame *f, GC gc, int x, int y,
+   int xoffset, n;
+ 
+   cr = x_begin_cr_clip (f, gc);
+-  x_set_cr_source_with_gc_foreground (f, gc, false);
++  x_set_cr_source_with_gc_foreground (f, gc, 1.0);
+   cairo_rectangle (cr, x, y, width, height);
+   cairo_clip (cr);
+ 
+@@ -7460,7 +7463,7 @@ x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
+ 		    face->foreground);
+ 
+ #ifdef USE_CAIRO
+-  x_fill_rectangle (f, f->output_data.x->normal_gc, x, y0, 1, y1 - y0, false);
++  x_fill_rectangle (f, f->output_data.x->normal_gc, x, y0, 1, y1 - y0, 1.0);
+ #else
+   XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 	     f->output_data.x->normal_gc, x, y0, x, y1);
+@@ -7493,13 +7496,13 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+     {
+       XSetForeground (display, f->output_data.x->normal_gc, color_first);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y0, 1, y1 - y0, false);
++			x0, y0, 1, y1 - y0, f->alpha_borders);
+       XSetForeground (display, f->output_data.x->normal_gc, color);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0 + 1, y0, x1 - x0 - 2, y1 - y0, false);
++			x0 + 1, y0, x1 - x0 - 2, y1 - y0, f->alpha_borders);
+       XSetForeground (display, f->output_data.x->normal_gc, color_last);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x1 - 1, y0, 1, y1 - y0, false);
++			x1 - 1, y0, 1, y1 - y0, f->alpha_borders);
+     }
+   else if ((x1 - x0 > y1 - y0) && (y1 - y0 >= 3))
+     /* A horizontal divider, at least three pixels high: Draw first and
+@@ -7507,13 +7510,13 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+     {
+       XSetForeground (display, f->output_data.x->normal_gc, color_first);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y0, x1 - x0, 1, false);
++			x0, y0, x1 - x0, 1, f->alpha_borders);
+       XSetForeground (display, f->output_data.x->normal_gc, color);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y0 + 1, x1 - x0, y1 - y0 - 2, false);
++			x0, y0 + 1, x1 - x0, y1 - y0 - 2, f->alpha_borders);
+       XSetForeground (display, f->output_data.x->normal_gc, color_last);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y1 - 1, x1 - x0, 1, false);
++			x0, y1 - 1, x1 - x0, 1, f->alpha_borders);
+     }
+   else
+     {
+@@ -7521,7 +7524,7 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
+        differently.  */
+       XSetForeground (display, f->output_data.x->normal_gc, color);
+       x_fill_rectangle (f, f->output_data.x->normal_gc,
+-			x0, y0, x1 - x0, y1 - y0, false);
++			x0, y0, x1 - x0, y1 - y0, f->alpha_borders);
+     }
+ }
+ 
+@@ -7722,11 +7725,15 @@ x_clear_under_internal_border (struct frame *f)
+ 	  GC gc = f->output_data.x->normal_gc;
+ 
+ 	  XSetForeground (display, gc, color);
+-	  x_fill_rectangle (f, gc, 0, margin, width, border, false);
+-	  x_fill_rectangle (f, gc, 0, 0, border, height, false);
+-	  x_fill_rectangle (f, gc, width - border, 0, border, height, false);
++	  x_fill_rectangle (f, gc, 0, margin, width, border,
++                            f->alpha_borders);
++	  x_fill_rectangle (f, gc, 0, 0, border, height,
++                            f->alpha_borders);
++	  x_fill_rectangle (f, gc, width - border, 0, border, height,
++                            f->alpha_borders);
+ 	  x_fill_rectangle (f, gc, 0, height - bottom_margin - border,
+-			    width, border, false);
++			    width, border,
++                            f->alpha_borders);
+ 	  XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
+ 	}
+       else
+@@ -7791,9 +7798,10 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
+ 	    GC gc = f->output_data.x->normal_gc;
+ 
+ 	    XSetForeground (display, gc, color);
+-	    x_fill_rectangle (f, gc, 0, y, width, height, true);
++	    x_fill_rectangle (f, gc, 0, y, width, height,
++			      f->alpha_background);
+ 	    x_fill_rectangle (f, gc, FRAME_PIXEL_WIDTH (f) - width, y,
+-			      width, height, true);
++			      width, height, f->alpha_background);
+ 	    XSetForeground (display, gc, FRAME_FOREGROUND_PIXEL (f));
+ 	  }
+ 	else
+@@ -7869,7 +7877,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
+ 	{
+ 	  XSetFillStyle (display, face->gc, FillOpaqueStippled);
+ 	  x_fill_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny,
+-			    true);
++			    f->alpha_background);
+ 	  XSetFillStyle (display, face->gc, FillSolid);
+ 
+ 	  row->stipple_p = true;
+@@ -7878,7 +7886,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
+ 	{
+ 	  XSetBackground (display, face->gc, face->background);
+ 	  x_clear_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny,
+-			   true);
++			   f->alpha_background);
+ 	  XSetForeground (display, face->gc, face->foreground);
+ 	}
+     }
+@@ -8519,24 +8527,23 @@ x_compute_glyph_string_overhangs (struct glyph_string *s)
+ static void
+ x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
+ {
+-  x_clear_rectangle (s->f, s->gc, x, y, w, h, s->hl != DRAW_CURSOR);
++  x_clear_rectangle (s->f, s->gc, x, y, w, h, s->hl != DRAW_CURSOR ? s->f->alpha_background : 1.0);
+ }
+ 
+ #ifndef USE_CAIRO
+ 
+ static void
+ x_clear_point (struct frame *f, GC gc, int x, int y,
+-	       bool respect_alpha_background)
++	       double alpha)
+ {
+   XGCValues xgcv;
+   Display *dpy;
+ 
+   dpy = FRAME_X_DISPLAY (f);
+ 
+-  if (f->alpha_background != 1.0
+-      && respect_alpha_background)
++  if (alpha != 1.0)
+     {
+-      x_clear_rectangle (f, gc, x, y, 1, 1, true);
++      x_clear_rectangle (f, gc, x, y, 1, 1, alpha);
+       return;
+     }
+ 
+@@ -8569,11 +8576,12 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
+ 
+ 	  /* Fill background with a stipple pattern.  */
+ 	  XSetFillStyle (display, s->gc, FillOpaqueStippled);
++	  double alpha = s->hl != DRAW_CURSOR ? s->f->alpha_background : 1.0;
+ 	  x_fill_rectangle (s->f, s->gc, s->x,
+ 			    s->y + box_line_width,
+ 			    s->background_width,
+ 			    s->height - 2 * box_line_width,
+-			    s->hl != DRAW_CURSOR);
++			    alpha);
+ 	  XSetFillStyle (display, s->gc, FillSolid);
+ 	  s->background_filled_p = true;
+ 	}
+@@ -8669,7 +8677,7 @@ x_draw_glyph_string_foreground (struct glyph_string *s)
+ 				    s->y + box_line_width,
+ 				    s->background_width,
+ 				    s->height - 2 * box_line_width,
+-				    false);
++				    1.0);
+ 		  XSetFillStyle (display, s->gc, FillSolid);
+ 		}
+ 	      else
+@@ -9810,7 +9818,7 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
+   if (left_p)
+     {
+       x_fill_rectangle (f, top_left_gc, left_x, top_y,
+-			vwidth, bottom_y + 1 - top_y, false);
++			vwidth, bottom_y + 1 - top_y, 1.0);
+       if (top_p)
+ 	corners |= 1 << CORNER_TOP_LEFT;
+       if (bot_p)
+@@ -9819,7 +9827,7 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
+   if (right_p)
+     {
+       x_fill_rectangle (f, bottom_right_gc, right_x + 1 - vwidth, top_y,
+-			vwidth, bottom_y + 1 - top_y, false);
++			vwidth, bottom_y + 1 - top_y, 1.0);
+       if (top_p)
+ 	corners |= 1 << CORNER_TOP_RIGHT;
+       if (bot_p)
+@@ -9829,7 +9837,7 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
+     {
+       if (!right_p)
+ 	x_fill_rectangle (f, top_left_gc, left_x, top_y,
+-			  right_x + 1 - left_x, hwidth, false);
++			  right_x + 1 - left_x, hwidth, 1.0);
+       else
+ 	x_fill_trapezoid_for_relief (f, top_left_gc, left_x, top_y,
+ 				     right_x + 1 - left_x, hwidth, 1);
+@@ -9838,7 +9846,7 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
+     {
+       if (!left_p)
+ 	x_fill_rectangle (f, bottom_right_gc, left_x, bottom_y + 1 - hwidth,
+-			  right_x + 1 - left_x, hwidth, false);
++			  right_x + 1 - left_x, hwidth, 1.0);
+       else
+ 	x_fill_trapezoid_for_relief (f, bottom_right_gc,
+ 				     left_x, bottom_y + 1 - hwidth,
+@@ -9846,10 +9854,10 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
+     }
+   if (left_p && vwidth > 1)
+     x_fill_rectangle (f, bottom_right_gc, left_x, top_y,
+-		      1, bottom_y + 1 - top_y, false);
++		      1, bottom_y + 1 - top_y, 1.0);
+   if (top_p && hwidth > 1)
+     x_fill_rectangle (f, bottom_right_gc, left_x, top_y,
+-		      right_x + 1 - left_x, 1, false);
++		      right_x + 1 - left_x, 1, 1.0);
+   if (corners)
+     {
+       XSetBackground (FRAME_X_DISPLAY (f), top_left_gc,
+@@ -9891,11 +9899,11 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
+   if (top_p)
+     x_fill_rectangle (f, gc, left_x, top_y,
+ 		      right_x - left_x + 1, hwidth,
+-		      false);
++		      1.0);
+ 
+   if (left_p)
+     x_fill_rectangle (f, gc, left_x, top_y, vwidth,
+-		      bottom_y - top_y + 1, false);
++		      bottom_y - top_y + 1, 1.0);
+ 
+   if (raised_p)
+     gc = black_gc;
+@@ -9904,11 +9912,11 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
+ 
+   if (bot_p)
+     x_fill_rectangle (f, gc, left_x, bottom_y - hwidth + 1,
+-		      right_x - left_x + 1, hwidth, false);
++		      right_x - left_x + 1, hwidth, 1.0);
+ 
+   if (right_p)
+     x_fill_rectangle (f, gc, right_x - vwidth + 1, top_y,
+-		      vwidth, bottom_y - top_y + 1, false);
++		      vwidth, bottom_y - top_y + 1, 1.0);
+ 
+   /* Draw corners.  */
+ 
+@@ -9957,19 +9965,19 @@ x_draw_relief_rect (struct frame *f, int left_x, int top_y, int right_x,
+ 					      left_x, top_y))
+ 	/* This should respect `alpha-background' since it's being
+ 	   cleared with the background color of the frame.  */
+-	x_clear_point (f, normal_gc, left_x, top_y, true);
++	x_clear_point (f, normal_gc, left_x, top_y, f->alpha_background);
+ 
+       if (left_p && bot_p && x_inside_rect_p (clip_rect, 1,
+ 					      left_x, bottom_y))
+-	x_clear_point (f, normal_gc, left_x, bottom_y, true);
++	x_clear_point (f, normal_gc, left_x, bottom_y, f->alpha_background);
+ 
+       if (right_p && top_p && x_inside_rect_p (clip_rect, 1,
+ 					       right_x, top_y))
+-	x_clear_point (f, normal_gc, right_x, top_y, true);
++	x_clear_point (f, normal_gc, right_x, top_y, f->alpha_background);
+ 
+       if (right_p && bot_p && x_inside_rect_p (clip_rect, 1,
+ 					       right_x, bottom_y))
+-	x_clear_point (f, normal_gc, right_x, bottom_y, true);
++	x_clear_point (f, normal_gc, right_x, bottom_y, f->alpha_background);
+     }
+ 
+   x_reset_clip_rectangles (f, white_gc);
+@@ -10000,24 +10008,24 @@ x_draw_box_rect (struct glyph_string *s,
+   /* Top.  */
+   x_fill_rectangle (s->f, s->gc,
+ 		    left_x, top_y, right_x - left_x + 1, hwidth,
+-		    false);
++		    1.0);
+ 
+   /* Left.  */
+   if (left_p)
+     x_fill_rectangle (s->f, s->gc,
+ 		      left_x, top_y, vwidth, bottom_y - top_y + 1,
+-		      false);
++		      1.0);
+ 
+   /* Bottom.  */
+   x_fill_rectangle (s->f, s->gc,
+ 		    left_x, bottom_y - hwidth + 1, right_x - left_x + 1, hwidth,
+-		    false);
++		    1.0);
+ 
+   /* Right.  */
+   if (right_p)
+     x_fill_rectangle (s->f, s->gc,
+ 		      right_x - vwidth + 1, top_y, vwidth, bottom_y - top_y + 1,
+-		      false);
++		      1.0);
+ 
+   XSetForeground (display, s->gc, xgcv.foreground);
+   x_reset_clip_rectangles (s->f, s->gc);
+@@ -10460,7 +10468,7 @@ x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
+ 
+       /* Fill background with a stipple pattern.  */
+       XSetFillStyle (display, s->gc, FillOpaqueStippled);
+-      x_fill_rectangle (s->f, s->gc, x, y, w, h, true);
++      x_fill_rectangle (s->f, s->gc, x, y, w, h, s->f->alpha_background);
+       XSetFillStyle (display, s->gc, FillSolid);
+     }
+   else
+@@ -10691,7 +10699,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
+ 	    {
+ 	      /* Fill background with a stipple pattern.  */
+ 	      XSetFillStyle (display, gc, FillOpaqueStippled);
+-	      x_fill_rectangle (s->f, gc, x, y, w, h, true);
++	      x_fill_rectangle (s->f, gc, x, y, w, h, s->f->alpha_background);
+ 	      XSetFillStyle (display, gc, FillSolid);
+ 
+ 	      s->row->stipple_p = true;
+@@ -10701,7 +10709,7 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
+ 	      XGCValues xgcv;
+ 	      XGetGCValues (display, gc, GCForeground | GCBackground, &xgcv);
+ 	      XSetForeground (display, gc, xgcv.background);
+-	      x_fill_rectangle (s->f, gc, x, y, w, h, true);
++	      x_fill_rectangle (s->f, gc, x, y, w, h, s->f->alpha_background);
+ 	      XSetForeground (display, gc, xgcv.foreground);
+ 	    }
+ 
+@@ -10872,7 +10880,7 @@ x_draw_dash (struct frame *f, struct glyph_string *s, int width,
+   cr_segment = (double) segment;
+   y_center = s->ybase + offset + (thickness / 2.0);
+ 
+-  x_set_cr_source_with_gc_foreground (f, s->gc, false);
++  x_set_cr_source_with_gc_foreground (f, s->gc, 1.0);
+   cairo_set_dash (cr, &cr_segment, 1, s->x);
+   cairo_set_line_width (cr, thickness);
+   cairo_move_to (cr, s->x, y_center);
+@@ -10904,7 +10912,7 @@ x_fill_underline (struct frame *f, struct glyph_string *s,
+     case FACE_UNDERLINE_SINGLE:
+     case FACE_UNDERLINE_DOUBLE_LINE:
+       x_fill_rectangle (f, s->gc, s->x, s->ybase + position,
+-			decoration_width, thickness, false);
++			decoration_width, thickness, 1.0);
+       break;
+ 
+     case FACE_UNDERLINE_DOTS:
+@@ -11185,7 +11193,7 @@ x_draw_glyph_string (struct glyph_string *s)
+ 
+ 	  if (s->face->overline_color_defaulted_p)
+ 	    x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+-			      decoration_width, h, false);
++			      decoration_width, h, 1.0);
+ 	  else
+ 	    {
+               Display *display = FRAME_X_DISPLAY (s->f);
+@@ -11193,7 +11201,7 @@ x_draw_glyph_string (struct glyph_string *s)
+ 	      XGetGCValues (display, s->gc, GCForeground, &xgcv);
+ 	      XSetForeground (display, s->gc, s->face->overline_color);
+ 	      x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+-				decoration_width, h, false);
++				decoration_width, h, 1.0);
+ 	      XSetForeground (display, s->gc, xgcv.foreground);
+ 	    }
+ 	}
+@@ -11215,7 +11223,7 @@ x_draw_glyph_string (struct glyph_string *s)
+ 
+ 	  if (s->face->strike_through_color_defaulted_p)
+ 	    x_fill_rectangle (s->f, s->gc, s->x, glyph_y + dy,
+-			      s->width, h, false);
++			      s->width, h, 1.0);
+ 	  else
+ 	    {
+               Display *display = FRAME_X_DISPLAY (s->f);
+@@ -11223,7 +11231,7 @@ x_draw_glyph_string (struct glyph_string *s)
+ 	      XGetGCValues (display, s->gc, GCForeground, &xgcv);
+ 	      XSetForeground (display, s->gc, s->face->strike_through_color);
+ 	      x_fill_rectangle (s->f, s->gc, s->x, glyph_y + dy,
+-				decoration_width, h, false);
++				decoration_width, h, 1.0);
+ 	      XSetForeground (display, s->gc, xgcv.foreground);
+ 	    }
+ 	}
+@@ -11340,7 +11348,7 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
+ 
+   cr = x_begin_cr_clip (f, NULL);
+   x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc,
+-				      true);
++				      f->alpha_background);
+   cairo_rectangle (cr, x, y, width, height);
+   cairo_fill (cr);
+   x_end_cr_clip (f);
+@@ -25970,7 +25978,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
+ 
+ 	  x_fill_rectangle (f, gc, x,
+ 			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+-			    width, row->height, false);
++			    width, row->height, 1.0);
+ 	}
+       else /* HBAR_CURSOR */
+ 	{
+@@ -25991,7 +25999,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
+ 	  x_fill_rectangle (f, gc, x,
+ 			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+                                                      row->height - width),
+-                            w->phys_cursor_width - 1, width, false);
++                            w->phys_cursor_width - 1, width, 1.0);
+ 	}
+ 
+       x_reset_clip_rectangles (f, gc);
+diff --git a/src/xterm.h b/src/xterm.h
+index 57e37a1a8f5..b08ccc236ab 100644
+--- a/src/xterm.h
++++ b/src/xterm.h
+@@ -1812,8 +1812,9 @@ #define SELECTION_EVENT_TIME(eventp)	\
+ extern void x_cr_update_surface_desired_size (struct frame *, int, int);
+ extern cairo_t *x_begin_cr_clip (struct frame *, GC);
+ extern void x_end_cr_clip (struct frame *);
+-extern void x_set_cr_source_with_gc_foreground (struct frame *, GC, bool);
+-extern void x_set_cr_source_with_gc_background (struct frame *, GC, bool);
++extern double x_get_frame_alpha_background (struct frame *);
++extern void x_set_cr_source_with_gc_foreground (struct frame *, GC, double);
++extern void x_set_cr_source_with_gc_background (struct frame *, GC, double);
+ extern void x_cr_draw_frame (cairo_t *, struct frame *);
+ extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
+ #endif
