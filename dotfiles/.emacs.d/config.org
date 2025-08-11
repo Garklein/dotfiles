@@ -219,18 +219,32 @@ run a command
 	 ;  (alpha (+ (* -0.37 brightness) 1.11))
 	 )
     (modify-all-frames-parameters
-     `((alpha-background      . 85)
+     `((alpha-background      . 83)
        (alpha-borders         . 0)
        (right-divider-width   . 20)
        (bottom-divider-width  . 20)
        (internal-border-width . 20)))))
+
 (defun add-window-margins (&rest _)
-  (set-window-margins nil 2 2)
-  (setq-local header-line-format
-	      '((:propertize ,s display (raise 1)))))
+  (unless (eq (selected-window) (minibuffer-window))
+    (set-window-margins nil 2 2)
+    (setq-local header-line-format '(""))))
+(xcb:debug)
+;(setq exwm-workspace-minibuffer-position 'bottom)
+;(setq exwm-workspace-display-echo-area-timeout 10)
+;(setq initial-frame-alist (append '((minibuffer . nil)) initial-frame-alist))
+;(setq default-frame-alist (append '((minibuffer . nil)) default-frame-alist))
+;(setq minibuffer-auto-raise t)
+;(setq minibuffer-exit-hook '(lambda () (lower-frame)))
+
+(adjust-frame-transparency)
 (add-hook 'after-make-frame-functions 'adjust-frame-transparency)
+
 (add-hook 'buffer-list-update-hook 'add-window-margins)
-;(add-hook 'window-selection-change-functions 'add-window-margins)
+(add-hook 'after-make-frame-functions 'add-window-margins)
+
+; (add-hook 'buffer-list-update-hook 'add-minibuffer-margins)
+; (add-hook 'after-make-frame-functions 'add-minibuffer-margins)
 #+end_src
 ** wallpaper
 #+begin_src elisp
@@ -369,9 +383,9 @@ run a command
   	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (change-brightness -0.03) (update-bar)))
 
 	;; for some reason, setting exwm-workspace-number makes all the cursors dark grey
-  	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch-create 0) (set-cursor-color "gray")))
-  	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch-create 1) (set-cursor-color "gray")))
-  	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch-create 2) (set-cursor-color "gray")))))
+  	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch 0) (set-cursor-color "gray")))
+  	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch 1) (set-cursor-color "gray")))
+  	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch 2) (set-cursor-color "gray")))))
 
 (setq exwm-input-prefix-keys '(?\C-x ?\C-w ?\M-x))
 (define-key exwm-mode-map (kbd "C-c") nil)
@@ -440,11 +454,11 @@ make mode line look nice (has to be done after theme)
       s
     `(:propertize ,s display (raise 1))))
 (setq-default mode-line-format (mapcar 'bottom-margin mode-line-unraised))
-(setq-default header-line-format '(,(bottom-margin "")))
+(setq-default header-line-format '(""))
 ;; *Messages* doesn't want to change its mode line for some reason
 (with-current-buffer (get-buffer "*Messages*")
   (setq mode-line-format (default-value 'mode-line-format)))
-(dolist (face '(mode-line mode-line-inactive header-line))
+(dolist (face '(mode-line mode-line-inactive header-line fringe))
   (set-face-attribute face nil
 		      :background 'unspecified))
 (dolist (face '(mode-line))
@@ -1007,6 +1021,7 @@ don't convert to buffer-names at the beginning because that can mess up when mul
   :defer t)
 
 (use-package magit :defer t)
+(setq magit-show-long-lines-warning nil)
 
 (use-package exec-path-from-shell)
 (when (memq window-system '(mac ns x))

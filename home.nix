@@ -8,7 +8,6 @@ let
   tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc];
   discords = with pkgs; [webcord easyeffects discord];
   iostools = with pkgs; [ifuse libimobiledevice];
-  work = with pkgs; [zoom-us claude-code google-chrome];
   misc = with pkgs; [neofetch];
 in {
   imports = [
@@ -21,7 +20,7 @@ in {
   ];
 
   home.packages = [inputs.claude-desktop.packages.x86_64-linux.claude-desktop-with-fhs]
-                  ++ (lib.lists.flatten [languages wmpackages editors utils tools discords iostools work misc]);
+                  ++ (lib.lists.flatten [languages wmpackages editors utils tools discords iostools misc]);
 
   home.username = "gator";
   home.homeDirectory = "/home/gator";
