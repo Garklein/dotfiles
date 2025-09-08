@@ -104,7 +104,9 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
     (lambda () (interactive) (text-scale-set 0)))
 
   (evil-define-key 'insert 'global (kbd "C-<return>")
-    (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative)))))
+    (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative))))
+
+  (evil-define-key 'normal 'global (kbd "C-x C-b") 'ibuffer))
 
 (defun eval-and-replace ()
   "Replace the preceding elisp expression with its value."
@@ -210,35 +212,58 @@ run a command
 (setq exwm-workspace-show-all-buffers t)
 (setq exwm-layout-show-all-buffers t)
 
-(defun adjust-frame-transparency (&rest _)
-  (let* (;(wallpaper
-	 ;   (-> (shell-command-to-string "cat ~/.fehbg") split-string last car (substring 1 -1)))
-	 ;  (brightness
-	 ;   (-> (concat "magick " wallpaper " -colorspace gray -verbose info: | grep median | sed 1q")
-	 ;		shell-command-to-string split-string last car (substring 1 -1) string-to-number))
-	 ;  (alpha (+ (* -0.37 brightness) 1.11))
-	 )
-    (modify-all-frames-parameters
-     `((alpha-background      . 83)
-       (alpha-borders         . 0)
-       (right-divider-width   . 20)
-       (bottom-divider-width  . 20)
-       (internal-border-width . 20)))))
+(defun adjust-frame-transparency (&optional gap)
+  (modify-all-frames-parameters
+   `((alpha-background      . 83)
+     (alpha-borders         . ,(or gap 0))
+     (right-divider-width   . 20)
+     (bottom-divider-width  . 20)
+     (internal-border-width . 20))))
 
 (defun add-window-margins (&rest _)
-  (unless (eq (selected-window) (minibuffer-window))
-    (set-window-margins nil 2 2)
-    (setq-local header-line-format '(""))))
-(xcb:debug)
-;(setq exwm-workspace-minibuffer-position 'bottom)
+  (dolist (w (window-list))
+    (when (equal (window-margins w) '(nil))
+      (unless (eq (selected-window) (minibuffer-window))
+	(set-window-margins w 2 2)
+	(setq-local header-line-format '(""))))))
+
+; (xcb:debug)
+; (exwm-debug-mode)
+; (setq exwm-workspace-minibuffer-position 'bottom)
+
+; [00:00:24]xcb:-connection-filter:	Event received: [161 32 64 6 217 2 64 0 121 1 0 0 0 0 0 0 125 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+; [00:00:24]exwm--on-ClientMessage:	atom=_NET_WM_STATE(377) id=#x4002d9 data=(0 381 0 1 0)
+; sent with XSendEvent
+; 381 = xcb:Atom:_NET_WM_STATE_HIDDEN
+; https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html#id-1.6.8
+; https://x.org/releases/X11R7.7/doc/xproto/x11protocol.html#Events
+;     1     33                              code
+;     1     CARD8                           format
+;     2     CARD16                          sequence number
+;     4     WINDOW                          window
+;     4     ATOM                            type
+;     20                                    data
+
+; code = 161 (32 + 128)
+; format = 32 (interpret data in chunks of 4)
+; sequence number = 64 6 (request id)
+; window = 217 2 64 0
+; type = 121 1 0 0
+; data = 0 0 0 0   125 1 0 0   0 0 0 0   1 0 0 0   0 0 0 0
+
+
+;(setq exwm-workspace-minibuffer-position 'top)
 ;(setq exwm-workspace-display-echo-area-timeout 10)
 ;(setq initial-frame-alist (append '((minibuffer . nil)) initial-frame-alist))
 ;(setq default-frame-alist (append '((minibuffer . nil)) default-frame-alist))
 ;(setq minibuffer-auto-raise t)
 ;(setq minibuffer-exit-hook '(lambda () (lower-frame)))
 
+; xdisp.c message3_nolog
+; https://www.gnu.org/software/emacs/manual/html_node/elisp/Management-Parameters.html
+
 (adjust-frame-transparency)
-(add-hook 'after-make-frame-functions 'adjust-frame-transparency)
+(add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
 
 (add-hook 'buffer-list-update-hook 'add-window-margins)
 (add-hook 'after-make-frame-functions 'add-window-margins)
@@ -534,7 +559,6 @@ make mode line look nice (has to be done after theme)
 (setq-default show-trailing-whitespace t)
 (dolist (mode '(shell-mode-hook
 		term-mode-hook
-		eshell-mode-hook
 		inferior-elisp-mode-hook
 		Buffer-menu-mode-hook
 		calendar-mode-hook))
@@ -745,7 +769,7 @@ make mode line look nice (has to be done after theme)
               				    (split-string "/")
               				    last
               				    car)))
-			      (concat "javac -encoding ISO-8859-1 *.java && java " name "; rm *.class"))))
+			      (concat "javac -encoding ISO-8859-1 " name ".java && java " name "; rm *.class"))))
 	      (set-normal-tab 4)
 	      (set-pretty '("=" "==" "!="))))
 #+end_src
@@ -862,7 +886,7 @@ make mode line look nice (has to be done after theme)
 (use-package rust-mode :defer t)
 #+end_src
 
-* minor modes
+* other major modes
 ** dired
 #+begin_src elisp
 (setq dired-omit-files "^\\.")
@@ -874,12 +898,13 @@ make mode line look nice (has to be done after theme)
 	      (dired-omit-mode)
 	      (dired-hide-details-mode)
 	      (auto-revert-mode)
-	      (evil-local-set-key 'normal (kbd "C-c o") #'toggle-dired-omit-mode)))
+	      (evil-local-set-key 'normal (kbd "C-c C-o") #'toggle-dired-omit-mode)))
 (add-hook 'image-mode-hook (lambda () (display-line-numbers-mode 0)))
 #+end_src
 ** pdf mode
 #+begin_src elisp
 (use-package pdf-tools)
+(pdf-tools-install)
 #+end_src
 Make the page resize on opening
 #+begin_src elisp
@@ -920,6 +945,9 @@ Fix PDF file displaying when windows are changed
 	  (lambda ()
 	    (electric-pair-local-mode t)
 	    (electric-indent-local-mode 1)))
+(set-face-attribute 'org-level-1 nil :weight 'ultra-bold :height 1.3)
+(set-face-attribute 'org-level-2 nil :weight 'ultra-bold :height 1.2)
+(set-face-attribute 'org-level-3 nil :weight 'ultra-bold :height 1.1)
 #+end_src
 ** eshell
 #+begin_src elisp
@@ -958,6 +986,10 @@ Fix PDF file displaying when windows are changed
 
 (setq eshell-prompt-regexp "^[^λ\n]* λ ")
 #+end_src
+** presentations
+#+begin_src elisp
+(require 'presentation)
+#+end_src
 * misc emacs config
 ** little stuff
 #+begin_src elisp
@@ -987,6 +1019,12 @@ Fix PDF file displaying when windows are changed
 
 ;; don't prompt when reverting
 (setq revert-without-query '("."))
+
+;; use rg in rgrep
+(require 'grep)
+(grep-apply-setting
+  'grep-find-template
+  "find -H <D> <X> -type f <F> -exec rg <C> -nH --no-heading --null -e <R> \\{\\} +")
 #+end_src
 ** Make align-regexp use spaces
 #+begin_src elisp

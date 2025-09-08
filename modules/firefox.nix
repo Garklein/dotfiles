@@ -25,6 +25,10 @@
           installation_mode = "force_installed";
         };
       };
+      SearchEngines = {
+        Default = "DuckDuckGo";
+        PreventInstalls = true;
+      };
     };
 
     profiles.default = {

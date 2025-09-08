@@ -47,6 +47,9 @@
     pulse.enable = true;
   };
 
+  # see battery info
+  services.upower.enable = true;
+
   # mount ios devices
   services.usbmuxd = {
     enable = true;
@@ -56,7 +59,7 @@
   users.users.gator = {
     isNormalUser = true;
     description = "gator";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "dialout" ];
   };
   security.sudo.extraRules = [{
     users = [ "gator" ];
