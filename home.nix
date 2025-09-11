@@ -2,10 +2,10 @@
 
 let
   languages = with pkgs; [python3Full uv perl snobol4 gcc ngn-k ghc cargo ruby nodejs sbcl cabal-install zulu24];
-  wmpackages = with pkgs; [agave ubuntu-sans alsa-utils xclip maim xidlehook]; # for exwm setup
+  wmpackages = with pkgs; [agave ubuntu-sans alsa-utils xclip maim xidlehook liberation_ttf]; # for exwm setup
   editors = with pkgs; [vim ed emacs-gtk arduino-ide];
   utils = with pkgs; [unzip man-pages gnumake valgrind emscripten rlwrap wine ripgrep nettools];
-  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc zip];
+  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc zip xorg.xrandr];
   discords = with pkgs; [webcord easyeffects discord];
   iostools = with pkgs; [ifuse libimobiledevice];
   misc = with pkgs; [neofetch];
