@@ -46,6 +46,10 @@
   (define-key org-tree-slide-mode-map [remap outline-backward-same-level] 'org-tree-slide-move-previous-tree)
 
   (evil-define-key nil org-tree-slide-mode-map (kbd "C-;") 'org-tree-slide-content)
+  (add-hook 'org-tree-slide-mode-hook
+  	    (lambda ()
+  	      (set-command
+	       (execute-kbd-macro (read-kbd-macro "/ \\ * \\ * <return> <tab> g g")))))
 
   ;; skip non-top-level headings
   (setq org-tree-slide-skip-outline-level 2)
