@@ -68,6 +68,7 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   (use-package vundo)
 
   (setq evil-auto-indent nil)
+  (setq evil-lookup-func (lambda () (execute-extended-command nil "man")))
 
   (evil-define-command horizontal-split ()
     (interactive)
@@ -390,7 +391,7 @@ run a command
 
   	([?\s-J] . (lambda () (interactive) (find-file "~/.nixos/home.nix")))
   	([?\s-K] . (lambda () (interactive) (find-file "~/.nixos/configuration.nix")))
-  	([?\s-;] . (lambda () (interactive) (async-shell-command "sudo nixos-rebuild switch" "sudo nixos-rebuild switch")))
+  	([?\s-;] . (lambda () (interactive) (async-shell-command "sudo nixos-rebuild switch --cores 6" "sudo nixos-rebuild switch --cores 6")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 
@@ -778,7 +779,8 @@ make mode line look nice (has to be done after theme)
               				    (split-string "/")
               				    last
               				    car)))
-			      (concat "javac -encoding ISO-8859-1 " name ".java && java " name "; rm *.class"))))
+			      ; only the specified .java file is compiled, so just compile all of them to make sure we've gotten whichever includes we need
+			      (concat "javac -encoding ISO-8859-1 *.java && java " name "; rm *.class"))))
 	      (set-normal-tab 4)
 	      (set-pretty '("=" "==" "!="))))
 #+end_src

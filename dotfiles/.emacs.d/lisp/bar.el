@@ -67,11 +67,11 @@
   (mapcar #'bar/frame-add-bar exwm-workspace--list))
 (defun bar ()
   (interactive)
+  (when (timerp bar-timer) (unbar)) ; if bar is active, refresh it
   (advice-add #'delete-window :before #'bar/remove-window)
   (bar/bar-all-workspaces)
   (bar/remove-line-numbers-from-bar)
   (add-hook 'exwm-workspace-list-change-hook #'bar/bar-all-workspaces)
-  (when (timerp bar-timer) (cancel-timer bar-timer))
   (setq bar-timer (run-with-timer 0 1 #'update-bar)))
 (defun unbar ()
   (interactive)

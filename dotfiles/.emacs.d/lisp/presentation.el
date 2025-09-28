@@ -18,7 +18,7 @@
   (setq mode-line-format nil)
 
   (setq-local word-wrap t) ; wrap words on line breaks
-  (text-scale-set 6)
+  (text-scale-set 5.5)
   (set-frame-font "Liberation Mono 10" nil t) ; font that supports slanting italics
   (presentation/fullscreen)
   (set-window-margins nil 10 10))
