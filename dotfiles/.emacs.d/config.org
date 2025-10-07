@@ -878,9 +878,9 @@ make mode line look nice (has to be done after theme)
 ** prolog
 #+begin_src elisp
 (use-package ediprolog :defer t)
-(setq ediprolog-program "/home/gator/.bin/scryer-prolog")
 (add-hook 'prolog-mode-hook
    (lambda () (set-command (ediprolog-dwim))))
+(add-to-list 'auto-mode-alist '("\\.pl\\'" . prolog-mode))
 #+end_src
 ** ocaml
 #+begin_src elisp

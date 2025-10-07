@@ -1,7 +1,8 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
-  languages = with pkgs; [python3 uv perl snobol4 gcc ngn-k ghc cargo ruby nodejs sbcl cabal-install zulu24];
+  # zulu is java
+  languages = with pkgs; [python3 uv perl snobol4 gcc ngn-k ghc cargo ruby nodejs sbcl cabal-install zulu24 scryer-prolog];
   wmpackages = with pkgs; [agave ubuntu-sans alsa-utils xclip maim xidlehook liberation_ttf]; # for exwm setup
   editors = with pkgs; [vim ed emacs-gtk arduino-ide];
   utils = with pkgs; [unzip man-pages gnumake valgrind emscripten rlwrap wine ripgrep nettools];
