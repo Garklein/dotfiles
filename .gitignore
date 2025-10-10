@@ -1,7 +1,6 @@
 dotfiles/.emacs.d/var
 dotfiles/.emacs.d/url
 dotfiles/.emacs.d/elpa
-dotfiles/.emacs.d/etc
 dotfiles/.emacs.d/.last-package-update-day
 dotfiles/.emacs.d/config.el
 dotfiles/.emacs.d/straight/*

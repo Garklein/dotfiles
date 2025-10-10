@@ -1,8 +1,8 @@
 * todo
+- fix piping input when compiling (sometimes, the pipe shouldn't go at the end, like if at the end we rm stuff)
 - abbrev-mode
 - helm, ivy, ido
 - term emulator
-- make org headings different sizes
 - get aliases working (k)
 - rust json
 - compile mode add year
@@ -262,6 +262,8 @@ run a command
 
 ; xdisp.c message3_nolog
 ; https://www.gnu.org/software/emacs/manual/html_node/elisp/Management-Parameters.html
+
+; x_make_frame_visible xterm.c
 
 (adjust-frame-transparency)
 (add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
