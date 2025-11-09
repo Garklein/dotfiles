@@ -3,6 +3,7 @@
 { config, pkgs, lib, ... }:
 
 let exwm-emacs = pkgs.emacs-gtk;
+# let exwm-emacs = pkgs.emacs;
 in {
   # transparent emacs
   nixpkgs.overlays = [

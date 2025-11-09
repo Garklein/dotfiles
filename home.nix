@@ -6,7 +6,7 @@ let
   wmpackages = with pkgs; [agave ubuntu-sans alsa-utils xclip maim xidlehook liberation_ttf]; # for exwm setup
   editors = with pkgs; [vim ed emacs-gtk arduino-ide];
   utils = with pkgs; [unzip man-pages gnumake valgrind emscripten rlwrap wine ripgrep nettools];
-  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc zip xorg.xrandr];
+  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc zip xorg.xrandr gnuplot];
   discords = with pkgs; [webcord easyeffects discord];
   iostools = with pkgs; [ifuse libimobiledevice];
   misc = with pkgs; [neofetch figlet];

@@ -2,3 +2,4 @@
 ;(setq inhibit-startup-echo-area-message "gator")
 ;(put 'list-timers 'disabled nil)
 ;(load-file "~/.emacs.d/config.el")
+(put 'dired-find-alternate-file 'disabled nil)

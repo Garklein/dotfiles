@@ -231,6 +231,7 @@ run a command
 ; (xcb:debug)
 ; (exwm-debug-mode)
 ; (setq exwm-workspace-minibuffer-position 'bottom)
+; (setq garbage-collection-messages t)
 
 ; [00:00:24]xcb:-connection-filter:	Event received: [161 32 64 6 217 2 64 0 121 1 0 0 0 0 0 0 125 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0]
 ; [00:00:24]exwm--on-ClientMessage:	atom=_NET_WM_STATE(377) id=#x4002d9 data=(0 381 0 1 0)
@@ -483,7 +484,8 @@ make mode line look nice (has to be done after theme)
 		(:eval
 		 (pcase major-mode
 		   ('exwm-mode "")
-		   ('pdf-view-mode "")
+		   ('pdf-view-mode
+		    (concat (pdf-view-current-pagelabel) "/" (number-to-string (length (pdf-info-pagelabels)))))
 		   (_ "%l-%C")))
 		"  "))
 (defun bottom-margin (s)
@@ -924,7 +926,7 @@ Make the page resize on opening
 (add-hook 'pdf-view-mode-hook
 	    (lambda ()
 	      (display-line-numbers-mode 0)
-	      (run-with-timer 0.2 nil
+	      (run-with-timer 0.5 nil
 			      (lambda ()
 				(pdf-view-fit-height-to-window)))))
 #+end_src
@@ -1039,6 +1041,9 @@ Fix PDF file displaying when windows are changed
 (grep-apply-setting
   'grep-find-template
   "find -H <D> <X> -type f <F> -exec rg <C> -nH --no-heading --null -e <R> \\{\\} +")
+
+;; buffer switching stuff
+(setq switch-to-buffer-obey-display-actions t)
 #+end_src
 ** Make align-regexp use spaces
 #+begin_src elisp

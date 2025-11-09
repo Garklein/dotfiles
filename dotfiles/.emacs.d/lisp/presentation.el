@@ -49,7 +49,7 @@
   (add-hook 'org-tree-slide-mode-hook
   	    (lambda ()
   	      (set-command
-	       (execute-kbd-macro (read-kbd-macro "/ \\ * \\ * <return> <tab> g g")))))
+	       (execute-kbd-macro (read-kbd-macro "C-c C-n <tab> g g")))))
 
   ;; skip non-top-level headings
   (setq org-tree-slide-skip-outline-level 2)
