@@ -687,6 +687,7 @@ make mode line look nice (has to be done after theme)
   :straight (lean4-mode :type git :host github
                         :repo "leanprover-community/lean4-mode"
                         :files ("*.el" "data")))
+(advice-add #'lean4-ensure-info-buffer :after (lambda (&rest _) (toggle-truncate-lines 0)))
 #+end_src
 ** common lisp
 #+begin_src elisp
@@ -910,6 +911,7 @@ make mode line look nice (has to be done after theme)
 	      (auto-revert-mode)
 	      (evil-local-set-key 'normal (kbd "C-c C-o") #'toggle-dired-omit-mode)))
 (add-hook 'image-mode-hook (lambda () (display-line-numbers-mode 0)))
+(setq dired-listing-switches "-lXGh --group-directories-first")
 #+end_src
 ** pdf mode
 #+begin_src elisp
