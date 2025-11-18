@@ -9,22 +9,29 @@
   (jump-to-register ?P)
   (bar))
 
-(defun start-slideshow ()
-  (org-tree-slide-mode 1)
-  (display-line-numbers-mode 0)
+(defun start-presentation ()
+  (setq presenting t)
+  (set-sleep-minutes 20)
+  (when (eq major-mode 'org-mode)
+    (display-line-numbers-mode 0)
+    (org-tree-slide-mode 1))
   (adjust-frame-transparency 83)
 
   (setq presentation/old-mode-line mode-line-format)
   (setq mode-line-format nil)
 
   (setq-local word-wrap t) ; wrap words on line breaks
-  (text-scale-set 5.5)
-  (set-frame-font "Liberation Mono 10" nil t) ; font that supports slanting italics
+  ;;(text-scale-set 5.5)
+  (set-frame-font "Liberation Mono 20" nil t) ; font that supports slanting italics
   (presentation/fullscreen)
-  (set-window-margins nil 10 10))
+  (when (eq major-mode 'org-mode)
+    (set-window-margins nil 10 10)))
 
-(defun end-slideshow ()
-  (org-tree-slide-mode 0)
+(defun end-presentation ()
+  (setq presenting nil)
+  (set-sleep-minutes 2)
+  (when org-tree-slide-mode
+    (org-tree-slide-mode 0))
   (display-line-numbers-mode 1)
   (adjust-frame-transparency 0)
 
@@ -32,14 +39,15 @@
 
   (setq-local word-wrap nil)
   (set-frame-font "Agave 10" nil t)
-  (text-scale-set 0)
+  ;;(text-scale-set 0)
   ;; also restores margins
   (presentation/restore-windows))
 
+(defvar presenting nil)
 (use-package org-tree-slide
   :config
   (evil-define-key 'normal 'global (kbd "<f8>")
-    (lambda () (interactive) (if org-tree-slide-mode (end-slideshow) (start-slideshow))))
+    (lambda () (interactive) (if presenting (end-presentation) (start-presentation))))
 
   ;; remap C-j and C-k (they are already bound by org-mode, so we need to do it differently)
   (define-key org-tree-slide-mode-map [remap outline-forward-same-level] 'org-tree-slide-move-next-tree)

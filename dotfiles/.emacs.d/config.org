@@ -693,6 +693,14 @@ make mode line look nice (has to be done after theme)
 	(comment-region compilation-start (point-max)))))
 (evil-define-key 'normal 'global (kbd "C-c C-a") #'append-compilation)
 #+end_src
+** lean 4
+#+begin_src elisp
+(use-package lean4-mode
+  :commands lean4-mode
+  :straight (lean4-mode :type git :host github
+                        :repo "leanprover-community/lean4-mode"
+                        :files ("*.el" "data")))
+#+end_src
 ** common lisp
 #+begin_src elisp
 (use-package slime)

@@ -19,7 +19,8 @@
 	   (setq indent-line-function
 		 (lambda nil (interactive) (insert "  "))))
      (eval unless (equal (buffer-name) "COMMIT_EDITMSG")
-	   (set-command (compile "cd ~/garklein.github.io && ./build"))))))
+	   (set-command (compile "cd ~/garklein.github.io && ./build")))))
+ '(warning-suppress-log-types '((lsp-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
