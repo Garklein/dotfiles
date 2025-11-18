@@ -469,9 +469,7 @@ run a command
 * visuals
 ** theme
 #+begin_src elisp
-(setq wombat-loaded nil)
-(unless wombat-loaded (load-theme 'wombat))
-(setq wombat-loaded t)
+(load-theme 'quiet t)
 #+end_src
 ** mode line
 make mode line look nice (has to be done after theme)
@@ -497,12 +495,6 @@ make mode line look nice (has to be done after theme)
 ;; *Messages* doesn't want to change its mode line for some reason
 (with-current-buffer (get-buffer "*Messages*")
   (setq mode-line-format (default-value 'mode-line-format)))
-(dolist (face '(mode-line mode-line-inactive header-line fringe))
-  (set-face-attribute face nil
-		      :background 'unspecified))
-(dolist (face '(mode-line))
-  (set-face-attribute face nil
-		      :overline t))
 #+end_src
 ** window properties
 #+begin_src elisp
@@ -511,11 +503,6 @@ make mode line look nice (has to be done after theme)
 (scroll-bar-mode 0)
 (tooltip-mode -1)
 (fringe-mode 0)
-(dolist (face '(window-divider
-		      window-divider-last-pixel
-		      window-divider-first-pixel))
-	(face-spec-reset-face face)
-	(set-face-foreground face (face-attribute 'default :background)))
 #+end_src
 ** cursor properties
 #+begin_src elisp
