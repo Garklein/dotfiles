@@ -7,7 +7,7 @@
 (let* ((class '((class color) (min-colors 89)))
        (default `((,class (:background "#242424" :foreground "#f6f3e8"))))
        (highlight `((,class (:background "#595959"))))
-       (string `((,class (:foreground "#fcae49"))))
+       (string `((,class (:foreground "#ffbf99"))))
        (comment `((,class (:foreground "#799cfc")))))
   (custom-theme-set-faces
    'quiet
@@ -26,6 +26,10 @@
    `(mode-line ((,class (:foreground "#f6f3e8" :overline t))))
    `(mode-line-inactive ((,class (:foreground "#857b6f"))))
    `(header-line ,default)
+   `(fringe ,default)
+   `(window-divider ((,class (:foreground "#242424"))))
+   `(window-divider-first-pixel ((,class (:foreground "#242424"))))
+   `(window-divider-last-pixel ((,class (:foreground "#242424"))))
 
    ;; Escape and prompt faces
    `(minibuffer-prompt ,default)
@@ -55,6 +59,9 @@
    `(dired-flagged ,default)
    `(flymake-note ((,class (:underline (:style wave)))))
    `(flymake-error ((,class (:underline (:style wave)))))
+   `(lsp-headerline-breadcrumb-path-info-face ((,class (:weight ultra-bold :height 1.1))))
+   `(lsp-headerline-breadcrumb-separator-face ,default)
+   `(lsp-headerline-breadcrumb-separator-face ,default)
    `(eshell-prompt ((,class (:weight ultra-bold))))
    `(magit-section-heading ((,class (:weight ultra-bold :height 1.1))))))
 
