@@ -64,6 +64,7 @@
    `(eshell-prompt ((,class (:weight ultra-bold))))
    `(magit-section-heading ((,class (:weight ultra-bold :height 1.1))))
    `(magit-section-heading-selection ,default)
+   `(eshell-ls-backup ,default)
    ))
 
 (provide-theme 'quiet)
