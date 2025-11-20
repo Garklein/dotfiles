@@ -46,6 +46,8 @@
    `(font-lock-type-face ,default)
    `(font-lock-variable-name-face ,default)
    `(font-lock-warning-face ,default)
+   `(font-lock-doc-face ,default)
+   `(elisp-shorthand-font-lock-face ,default)
    `(web-mode-html-tab-face ,default)
    `(org-block ,default)
 
@@ -59,10 +61,9 @@
    `(dired-flagged ,default)
    `(flymake-note ((,class (:underline (:style wave)))))
    `(flymake-error ((,class (:underline (:style wave)))))
-   `(lsp-headerline-breadcrumb-path-info-face ((,class (:weight ultra-bold :height 1.1))))
-   `(lsp-headerline-breadcrumb-separator-face ,default)
-   `(lsp-headerline-breadcrumb-separator-face ,default)
    `(eshell-prompt ((,class (:weight ultra-bold))))
-   `(magit-section-heading ((,class (:weight ultra-bold :height 1.1))))))
+   `(magit-section-heading ((,class (:weight ultra-bold :height 1.1))))
+   `(magit-section-heading-selection ,default)
+   ))
 
 (provide-theme 'quiet)

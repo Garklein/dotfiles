@@ -682,12 +682,23 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** lean 4
 #+begin_src elisp
-(use-package lean4-mode
-  :commands lean4-mode
-  :straight (lean4-mode :type git :host github
-                        :repo "leanprover-community/lean4-mode"
-                        :files ("*.el" "data")))
-(advice-add #'lean4-ensure-info-buffer :after (lambda (&rest _) (toggle-truncate-lines 0)))
+  (use-package lean4-mode
+    :commands lean4-mode
+    :straight (lean4-mode :type git :host github
+                          :repo "leanprover-community/lean4-mode"
+                          :files ("*.el" "data"))
+    :config
+    (push '(errors-above . hide) magit-section-initial-visibility-alist)
+    (push '(errors-below . hide) magit-section-initial-visibility-alist))
+  (advice-add #'lean4-ensure-info-buffer :after
+  	    (lambda (&rest _) (toggle-truncate-lines 0)))
+  (setq lsp-headerline-breadcrumb-enable nil)
+(add-hook 'magit-section-set-visibility-hook
+	  (lambda (section)
+	    (let ((sym (oref section value)))
+	      (when (or (eq sym 'errors-below)
+			(eq sym 'errors-above))
+		'hide))))
 #+end_src
 ** common lisp
 #+begin_src elisp
