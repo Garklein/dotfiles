@@ -221,12 +221,16 @@ run a command
      (bottom-divider-width  . 20)
      (internal-border-width . 20))))
 
+
+(defun add-window-margins- ()
+  (dolist (f (frame-list))
+    (dolist (w (window-list f))
+      (when (equal (window-margins w) '(nil))
+	(unless (eq (selected-window) (minibuffer-window))
+	  (set-window-margins w 2 2)
+	  (setq-local header-line-format '("")))))))
 (defun add-window-margins (&rest _)
-  (dolist (w (window-list))
-    (when (equal (window-margins w) '(nil))
-      (unless (eq (selected-window) (minibuffer-window))
-	(set-window-margins w 2 2)
-	(setq-local header-line-format '(""))))))
+  (run-with-timer 0.1 nil #'add-window-margins-))
 
 ; (xcb:debug)
 ; (exwm-debug-mode)
@@ -270,10 +274,6 @@ run a command
 (add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
 
 (add-hook 'buffer-list-update-hook 'add-window-margins)
-(add-hook 'after-make-frame-functions 'add-window-margins)
-
-; (add-hook 'buffer-list-update-hook 'add-minibuffer-margins)
-; (add-hook 'after-make-frame-functions 'add-minibuffer-margins)
 #+end_src
 ** wallpaper
 #+begin_src elisp
@@ -313,7 +313,7 @@ run a command
 (require 'bar)
 
 (setq exwm-workspace-number 3)
-(add-hook 'exwm-init-hook #'bar)
+;; (add-hook 'exwm-init-hook #'bar)
 
 (run "picom")
 (run "easyeffects --gapplication-service")
