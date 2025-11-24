@@ -20,17 +20,17 @@
   (setq-local word-wrap t) ; wrap words on line breaks
   (set-frame-font "Liberation Mono 16" nil t) ; font that supports slanting italics
   (presentation/fullscreen)
+  (setq presentation/old-mode-line mode-line-format)
+  (setq mode-line-format nil)
   (when (eq major-mode 'org-mode)
-    (set-window-margins nil 10 10)
-    (setq presentation/old-mode-line mode-line-format)
-    (setq mode-line-format nil)))
+    (set-window-margins nil 10 10)))
 
 (defun end-presentation ()
   (setq presenting nil)
   (set-sleep-minutes 2)
   (when org-tree-slide-mode
-    (org-tree-slide-mode 0)
-    (setq mode-line-format presentation/old-mode-line))
+    (org-tree-slide-mode 0))
+  (setq mode-line-format presentation/old-mode-line)
   (display-line-numbers-mode 1)
   (adjust-frame-transparency 0)
 

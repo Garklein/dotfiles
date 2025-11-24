@@ -59,8 +59,10 @@
 
 (defun quiet (face)
   (unless (member face ok-faces)
-    (set-face-background face "#242424")
-    (set-face-foreground face "#f6f3e8")))
+    (set-face-attribute face nil :background "#242424" :foreground "#f6f3e8")
+    (let ((underline (face-attribute face :underline)))
+      (when (plist-get underline :color)
+	(set-face-attribute face nil :underline (plist-put underline :color 'foreground-color))))))
 
 (dolist (face (face-list))
   (quiet face))
