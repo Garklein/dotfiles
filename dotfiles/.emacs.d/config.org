@@ -273,6 +273,7 @@ run a command
 (adjust-frame-transparency)
 (add-hook 'after-make-frame-functions (lambda (_) (adjust-frame-transparency)))
 
+;; todo: fix header-line in X applications
 (add-hook 'buffer-list-update-hook 'add-window-margins)
 #+end_src
 ** wallpaper
@@ -313,7 +314,7 @@ run a command
 (require 'bar)
 
 (setq exwm-workspace-number 3)
-;; (add-hook 'exwm-init-hook #'bar)
+(add-hook 'exwm-init-hook #'bar)
 
 (run "picom")
 (run "easyeffects --gapplication-service")
@@ -411,10 +412,10 @@ run a command
   	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (change-brightness 0.03) (update-bar)))
   	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (change-brightness -0.03) (update-bar)))
 
-	;; for some reason, setting exwm-workspace-number makes all the cursors dark grey
-  	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch 0) (set-cursor-color "gray")))
-  	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch 1) (set-cursor-color "gray")))
-  	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch 2) (set-cursor-color "gray")))))
+  	([?\s-\\] . (lambda () (interactive) (run "cvlc ~/lean4/ping.mp3 --play-and-exit")))
+  	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch 0)))
+  	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch 1)))
+  	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch 2)))))
 
 (setq exwm-input-prefix-keys '(?\C-x ?\C-w ?\M-x))
 (define-key exwm-mode-map (kbd "C-c") nil)
@@ -506,13 +507,10 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** cursor properties
 #+begin_src elisp
-(add-to-list 'default-frame-alist '(cursor-color . "gray"))
 (blink-cursor-mode 0)
 (setq show-paren-delay 0)
 (show-paren-mode 1)
 (require 'paren)
-(set-face-background 'show-paren-match (face-attribute 'default :background))
-(set-face-attribute 'show-paren-match nil :underline t)
 #+end_src
 ** don't show cursor/mode line in empty buffers
 #+begin_src elisp
@@ -740,14 +738,11 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** html
 #+begin_src elisp
-(use-package web-mode)
-(add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
-(add-hook 'web-mode-hook
+(add-hook 'html-mode-hook
   	  (lambda ()
   	    (set-command
 	     (with-file-name "html" (concat "firefox " file-name)))
   	    (set-normal-tab 2)))
-(setq web-mode-hook nil)
 #+end_src
 ** fortran
 #+begin_src elisp
@@ -816,7 +811,7 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** js
 #+begin_src elisp
-(dolist (h '(js-mode-hook web-mode-hook))
+(dolist (h '(js-mode-hook))
   (add-hook h
 	    (lambda ()
 	      (set-command (run-with "node" "js"))
@@ -1091,6 +1086,8 @@ don't convert to buffer-names at the beginning because that can mess up when mul
 (use-package exec-path-from-shell)
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
+
+(use-package exec-path-from-shell)
 #+end_src
 * bookmarks
 Save bookmarks when a new one is added:

@@ -2,11 +2,11 @@
 
 let
   # zulu is java
-  languages = with pkgs; [python3 uv perl snobol4 gcc ngn-k ghc cargo ruby nodejs sbcl cabal-install zulu24 scryer-prolog lean4];
+  languages = with pkgs; [python3 uv perl snobol4 gcc ngn-k ghc cargo ruby_3_4 nodejs sbcl cabal-install zulu24 scryer-prolog lean4];
   wmpackages = with pkgs; [agave ubuntu-sans alsa-utils xclip maim xidlehook liberation_ttf]; # for exwm setup
-  editors = with pkgs; [vim ed emacs-gtk arduino-ide];
+  editors = with pkgs; [vim ed emacs-gtk];
   utils = with pkgs; [unzip man-pages gnumake valgrind emscripten rlwrap wine ripgrep nettools];
-  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc zip xorg.xrandr gnuplot];
+  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc zip xorg.xrandr gnuplot audacity];
   discords = with pkgs; [webcord easyeffects discord];
   iostools = with pkgs; [ifuse libimobiledevice];
   misc = with pkgs; [neofetch figlet];

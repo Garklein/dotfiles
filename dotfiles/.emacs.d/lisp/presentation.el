@@ -18,7 +18,7 @@
   (adjust-frame-transparency 83)
 
   (setq-local word-wrap t) ; wrap words on line breaks
-  (set-frame-font "Liberation Mono 20" nil t) ; font that supports slanting italics
+  (set-frame-font "Liberation Mono 16" nil t) ; font that supports slanting italics
   (presentation/fullscreen)
   (when (eq major-mode 'org-mode)
     (set-window-margins nil 10 10)
