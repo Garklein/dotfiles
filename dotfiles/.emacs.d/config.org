@@ -227,10 +227,11 @@ run a command
     (dolist (w (window-list f))
       (when (equal (window-margins w) '(nil))
 	(unless (eq (selected-window) (minibuffer-window))
-	  (set-window-margins w 2 2)
-	  (setq-local header-line-format '("")))))))
+	  (with-selected-window w
+	    (set-window-margins w 2 2)
+	    (setq-local header-line-format '(""))))))))
 (defun add-window-margins (&rest _)
-  (run-with-timer 0.1 nil #'add-window-margins-))
+  (run-with-timer 0.01 nil #'add-window-margins-))
 
 ; (xcb:debug)
 ; (exwm-debug-mode)
@@ -689,7 +690,9 @@ make mode line look nice (has to be done after theme)
     (push '(errors-above . hide) magit-section-initial-visibility-alist)
     (push '(errors-below . hide) magit-section-initial-visibility-alist))
   (advice-add #'lean4-ensure-info-buffer :after
-  	    (lambda (&rest _) (toggle-truncate-lines 0)))
+  	    (lambda (&rest _)
+	      (run-with-timer 0.5 nil
+			      (lambda () (toggle-truncate-lines 0)))))
   (setq lsp-headerline-breadcrumb-enable nil)
 (add-hook 'magit-section-set-visibility-hook
 	  (lambda (section)
