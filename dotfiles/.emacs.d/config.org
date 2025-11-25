@@ -213,12 +213,12 @@ run a command
 (setq exwm-workspace-show-all-buffers t)
 (setq exwm-layout-show-all-buffers t)
 
-(defun adjust-frame-transparency (&optional gap)
+(defun adjust-frame-transparency (&optional gap-alpha gap-width)
   (modify-all-frames-parameters
    `((alpha-background      . 83)
-     (alpha-borders         . ,(or gap 0))
-     (right-divider-width   . 20)
-     (bottom-divider-width  . 20)
+     (alpha-borders         . ,(or gap-alpha 0))
+     (right-divider-width   . ,(or gap-width 20))
+     (bottom-divider-width  . ,(or gap-width 20))
      (internal-border-width . 20))))
 
 
@@ -691,8 +691,8 @@ make mode line look nice (has to be done after theme)
     (push '(errors-below . hide) magit-section-initial-visibility-alist))
   (advice-add #'lean4-ensure-info-buffer :after
   	    (lambda (&rest _)
-	      (run-with-timer 0.5 nil
-			      (lambda () (toggle-truncate-lines 0)))))
+	      (with-current-buffer (get-buffer "*Lean Goal*")
+		(toggle-truncate-lines 0))))
   (setq lsp-headerline-breadcrumb-enable nil)
 (add-hook 'magit-section-set-visibility-hook
 	  (lambda (section)
