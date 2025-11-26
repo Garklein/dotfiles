@@ -413,7 +413,6 @@ run a command
   	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (change-brightness 0.03) (update-bar)))
   	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (change-brightness -0.03) (update-bar)))
 
-  	([?\s-\\] . (lambda () (interactive) (run "cvlc ~/lean4/ping.mp3 --play-and-exit")))
   	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch 0)))
   	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch 1)))
   	([?\s-l] . (lambda () (interactive) (exwm-workspace-switch 2)))))
@@ -477,8 +476,8 @@ run a command
 make mode line look nice (has to be done after theme)
 #+begin_src elisp
 (setq-default mode-line-unraised
-	      '((:eval (if buffer-read-only "" "  %*"))
-		(:eval "  %b")
+	      '((:eval (if buffer-read-only "" "%* "))
+		(:eval "%b")
 		mode-line-format-right-align
 		" "
 		(:eval
@@ -486,13 +485,20 @@ make mode line look nice (has to be done after theme)
 		   ('exwm-mode "")
 		   ('pdf-view-mode
 		    (concat (pdf-view-current-pagelabel) "/" (number-to-string (length (pdf-info-pagelabels)))))
-		   (_ "%l-%C")))
-		"  "))
+		   (_ "%l-%C")))))
+
+; get the width with (- (window-total-width) 1)
+; manually insert the right alignment by evalling (it won't propertize the spacer in the middle)
+; use an overline text face
+; add the two spaces on either side
+; might be impossible since we need to get the formatted mode line
 (defun bottom-margin (s)
   (if (symbolp s)
       s
     `(:propertize ,s display (raise 1))))
-(setq-default mode-line-format (mapcar 'bottom-margin mode-line-unraised))
+(setq-default mode-line-format
+	      (mapcar 'bottom-margin
+		      (append '("  ") mode-line-unraised '("  "))))
 (setq-default header-line-format '(""))
 ;; *Messages* doesn't want to change its mode line for some reason
 (with-current-buffer (get-buffer "*Messages*")
