@@ -64,6 +64,7 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   :config
   (evil-mode 1)
 
+  (setq evil-echo-state nil)
   (evil-set-undo-system 'undo-redo)
   (use-package vundo)
 

@@ -17,13 +17,13 @@
     (org-tree-slide-mode 1))
   (adjust-frame-transparency 83 5)
 
-  (set-frame-font "Liberation Mono 16" nil t) ; font that supports slanting italics
+  (set-frame-font "Liberation Mono 20" nil t) ; font that supports slanting italics
   (presentation/fullscreen)
   (when (eq major-mode 'org-mode)
     (setq presentation/old-mode-line mode-line-format)
     (setq mode-line-format nil)
-    (setq-local word-wrap t) ; wrap words on line breaks
-    (set-window-margins nil 10 10)))
+    ; wrap words on line breaks
+    (setq-local word-wrap t)))
 
 (defun end-presentation ()
   (setq presenting nil)
