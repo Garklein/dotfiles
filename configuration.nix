@@ -21,6 +21,8 @@
     networkmanager.enable = true;
   };
 
+  services.tailscale.enable = true;
+
   # let me shebang
   services.envfs.enable = true;
 
