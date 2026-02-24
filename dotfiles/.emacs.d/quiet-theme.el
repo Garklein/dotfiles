@@ -44,6 +44,7 @@
    `(link-visited ((,class (:foreground "#e5786d" :underline t))))
    `(button ((,class (:background "#333333" :foreground "#f6f3e8"))))
    `(dired-directory ((,class (:underline t))))
+   `(eshell-ls-directory ((,class (:underline t))))
    `(eshell-prompt ((,class (:weight ultra-bold))))
    `(magit-section-heading ((,class (:weight ultra-bold :height 1.1))))
 

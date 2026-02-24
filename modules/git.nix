@@ -2,9 +2,11 @@
   home.packages = with pkgs; [ gh ];
   programs.git = {
     enable = true;
-    userName = "Garklein";
-    userEmail = "garklein97@gmail.com";
-    extraConfig = {
+    settings = {
+      user = {
+        name = "Garklein";
+        email = "garklein97@gmail.com";
+      };
       credential.helper = "/etc/profiles/per-user/gator/bin/gh auth git-credential";
     };
   };

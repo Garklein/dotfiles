@@ -71,6 +71,18 @@
 
   nixpkgs.config.allowUnfree = true;
 
+  services.nginx = {
+    enable = true;
+    virtualHosts.localhost = {
+      locations."/" = {
+        root = "/var/www/docs";
+        tryFiles = "$uri $uri/ $uri/index.html $uri.html";
+      };
+    };
+  };
+
+  virtualisation.docker.enable = true;
+
   home-manager = {
     extraSpecialArgs = { inherit inputs; };
     users = {

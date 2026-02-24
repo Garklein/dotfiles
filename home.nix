@@ -1,15 +1,17 @@
 { config, pkgs, inputs, lib, ... }:
 
 let
+  bruh = pkgs.dyalog.override { acceptLicense = true; };
   # zulu is java
-  languages = with pkgs; [python3 uv perl snobol4 gcc ngn-k ghc cargo ruby_3_4 nodejs sbcl cabal-install zulu24 scryer-prolog lean4];
+  languages = with pkgs; [python3 uv perl snobol4 gcc ngn-k ghc cargo ruby_3_4 nodejs sbcl cabal-install lean4 bruh ride uiua-unstable uiua386 binaryen zulu25 scryer-prolog pharo];
   wmpackages = with pkgs; [agave ubuntu-sans alsa-utils xclip maim xidlehook liberation_ttf]; # for exwm setup
   editors = with pkgs; [vim ed emacs-gtk];
   utils = with pkgs; [unzip man-pages gnumake valgrind emscripten rlwrap wine ripgrep nettools];
-  tools = with pkgs; [feh ffmpeg imagemagick ghostscript gimp vlc cmus scc zip xorg.xrandr gnuplot audacity typst];
+  tools = with pkgs; [feh ffmpeg imagemagick pdftk ghostscript gimp vlc cmus scc zip xorg.xrandr gnuplot audacity typst garamond-libre blender yt-dlp];
   discords = with pkgs; [webcord easyeffects discord];
-  iostools = with pkgs; [ifuse libimobiledevice];
-  misc = with pkgs; [neofetch figlet];
+  iostools = with pkgs; [ifuse libimobiledevice jmtpfs];
+  misc = with pkgs; [neofetch figlet obs-studio quickjs-ng curl];
+  school = with pkgs; [go];
 in {
   imports = [
     modules/firefox.nix
@@ -20,7 +22,7 @@ in {
     modules/alacritty.nix
   ];
 
-  home.packages = lib.lists.flatten [languages wmpackages editors utils tools discords iostools misc];
+  home.packages = lib.lists.flatten [languages wmpackages editors utils tools discords iostools misc school];
 
   home.username = "gator";
   home.homeDirectory = "/home/gator";

@@ -318,6 +318,10 @@ run a command
 (setq exwm-workspace-number 3)
 (add-hook 'exwm-init-hook #'bar)
 
+;; docker stuff
+(run "sudo docker start -a postgres")
+(run "sudo docker start -a pgadmin-container")
+
 (run "picom")
 (run "easyeffects --gapplication-service")
 ;; this should really be done in nix, but i can't get it working
@@ -462,7 +466,8 @@ run a command
     (exwm--set-geometry floating-container final-x final-y nil nil)
     (exwm--set-geometry exwm--id final-x final-y nil nil)
     (xcb:flush exwm--connection)))
-(add-hook 'exwm-floating-setup-hook #'adjust-floating-window)
+;; (add-hook 'exwm-floating-setup-hook #'adjust-floating-window)
+;; TODO fix
 #+end_src
 ** transparency
 #+begin_src elisp
@@ -608,7 +613,9 @@ make mode line look nice (has to be done after theme)
     ("==="          . ?=)
     ("!=="          . ?≠)
     ("*"            . ?×)
-    ("/"            . ?÷))
+    ("/"            . ?÷)
+    ("-->"          . ?→)
+    (":-"           . ?←))
     "Common symbols that could be prettified.")
 (defun set-pretty (pretty-list)
   (dolist (symbol pretty-list)
@@ -656,7 +663,7 @@ make mode line look nice (has to be done after theme)
 (setq compilation-ask-about-save nil) ; save all buffers when compiling
 (defmacro set-command (exp)
   `(unless (equal (buffer-name) "COMMIT_EDITMSG")
-    (evil-local-set-key 'normal (kbd "C-c C-c")(lambda () (interactive) ,exp))))
+    (evil-local-set-key 'normal (kbd "C-c C-c") (lambda () (interactive) ,exp))))
 (defmacro with-file-name (extension command)
   `(progn
      (kill-compilation-process)
@@ -685,6 +692,63 @@ make mode line look nice (has to be done after theme)
 	  (append-to-buffer b 1 (point-max)))
 	(comment-region compilation-start (point-max)))))
 (evil-define-key 'normal 'global (kbd "C-c C-a") #'append-compilation)
+#+end_src
+** go
+#+begin_src elisp
+(defvar go-mode-hook)
+(define-generic-mode
+    go-mode
+  '("//")
+  nil
+  nil
+  '("\\.go")
+  go-mode-hook)
+(add-hook 'go-mode-hook
+	  (lambda ()
+	    (set-command (run-with "go run" "go"))
+	    (set-normal-tab 4)
+	    (set-pretty '("=" "==" "!=" "*"))))
+#+end_src
+** uiua
+#+begin_src elisp
+(use-package uiua-mode
+  :mode "\\.ua\\'")
+(add-hook 'uiua-mode-hook
+	    (lambda ()
+	      (face-remap-add-relative 'default
+				       '(:family "Uiua 386")
+				       :height 110)
+	      (set-command 
+	       (run-with "uiua" "ua"))))
+#+end_src
+** pnlc
+#+begin_src elisp
+(defvar pnlc-mode-hook)
+(define-generic-mode
+    pnlc-mode
+  '("# ")
+  nil
+  nil
+  '("\\.pnlc")
+  pnlc-mode-hook)
+(add-hook 'pnlc-mode-hook
+	    (lambda ()
+	      (set-normal-tab 2)))
+#+end_src
+** iogii
+#+begin_src elisp
+(defvar iogii-mode-hook)
+(define-generic-mode
+    'iogii-mode
+  '("# ")
+  nil
+  nil
+  '("\\.iog$")
+  iogii-mode-hook)
+(add-hook 'iogii-mode-hook
+	    (lambda ()
+	      (set-command 
+	       (with-file-name "iog" (concat "ruby ~/dormant/iogii/src/main.rb " file-name " -hs > /tmp/a.hs && runhaskell -w /tmp/a.hs")))))
 #+end_src
 ** lean 4
 #+begin_src elisp
@@ -895,8 +959,18 @@ make mode line look nice (has to be done after theme)
 #+begin_src elisp
 (use-package ediprolog :defer t)
 (add-hook 'prolog-mode-hook
-   (lambda () (set-command (ediprolog-dwim))))
+   (lambda ()
+     (set-command (ediprolog-dwim))
+     (evil-local-set-key 'normal (kbd "C-c C-k") (lambda () (interactive) (ediprolog-kill-prolog)))
+     (set-pretty '(":-" "-->"))
+     (set-normal-tab 2)))
 (add-to-list 'auto-mode-alist '("\\.pl\\'" . prolog-mode))
+(add-to-list 'auto-mode-alist '("\\.scryerrc\\'" . prolog-mode))
+(add-to-list 'display-buffer-alist
+   '("\\*ediprolog-consult\\*"
+     (display-buffer-below-selected)))
+(setq ediprolog-program "/etc/profiles/per-user/gator/bin/scryer-prolog")
+(setq ediprolog-prefix "")
 #+end_src
 ** ocaml
 #+begin_src elisp
@@ -1065,10 +1139,10 @@ Fix PDF file displaying when windows are changed
     (apply align-regexp args)))
 (advice-add #'align-regexp :around #'align-with-spaces)
 #+end_src
-** make scratch default to k
+** scratch buffer default mode
 #+begin_src elisp
 (with-current-buffer (get-buffer "*scratch*")
-  (k-mode))
+  (uiua-mode))
 #+end_src
 ** command to delete buffers
 don't convert to buffer-names at the beginning because that can mess up when multiple buffers are named the same, but in different directories
@@ -1098,6 +1172,12 @@ don't convert to buffer-names at the beginning because that can mess up when mul
   (exec-path-from-shell-initialize))
 
 (use-package exec-path-from-shell)
+
+(use-package 2048-game)
+
+(use-package listen
+  :config
+  (setq listen-directory "~/bloat/music"))
 #+end_src
 * bookmarks
 Save bookmarks when a new one is added:

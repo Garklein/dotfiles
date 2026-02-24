@@ -13,7 +13,56 @@
  '(ignored-local-variable-values
    '((eval run-term-command "cd ~/repos/mlatu" "make" "./repl")))
  '(safe-local-variable-values
-   '((eval progn (electric-indent-local-mode 0)
+   '((eval set-command
+	   (compile
+	    "nix-shell --run 'cd ~/shark && make run' ~/shark/shell.nix"))
+     (eval set-command
+	   (compile
+	    "nix-shell --run 'cd ../.. && make run' ../../shell.nix"))
+     (eval set-command
+	   (compile "nix-shell --run 'make run' ../../shell.nix"))
+     (eval set-command (compile "nix-shell --run 'make run'"))
+     (eval set-command
+	   (lambda (interactive) (message "test")
+	     (compile "nix-shell --run 'make run'")))
+     (eval set-command
+	   (lambda (interactive)
+	     (compile "nix-shell --run 'make run'")))
+     (eval set-command
+	   (lambda (interactive)
+	     (async-shell-command "nix-shell --run 'make run'")))
+     (eval set-command
+	   (with-file-name "iog"
+			   (let ((num (file-name-base file-name)))
+			     (concat
+			      "ruby ~/dormant/iogii/src/main.rb -hs -pp "
+			      file-name
+			      " > /tmp/a.hs && runhaskell -w /tmp/a.hs < i/"
+			      num ".in"))))
+     (eval set-command
+	   (with-file-name "iog"
+			   (let
+			       ((num
+				 (file-name-sans-extension file-name)))
+			     (concat
+			      "ruby ~/dormant/iogii/src/main.rb -hs -pp "
+			      file-name
+			      " > /tmp/a.hs && runhaskell -w /tmp/a.hs < i/"
+			      num ".in"))))
+     (eval set-command
+	   (with-file-name "iog"
+			   (let
+			       ((num
+				 (file-name-sans-extension file-name)))
+			     (concat
+			      "ruby ~/dormant/iogii/src/main.rb -hs -pp "
+			      file-name
+			      " > /tmp/a.hs && runhaskell -w /tmp/a.hs < i/"
+			      (number-to-string num) ".in"))))
+     (eval set-command (compile "cd ~/manzikert && ./build"))
+     (eval unless (equal (buffer-name) "COMMIT_EDITMSG")
+	   (set-command (compile "cd ~/manzikert && ./build")))
+     (eval progn (electric-indent-local-mode 0)
 	   (setq indent-line-function
 		 (lambda nil (interactive) (insert "  ")))
 	   (set-command (with-file-name "py" "uv run main.py")))

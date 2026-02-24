@@ -1,1 +1,5 @@
+alias nil  $*
+alias 50!  $*
+alias sdf!  $*
+alias scryer ~/dormant/scryer-prolog/target/release/scryer-prolog $*
 alias scc scc --no-cocomo

@@ -17,6 +17,7 @@
     (org-tree-slide-mode 1))
   (adjust-frame-transparency 83 5)
 
+  (set-window-margins nil 5 5)
   (set-frame-font "Liberation Mono 20" nil t) ; font that supports slanting italics
   (presentation/fullscreen)
   (when (eq major-mode 'org-mode)
@@ -28,6 +29,7 @@
 (defun end-presentation ()
   (setq presenting nil)
   (set-sleep-minutes 2)
+  (set-window-margins nil 2 2)
   (when org-tree-slide-mode
     (org-tree-slide-mode 0)
     (setq-local word-wrap nil)
