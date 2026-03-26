@@ -1,1 +1,1 @@
-~/nixos directory, symlinked to /etc/nixos
+~/.nixos directory, symlinked to /etc/nixos

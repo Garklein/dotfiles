@@ -1,5 +1,3 @@
-{ ... }:
-
 {
   xdg = {
     enable = true;

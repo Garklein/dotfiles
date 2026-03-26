@@ -56,7 +56,7 @@
 (defvar ok-faces
   (append
    (mapcar #'cadr (get 'quiet 'theme-settings))
-   '(magit-diff-added-highlight magit-diff-removed-highlight)))
+   '(magit-diff-added-highlight magit-diff-removed-highlight diff-added diff-removed)))
 
 (defun quiet (face)
   (unless (member face ok-faces)
