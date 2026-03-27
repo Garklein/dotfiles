@@ -132,9 +132,9 @@
 
 (defun battery ()
   (let* ((plug-status (file-to-string "/sys/class/power_supply/AC0/online"))
-	 (battery-plugged-in (if (equal plug-status "1") "plugged in" "not plugged in"))
+	 (battery-plugged-in (if (equal plug-status "1") "+" ""))
 	 (battery-percent (file-to-string "/sys/class/power_supply/BAT0/capacity")))
-    (concat battery-plugged-in " " battery-percent "%")))
+    (concat battery-percent " " battery-plugged-in)))
 (setq left-modules `(,#'battery))
 
 (defun time-and-date ()
@@ -153,7 +153,7 @@
   (let* ((max-brightness (float (string-to-number (file-to-string "/sys/class/backlight/intel_backlight/max_brightness"))))
 	 (actual-brightness (float (string-to-number (file-to-string "/sys/class/backlight/intel_backlight/actual_brightness"))))
 	 (level (round (* 100 (/ actual-brightness max-brightness)))))
-    (concat "light " (number-to-string level) "%")))
+    (concat "light " (number-to-string level))))
 (defun internet ()
   (unless (equal "up" (file-to-string "/sys/class/net/wlo1/operstate"))
     "not connected"))

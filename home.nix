@@ -2,21 +2,23 @@
 
 let
   # zulu is java
-  languages = with pkgs; [perl snobol4 ngn-k ghc rustup ruby_3_4 nodejs sbcl cabal-install lean4 bruh ride uiua-unstable uiua386 binaryen zulu25 scryer-prolog swi-prolog racket];
+  # todo: java?
+  languages = with pkgs; [perl snobol4 ngn-k ghc rustup ruby_3_4 nodejs sbcl cabal-install lean4 uiua-unstable uiua386 zulu25 scryer-prolog swi-prolog racket];
   wmpackages = with pkgs; [agave ubuntu-sans alsa-utils xclip maim xidlehook liberation_ttf]; # for exwm setup
   editors = with pkgs; [ed emacs-gtk];
-  utils = with pkgs; [unzip man-pages gnumake valgrind emscripten rlwrap wine ripgrep nettools];
-  tools = with pkgs; [feh ffmpeg imagemagick pdftk ghostscript gimp vlc cmus scc zip xorg.xrandr gnuplot audacity typst garamond-libre blender yt-dlp devenv roboto comic-mono];
-  discords = with pkgs; [webcord easyeffects];
+  utils = with pkgs; [unzip man-pages gnumake valgrind emscripten rlwrap wine nettools];
+  tools = with pkgs; [ffmpeg imagemagick pdftk ghostscript gimp vlc scc zip xorg.xrandr gnuplot audacity typst garamond-libre blender devenv roboto comic-mono];
+  discords = with pkgs; [webcord];
   iostools = with pkgs; [ifuse libimobiledevice jmtpfs];
-  misc = with pkgs; [neofetch figlet obs-studio quickjs-ng curl autoconf platformio tinygo gdb minicom openocd usbutils];
-  school = with pkgs; [go gh];
+  misc = with pkgs; [neofetch figlet quickjs-ng curl autoconf platformio tinygo gdb minicom openocd usbutils];
+  school = with pkgs; [gh];
 in {
   imports = [
     modules/visuals.nix
     ./xdg.nix
     modules/git.nix
     ./programs
+    ./services
   ];
 
   home.packages = lib.lists.flatten [languages wmpackages editors utils tools discords iostools misc school];
