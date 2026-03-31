@@ -49,8 +49,9 @@
 	      '((:eval (propertize "" 'display '(raise 1)))))
 	(face-remap-add-relative 'default :height 150)
 	(setq window-size-fixed nil)
-	(fit-window-to-buffer window nil 3)
-      	(setq window-size-fixed t))
+	(let ((target-height (+ (window-header-line-height) (window-mode-line-height) (window-font-height) 20)))
+	  (window-resize window (- target-height (window-pixel-height)) nil nil t))
+	(setq window-size-fixed t))
 
       ;; don't open other buffers in the window
       (set-window-dedicated-p window t))))
@@ -148,7 +149,7 @@
 		   (seq-drop 4))))
     (if (equal onoff "[off]")
 	"muted"
-      (concat "vol " (substring level 1 -1)))))
+      (concat "vol " (substring level 1 -2)))))
 (defun light ()
   (let* ((max-brightness (float (string-to-number (file-to-string "/sys/class/backlight/intel_backlight/max_brightness"))))
 	 (actual-brightness (float (string-to-number (file-to-string "/sys/class/backlight/intel_backlight/actual_brightness"))))

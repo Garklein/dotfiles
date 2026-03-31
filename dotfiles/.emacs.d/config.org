@@ -973,9 +973,10 @@ make mode line look nice (has to be done after theme)
      (display-buffer-below-selected)))
 (setq ediprolog-system 'scryer)
 (setq ediprolog-program "/etc/profiles/per-user/gator/bin/scryer-prolog")
-(setq ediprolog-system 'swi)
-(setq ediprolog-program "/etc/profiles/per-user/gator/bin/swipl")
-(setq ediprolog-prefix "% ")
+(setq ediprolog-prefix "")
+; (setq ediprolog-system 'swi)
+; (setq ediprolog-program "/etc/profiles/per-user/gator/bin/swipl")
+; (setq ediprolog-prefix "% ")
 #+end_src
 ** ocaml
 #+begin_src elisp
