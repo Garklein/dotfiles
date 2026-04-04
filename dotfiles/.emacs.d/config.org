@@ -974,9 +974,9 @@ make mode line look nice (has to be done after theme)
 (setq ediprolog-system 'scryer)
 (setq ediprolog-program "/etc/profiles/per-user/gator/bin/scryer-prolog")
 (setq ediprolog-prefix "")
-; (setq ediprolog-system 'swi)
-; (setq ediprolog-program "/etc/profiles/per-user/gator/bin/swipl")
-; (setq ediprolog-prefix "% ")
+(setq ediprolog-system 'swi)
+(setq ediprolog-program "/etc/profiles/per-user/gator/bin/swipl")
+(setq ediprolog-prefix "% ")
 #+end_src
 ** ocaml
 #+begin_src elisp
@@ -1177,13 +1177,13 @@ don't convert to buffer-names at the beginning because that can mess up when mul
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
 
-(use-package exec-path-from-shell)
-
 (use-package 2048-game)
 
-(use-package listen
+(use-package fzf
   :config
-  (setq listen-directory "~/bloat/music"))
+  (advice-add #'fzf :override
+	      (lambda (&rest _)
+		(fzf-with-command "rg --files" #'fzf--action-find-file (fzf--resolve-directory)))))
 #+end_src
 * bookmarks
 Save bookmarks when a new one is added:
