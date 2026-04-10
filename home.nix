@@ -11,7 +11,7 @@ let
   discords = with pkgs; [webcord];
   iostools = with pkgs; [ifuse libimobiledevice jmtpfs fzf];
   misc = with pkgs; [neofetch figlet quickjs-ng curl autoconf platformio tinygo gdb minicom openocd usbutils];
-  school = with pkgs; [gh plantuml];
+  school = with pkgs; [gh plantuml wireshark gpxsee dotnet-sdk_10 icu78];
 in {
   imports = [
     modules/visuals.nix

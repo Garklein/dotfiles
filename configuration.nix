@@ -33,6 +33,10 @@
   zramSwap.enable = true;
 
   programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    icu
+  ];
+
   programs.steam.enable = true;
 
   services.printing = {

@@ -132,46 +132,44 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
 #+end_src
 ** symex
 #+begin_src elisp
-;(use-package mantra
-;  :straight
-;  (mantra
-;   :type git
-;   :host github
-;   :repo "countvajhula/mantra"))
-;
-;(use-package repeat-ring
-;  :straight
-;  (repeat-ring
-;   :type git
-;   :host github
-;   :repo "countvajhula/repeat-ring"))
-;
-;(use-package symex-core
-;  :straight
-;  (symex-core
-;   :type git
-;   :host github
-;   :repo "drym-org/symex.el"
-;   :branch "2.0-integration"
-;   :files ("symex-core/symex*.el")))
-;
-;(use-package symex
-;  :after (symex-core)
-;  :straight
-;  (symex
-;   :type git
-;   :host github
-;   :repo "drym-org/symex.el"
-;   :branch "2.0-integration"
-;   :files ("symex/symex*.el" "symex/doc/*.texi"))
-;  :config
-;  (symex-mode 1)
-;  (symex-initialize)
-;  (global-set-key (kbd "C-,") 'symex-mode-interface)
-;  (evil-define-key 'normal symex-mode-map
-;    (kbd "<escape>") 'symex-mode-interface)
-;  (evil-define-key 'insert symex-mode-map
-;    (kbd "<escape>") 'symex-mode-interface))
+(use-package symex-core
+  :straight
+  (symex-core
+   :host github
+   :repo "drym-org/symex.el"
+   :files ("symex-core/symex*.el")))
+
+(use-package symex
+  :after (symex-core)
+  :straight
+  (symex
+   :host github
+   :repo "drym-org/symex.el"
+   :files ("symex/symex*.el" "symex/doc/*.texi" "symex/doc/figures"))
+  :config
+  (symex-mode 1)
+  (defvar-local want-to-be-in-symex nil
+    "Should we be in symex mode")
+  (global-set-key (kbd "M-,")
+		  (lambda ()
+		    (interactive)
+		    (if (setf want-to-be-in-symex (not want-to-be-in-symex))
+			(symex-mode-interface)
+		      (symex-escape-higher))))
+  (advice-add 'evil-normal-state :after
+	      (lambda (&rest _)
+		(when want-to-be-in-symex
+		  (symex-mode-interface)))))
+
+(use-package symex-evil
+  :after (symex evil)
+  :straight
+  (symex-evil
+   :host github
+   :repo "drym-org/symex.el"
+   :files ("symex-evil/symex*.el"))
+  :config
+  (symex-evil-mode 1))
 #+end_src
 * exwm
 ** requires
@@ -848,7 +846,8 @@ make mode line look nice (has to be done after theme)
 	    (lambda ()
 	      (electric-pair-local-mode t)
 	      (electric-indent-local-mode 1)
-	      (set-command (run-with "racket -f" "scm"))))
+	      (set-command (run-with "racket -f" "scm"))
+	      (symex-mode-interface)))
 #+end_src
 ** java
 #+begin_src elisp
@@ -971,12 +970,12 @@ make mode line look nice (has to be done after theme)
 (add-to-list 'display-buffer-alist
    '("\\*ediprolog-consult\\*"
      (display-buffer-below-selected)))
+;; (setq ediprolog-system 'swi)
+;; (setq ediprolog-program "/etc/profiles/per-user/gator/bin/swipl")
+;; (setq ediprolog-prefix "% ")
 (setq ediprolog-system 'scryer)
 (setq ediprolog-program "/etc/profiles/per-user/gator/bin/scryer-prolog")
 (setq ediprolog-prefix "")
-(setq ediprolog-system 'swi)
-(setq ediprolog-program "/etc/profiles/per-user/gator/bin/swipl")
-(setq ediprolog-prefix "% ")
 #+end_src
 ** ocaml
 #+begin_src elisp
