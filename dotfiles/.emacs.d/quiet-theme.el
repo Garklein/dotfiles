@@ -41,6 +41,7 @@
 
    ;; other misc faces
    `(link ((,class (:foreground "#8ac6f2" :underline t))))
+   `(symex-highlight-face ((,class (:underline nil))))
    `(link-visited ((,class (:foreground "#e5786d" :underline t))))
    `(button ((,class (:background "#333333" :foreground "#f6f3e8"))))
    `(dired-directory ((,class (:underline t))))

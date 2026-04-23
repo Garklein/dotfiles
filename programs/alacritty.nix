@@ -49,6 +49,8 @@
           foreground = "#f3f3f3";
         };
       };
+
+      opacity = 0.8;
     };
   };
 }

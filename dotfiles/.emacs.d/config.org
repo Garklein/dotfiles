@@ -393,8 +393,8 @@ run a command
   	([?\s-O] . (lambda () (interactive) (run "emacs --script ~/.emacs.d/lisp/update-packages.el" t)))
   	([?\s-i] . (lambda () (interactive) (start-app "firefox")))
   	([?\s-u] . (lambda () (interactive) (start-app "webcord")))
-  	;(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
-  	(,(kbd "s-<return>") . (lambda () (interactive) (eshell)))
+  	(,(kbd "s-<return>") . (lambda () (interactive) (start-app "alacritty")))
+  	; (,(kbd "s-<return>") . (lambda () (interactive) (eshell)))
   	([?\s-f] . (lambda () (interactive) (start-app "colorforth")))
 
   	([?\s-J] . (lambda () (interactive) (find-file "~/.nixos/home.nix")))
@@ -480,8 +480,8 @@ run a command
 make mode line look nice (has to be done after theme)
 #+begin_src elisp
 (setq-default mode-line-unraised
-	      '((:eval (if buffer-read-only "" "%* "))
-		(:eval "%b")
+ 	      '((:eval (if buffer-read-only "" "%* "))
+	        (:eval (if symex-editing-mode "(%b)" "%b"))
 		mode-line-format-right-align
 		" "
 		(:eval
@@ -491,11 +491,11 @@ make mode line look nice (has to be done after theme)
 		    (concat (pdf-view-current-pagelabel) "/" (number-to-string (length (pdf-info-pagelabels)))))
 		   (_ "%l-%C")))))
 
-; get the width with (- (window-total-width) 1)
-; manually insert the right alignment by evalling (it won't propertize the spacer in the middle)
-; use an overline text face
-; add the two spaces on either side
-; might be impossible since we need to get the formatted mode line
+					; get the width with (- (window-total-width) 1)
+					; manually insert the right alignment by evalling (it won't propertize the spacer in the middle)
+					; use an overline text face
+					; add the two spaces on either side
+					; might be impossible since we need to get the formatted mode line
 (defun bottom-margin (s)
   (if (symbolp s)
       s
@@ -846,8 +846,7 @@ make mode line look nice (has to be done after theme)
 	    (lambda ()
 	      (electric-pair-local-mode t)
 	      (electric-indent-local-mode 1)
-	      (set-command (run-with "racket -f" "scm"))
-	      (symex-mode-interface)))
+	      (set-command (run-with "racket -f" "scm"))))
 #+end_src
 ** java
 #+begin_src elisp
@@ -1136,6 +1135,16 @@ Fix PDF file displaying when windows are changed
 
 ;; buffer switching stuff
 (setq switch-to-buffer-obey-display-actions t)
+
+;; assume always left to right for performance
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right)
+(setq bidi-inhibit-bpa t)
+
+;; skip fontifying during typing
+(setq redisplay-skip-fontification-on-input t)
+
+(setq help-window-select t)
 #+end_src
 ** Make align-regexp use spaces
 #+begin_src elisp
