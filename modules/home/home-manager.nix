@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, lib, ... }:
+{ config, pkgs, inputs, lib, username, ... }:
 
 let
   # zulu is java
@@ -15,8 +15,8 @@ let
 in {
   home.packages = lib.lists.flatten [languages wmpackages editors utils tools discords iostools misc school];
 
-  home.username = "gator";
-  home.homeDirectory = "/home/gator";
+  home.username = username;
+  home.homeDirectory = "/home/${config.home.username}";
   home.shell.enableShellIntegration = true;
   home.shell.enableBashIntegration = true;
 

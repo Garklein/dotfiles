@@ -16,7 +16,11 @@
 
   outputs = { self, nixpkgs, ... }@inputs: {
     nixosConfigurations.bog = nixpkgs.lib.nixosSystem {
-      specialArgs = {inherit inputs;};
+      specialArgs = {
+        inherit inputs;
+        username = "gator";
+        hostname = "bog";
+      };
       modules = [
         ./modules/nixos
         ./hosts/bog/configuration.nix

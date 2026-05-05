@@ -1,4 +1,4 @@
-{ pkgs, lib, inputs, ... }:
+{ pkgs, lib, inputs, username, hostname, ... }:
 
 {
   imports = [
@@ -16,8 +16,8 @@
   };
 
   networking = {
-    hostName = "bog";
     networkmanager.enable = true;
+    hostName = hostname;
   };
 
   time.timeZone = "America/Toronto";
@@ -26,17 +26,14 @@
 
   zramSwap.enable = true;
 
-  users.users.gator = {
+  nixpkgs.config.allowUnfree = true;
+
+  users.users.${username} = {
     isNormalUser = true;
-    description = "gator";
+    description = username;
     extraGroups = [ "networkmanager" "wheel" "dialout" ];
   };
-  security.sudo.extraRules = [{
-    users = [ "gator" ];
-    commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }];
-  }];
 
-  nixpkgs.config.allowUnfree = true;
 
   # services.nginx = {
   #   enable = true;
@@ -49,9 +46,13 @@
   # };
 
   home-manager = {
-    extraSpecialArgs = { inherit inputs; };
+    extraSpecialArgs = {
+      inherit inputs;
+      inherit username;
+      inherit hostname;
+    };
     users = {
-      "gator" = import ../home;
+      ${username} = import ../home;
     };
 
     # allow unfree packages for home manager

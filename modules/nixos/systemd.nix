@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 {
   # this can't be done in home-manager since sleep.target can't be used by users
   systemd.services.cuendillar = {
@@ -6,7 +6,7 @@
     before = [ "sleep.target" ];
     description = "Lock screen on sleep";
     serviceConfig = {
-      User = "gator";
+      User = username;
       Type = "forking";
       ExecStart = "${pkgs.emacs-gtk}/bin/emacsclient -s /run/user/1000/emacs/server --eval \"(lock)\"";
     };

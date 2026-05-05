@@ -108,6 +108,8 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   (evil-define-key 'insert 'global (kbd "C-<return>")
     (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative))))
 
+  (evil-define-key 'normal 'global (kbd "SPC SPC") 'fzf-directory)
+
   (evil-define-key 'normal 'global (kbd "C-x C-b") 'ibuffer))
 
 (defun eval-and-replace ()
@@ -394,7 +396,7 @@ run a command
   	([?\s-f] . (lambda () (interactive) (start-app "colorforth")))
 
   	([?\s-J] . (lambda () (interactive) (find-file "~/dotfiles/modules/home")))
-  	([?\s-J] . (lambda () (interactive) (find-file "~/dotfiles/modules/nixos")))
+  	([?\s-K] . (lambda () (interactive) (find-file "~/dotfiles/modules/nixos")))
   	([?\s-;] . (lambda () (interactive) (async-shell-command "cd ~/dotfiles && sudo nixos-rebuild switch --flake .#bog" "nixos-rebuild switch")))
 
   	(,(kbd "s-<backspace>") . delete-window)
