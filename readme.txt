@@ -1,1 +1,1 @@
-~/.nixos directory, symlinked to /etc/nixos
+sudo nixos-rebuild switch --flake .#<host>

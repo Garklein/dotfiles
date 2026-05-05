@@ -131,12 +131,15 @@
 (defun file-to-float (file)
   (-> file file-to-string string-to-number float))
 
+(defun first-number-of-string (s)
+  (string-to-number (substring s (string-match-p "[0-9]" s))))
 (defun battery ()
-  (let* ((plug-status (file-to-string "/sys/class/power_supply/AC0/online"))
-	 (battery-plugged-in (if (equal plug-status "1") "+" ""))
-	 (battery-percent (file-to-string "/sys/class/power_supply/BAT0/capacity")))
-    (concat battery-percent " " battery-plugged-in)))
+  (let* ((plug-status (shell-command-to-string "upower -b | grep state"))
+	 (battery-plugged-in (if (string-search "discharging" plug-status) "" "+"))
+	 (battery-percent (first-number-of-string (shell-command-to-string "upower -b | grep percentage"))))
+    (concat (number-to-string battery-percent) " " battery-plugged-in)))
 (setq left-modules `(,#'battery))
+
 
 (defun time-and-date ()
   (-> "%B %-d %Y %-I:%M:%S %p" format-time-string downcase))

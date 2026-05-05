@@ -22,7 +22,7 @@ in {
 
   home.file = let
     # editable symlink
-    link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.nixos/dotfiles/${path}";
+    link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/dotfiles/${path}";
   in {
     ".emacs.d".source = link ".emacs.d";
   };

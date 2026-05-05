@@ -29,11 +29,6 @@
 
   zramSwap.enable = true;
 
-  services.printing = {
-    enable = true;
-    drivers = [ pkgs.epson-escpr ];
-  };
-
   # enable sound with pipewire
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
@@ -43,9 +38,6 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
-
-  # see battery info
-  services.upower.enable = true;
 
   # mount ios devices
   services.usbmuxd = {
