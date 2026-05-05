@@ -393,9 +393,9 @@ run a command
   	; (,(kbd "s-<return>") . (lambda () (interactive) (eshell)))
   	([?\s-f] . (lambda () (interactive) (start-app "colorforth")))
 
-  	([?\s-J] . (lambda () (interactive) (find-file "~/.nixos/home.nix")))
-  	([?\s-K] . (lambda () (interactive) (find-file "~/.nixos/configuration.nix")))
-  	([?\s-;] . (lambda () (interactive) (async-shell-command "sudo nixos-rebuild switch --cores 6" "sudo nixos-rebuild switch --cores 6")))
+  	([?\s-J] . (lambda () (interactive) (find-file "~/dotfiles/modules/home")))
+  	([?\s-J] . (lambda () (interactive) (find-file "~/dotfiles/modules/nixos")))
+  	([?\s-;] . (lambda () (interactive) (async-shell-command "cd ~/dotfiles && sudo nixos-rebuild switch --flake .#bog" "nixos-rebuild switch")))
 
   	(,(kbd "s-<backspace>") . delete-window)
 

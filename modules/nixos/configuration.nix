@@ -20,9 +20,6 @@
     networkmanager.enable = true;
   };
 
-  # let me shebang
-  services.envfs.enable = true;
-
   time.timeZone = "America/Toronto";
 
   i18n.defaultLocale = "en_CA.UTF-8";
@@ -37,12 +34,6 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-  };
-
-  # mount ios devices
-  services.usbmuxd = {
-    enable = true;
-    package = pkgs.usbmuxd2;
   };
 
   users.users.gator = {
@@ -67,8 +58,6 @@
   #   };
   # };
 
-  # virtualisation.docker.enable = true;
-
   home-manager = {
     extraSpecialArgs = { inherit inputs; };
     users = {
@@ -92,36 +81,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.11"; # Did you read the comment?
-
-  # transparent emacs
-  nixpkgs.overlays = [
-    (final: prev: {
-      emacs-gtk = prev.emacs-gtk.overrideAttrs (old: {
-        patches = old.patches ++ [
-          ./../../patches/exwm-gaps.patch
-        ];
-      });
-    })
-  ];
-
-  # set up exwm
-  services.xserver = {
-    enable = true;
-    displayManager.startx.enable = true;
-    windowManager.exwm = {
-      enable = true;
-      package = pkgs.emacs-gtk;
-    };
-  };
-
-  services.xserver.xkb = {
-    layout = "us,ca";
-    options = "grp:win_space_toggle";
-  };
-
-  # speed configured in exwm
-  services.libinput = {
-    mouse.accelProfile = "flat";
-    touchpad.accelProfile = "flat";
-  };
 }
