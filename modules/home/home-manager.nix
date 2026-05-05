@@ -10,17 +10,9 @@ let
   tools = with pkgs; [ffmpeg imagemagick pdftk ghostscript gimp vlc scc zip xorg.xrandr gnuplot audacity typst garamond-libre blender devenv roboto comic-mono];
   discords = with pkgs; [webcord];
   iostools = with pkgs; [ifuse libimobiledevice jmtpfs fzf];
-  misc = with pkgs; [neofetch figlet quickjs-ng curl autoconf platformio tinygo gdb minicom openocd usbutils];
-  school = with pkgs; [gh plantuml wireshark gpxsee dotnet-sdk_10 icu78];
+  misc = with pkgs; [neofetch figlet quickjs-ng curl autoconf platformio tinygo gdb minicom openocd usbutils musescore];
+  school = with pkgs; [gh plantuml wireshark gpxsee dotnet-sdk_10 icu78 newcomputermodern dconf]; # dconf needed for gtk
 in {
-  imports = [
-    modules/visuals.nix
-    ./xdg.nix
-    modules/git.nix
-    ./programs
-    ./services
-  ];
-
   home.packages = lib.lists.flatten [languages wmpackages editors utils tools discords iostools misc school];
 
   home.username = "gator";
