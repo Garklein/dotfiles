@@ -1,20 +1,6 @@
 { config, pkgs, inputs, lib, username, ... }:
 
-let
-  # zulu is java
-  # todo: java?
-  languages = with pkgs; [perl snobol4 ngn-k ghc rustup ruby_3_4 nodejs sbcl cabal-install lean4 uiua-unstable uiua386 zulu25 scryer-prolog swi-prolog racket];
-  wmpackages = with pkgs; [agave ubuntu-sans alsa-utils xclip maim xidlehook liberation_ttf]; # for exwm setup
-  editors = with pkgs; [ed emacs-gtk];
-  utils = with pkgs; [unzip man-pages gnumake valgrind emscripten rlwrap wine nettools];
-  tools = with pkgs; [ffmpeg imagemagick pdftk ghostscript gimp vlc scc zip xorg.xrandr gnuplot audacity typst garamond-libre blender devenv roboto comic-mono];
-  discords = with pkgs; [webcord];
-  iostools = with pkgs; [ifuse libimobiledevice jmtpfs fzf];
-  misc = with pkgs; [neofetch figlet quickjs-ng curl autoconf platformio tinygo gdb minicom openocd usbutils musescore];
-  school = with pkgs; [gh plantuml wireshark gpxsee dotnet-sdk_10 icu78 newcomputermodern dconf]; # dconf needed for gtk
-in {
-  home.packages = lib.lists.flatten [languages wmpackages editors utils tools discords iostools misc school];
-
+{
   home.username = username;
   home.homeDirectory = "/home/${config.home.username}";
   home.shell.enableShellIntegration = true;
