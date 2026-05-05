@@ -108,7 +108,7 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   (evil-define-key 'insert 'global (kbd "C-<return>")
     (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative))))
 
-  (evil-define-key 'normal 'global (kbd "SPC SPC") 'fzf-directory)
+  (evil-define-key 'normal 'global (kbd "C-M-x") 'fzf-directory)
 
   (evil-define-key 'normal 'global (kbd "C-x C-b") 'ibuffer))
 
