@@ -34,6 +34,13 @@
     extraGroups = [ "networkmanager" "wheel" "dialout" ];
   };
 
+  # TODO get rid of
+  # right now, needs for cuendillar since that uses a sudo command
+  security.sudo.extraRules = [{
+    users = [ username ];
+    commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }];
+  }];
+
 
   # services.nginx = {
   #   enable = true;

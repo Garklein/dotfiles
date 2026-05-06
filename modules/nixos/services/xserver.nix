@@ -2,15 +2,8 @@
 
 {
   services.xserver = {
+    # TODO remove greetd
     enable = true;
-    displayManager.startx.enable = true;
-    windowManager.exwm = {
-      enable = true;
-      package = pkgs.emacs-gtk;
-    };
-    xkb = {
-      layout = "us,ca";
-      options = "grp:win_space_toggle";
-    };
+    displayManager.startx.enable = true; # for greetd
   };
 }

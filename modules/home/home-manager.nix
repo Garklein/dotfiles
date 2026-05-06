@@ -11,17 +11,19 @@
     link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/dotfiles/${path}";
   in {
     ".emacs.d".source = link ".emacs.d";
+    ".xinitrc" = {
+      executable = true;
+      text = ''
+         # Source Home Manager's xsession script
+         if [ -f "$HOME/.xsession" ]; then
+            exec "$HOME/.xsession"
+         fi
+       '';
+    };
   };
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
-  programs.direnv = { # https://nixos.asia/en/direnv
-    enable = true;
-    silent = true;
-    mise.enable = false;
-    nix-direnv.enable = true;
-    enableBashIntegration = true;
-  };
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
