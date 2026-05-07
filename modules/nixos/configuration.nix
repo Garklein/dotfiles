@@ -65,10 +65,6 @@
     users = {
       ${username} = import ../home;
     };
-
-    # allow unfree packages for home manager
-    useGlobalPkgs = true;
-    useUserPackages = true;
   };
 
   nix.settings.experimental-features = [

@@ -6,9 +6,9 @@
     agave ubuntu-sans alsa-utils xclip maim xidlehook liberation_ttf
     ed emacs-gtk
     unzip man-pages gnumake valgrind emscripten rlwrap wine nettools
-    ffmpeg imagemagick pdftk ghostscript gimp vlc scc zip xorg.xrandr gnuplot audacity typst garamond-libre blender devenv roboto comic-mono
+    ffmpeg imagemagick pdftk ghostscript gimp vlc scc zip xorg.xrandr gnuplot audacity typst garamond-libre blender roboto comic-mono
     webcord
-    ifuse libimobiledevice jmtpfs fzf
+    ifuse libimobiledevice fzf
     neofetch figlet quickjs-ng curl autoconf platformio tinygo gdb minicom openocd usbutils musescore
     gh plantuml wireshark gpxsee dotnet-sdk_10 icu78 newcomputermodern
   ]

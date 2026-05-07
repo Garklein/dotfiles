@@ -6,6 +6,8 @@
   home.shell.enableShellIntegration = true;
   home.shell.enableBashIntegration = true;
 
+  nixpkgs.config.allowUnfree = true;
+
   home.file = let
     # editable symlink
     link = path: config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/dotfiles/${path}";
