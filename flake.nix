@@ -5,8 +5,9 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # url = "github:nix-community/home-manager";
+      # inputs.nixpkgs.follows = "nixpkgs";
+      url = "path:/home/gator/dormant/home-manager";
     };
 
     flake-utils = {
