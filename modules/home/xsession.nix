@@ -3,6 +3,6 @@
 {
   xsession = {
     enable = true;
-    windowManager.command = "emacs";
+    windowManager.command = "${pkgs.emacs-gtk}/bin/emacs";
   };
 }
