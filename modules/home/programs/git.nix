@@ -1,4 +1,4 @@
-{ username, ... }:
+{ username, pkgs, ... }:
 {
   programs.git = {
     enable = true;
@@ -7,7 +7,7 @@
         name = "Garklein";
         email = "garklein97@gmail.com";
       };
-      credential.helper = "/etc/profiles/per-user/${username}/bin/gh auth git-credential";
+      credential.helper = "${pkgs.gh}/bin/gh auth git-credential";
     };
   };
 }
