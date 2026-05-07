@@ -34,6 +34,7 @@
     extraGroups = [ "networkmanager" "wheel" "dialout" ];
   };
 
+
   # TODO get rid of
   # right now, needs for cuendillar since that uses a sudo command
   security.sudo.extraRules = [{
@@ -52,6 +53,9 @@
   #   };
   # };
 
+  # https://github.com/nix-community/home-manager/blob/master/docs/manual/faq/ca-desrt-dconf.md
+  # (for easyeffects)
+  programs.dconf.enable = true;
   home-manager = {
     extraSpecialArgs = {
       inherit inputs;

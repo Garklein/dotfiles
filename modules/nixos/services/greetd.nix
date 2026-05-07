@@ -1,14 +1,11 @@
 { config, pkgs, ... }:
 
 {
-  # make greetd load up exwm
-  services.greetd = let
-    tuigreet = "${pkgs.tuigreet}/bin/tuigreet";
-  in {
+  services.greetd = {
     enable = true;
     settings = {
       default_session = {
-        command = "${tuigreet} -c startx";
+        command = "${pkgs.tuigreet}/bin/tuigreet -c startx";
         user = "greeter";
       };
     };

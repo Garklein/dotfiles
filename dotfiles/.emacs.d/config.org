@@ -318,11 +318,8 @@ run a command
 (setq exwm-workspace-number 3)
 (add-hook 'exwm-init-hook #'bar)
 
-(run "picom")
-(run "easyeffects --gapplication-service")
 ;; this should really be done in nix, but i can't get it working
 (run "xinput --set-prop \"Logitech USB Optical Mouse\" \"Coordinate Transformation Matrix\" 0.5 0 0 0 0.5 0 0 0 1")
-;(run "setxkbmap us,ca -option 'grp:win_space_toggle'")
 
 (require 'cuendillar)
 ;; emacs needs to be a server so that shells can send it commands to toggle cuendillar
