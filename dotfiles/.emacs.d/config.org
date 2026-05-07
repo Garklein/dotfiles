@@ -60,7 +60,10 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
 #+begin_src elisp
 ;; evil
 (use-package evil
-  :init (setq evil-want-keybinding nil) ; for evil-collection
+  :init
+  (setq evil-want-keybinding nil) ; for evil-collection
+  (setq evil-want-C-u-scroll t)
+
   :config
   (evil-mode 1)
 
@@ -97,13 +100,20 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   (evil-define-key nil evil-normal-state-map (kbd "M-o")
     (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
 
-  (evil-define-key 'normal 'global (kbd "M-p")
-    (lambda () (interactive) (scroll-down (/ (window-total-height (selected-window)) 2))))
-  (evil-define-key 'normal 'global (kbd "M-n")
-    (lambda () (interactive) (scroll-up (/ (window-total-height (selected-window)) 2))))
+  (defvar font-size 10)
+  (defun set-font-size (new-size)
+    (setq font-size new-size)
+    (set-frame-font (concat "Agave " (number-to-string font-size)) nil t))
 
+  (advice-add 'text-scale-increase :override
+  	      (lambda (inc)
+  		(set-font-size (+ font-size inc))))
+  (advice-add 'text-scale-decrease :override
+  	      (lambda (dec)
+  		(set-font-size (- font-size dec))))
   (evil-define-key 'normal 'global (kbd "C-x C-<backspace>")
-    (lambda () (interactive) (text-scale-set 0)))
+    (lambda () (interactive) (set-font-size 10)))
+  (set-font-size 10)
 
   (evil-define-key 'insert 'global (kbd "C-<return>")
     (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative))))
@@ -557,10 +567,6 @@ make mode line look nice (has to be done after theme)
 (global-display-line-numbers-mode)
 (setq display-line-numbers-type 'relative)
 #+end_src
-** font
-#+begin_src elisp
-(set-frame-font "Agave 10" nil t)
-#+end_src
 ** trailing whitespace
 #+begin_src elisp
 (setq-default show-trailing-whitespace t)
@@ -995,12 +1001,16 @@ make mode line look nice (has to be done after theme)
 (defun toggle-dired-omit-mode ()
   (interactive)
   (dired-omit-mode (if dired-omit-mode -1 1)))
+(use-package dired-preview
+  :config
+  (setq dired-preview-delay 0))
 (add-hook 'dired-mode-hook
 	    (lambda ()
 	      (dired-omit-mode)
 	      (dired-hide-details-mode)
 	      (auto-revert-mode)
-	      (evil-local-set-key 'normal (kbd "C-c C-o") #'toggle-dired-omit-mode)))
+	      (evil-local-set-key 'normal (kbd "C-c C-o") #'toggle-dired-omit-mode)
+	      (evil-local-set-key 'normal (kbd "C-c C-p") #'dired-preview-mode)))
 (add-hook 'image-mode-hook (lambda () (display-line-numbers-mode 0)))
 (setq dired-listing-switches "-al --group-directories-first")
 #+end_src
