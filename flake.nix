@@ -7,7 +7,8 @@
     home-manager = {
       # url = "github:nix-community/home-manager";
       # inputs.nixpkgs.follows = "nixpkgs";
-      url = "path:/home/gator/dormant/home-manager";
+      # url = "path:/home/gator/dormant/home-manager";
+      url = "github:garklein/home-manager";
     };
 
     flake-utils = {

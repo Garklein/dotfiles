@@ -23,14 +23,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1778241846,
-        "narHash": "sha256-wm0c09u0O99U/eXuPyYP84KXWpG0pHg1W4yiO0E0mEk=",
-        "path": "/home/gator/dormant/home-manager",
-        "type": "path"
+        "lastModified": 1778245534,
+        "narHash": "sha256-5FKLcCuoavv5mExFUaS0wfpLjsmJPpoFmuLt10ReRQ0=",
+        "owner": "garklein",
+        "repo": "home-manager",
+        "rev": "2d5c274231002f1d2a2692c83f557f7e2d2ec3c3",
+        "type": "github"
       },
       "original": {
-        "path": "/home/gator/dormant/home-manager",
-        "type": "path"
+        "owner": "garklein",
+        "repo": "home-manager",
+        "type": "github"
       }
     },
     "nixpkgs": {
