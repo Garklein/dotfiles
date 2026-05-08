@@ -9,3 +9,5 @@ dotfiles/.emacs.d/eshell
 dotfiles/.emacs.d/eln-cache
 dotfiles/.emacs.d/*.swp
 dotfiles/.emacs.d/auto-save-list
+
+flake.nix

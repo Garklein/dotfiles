@@ -34,6 +34,10 @@
     extraGroups = [ "networkmanager" "wheel" "dialout" ];
   };
 
+  environment.systemPackages = with pkgs; [
+    brightnessctl
+  ];
+
 
   # TODO get rid of
   # right now, needs for cuendillar since that uses a sudo command
