@@ -2,7 +2,7 @@
 
 {
   xsession = {
-    # enable = true;
+    enable = true;
     # windowManager.command = "${pkgs.emacs-gtk}/bin/emacs";
     windowManager.exwm = {
       enable = true;
