@@ -156,8 +156,8 @@
 	  "muted"
 	(concat "vol " (substring level 1 -2))))))
 (defun light ()
-  (let* ((max-brightness (float (string-to-number (shell-command-to-string "brightnessctl g"))))
-	 (actual-brightness (float (string-to-number (shell-command-to-string "brightnessctl m"))))
+  (let* ((max-brightness (float (string-to-number (shell-command-to-string "brightnessctl m"))))
+	 (actual-brightness (float (string-to-number (shell-command-to-string "brightnessctl g"))))
 	 (level (round (* 100 (/ actual-brightness max-brightness)))))
     (concat "light " (number-to-string level))))
 

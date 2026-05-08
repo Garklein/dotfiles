@@ -21,8 +21,6 @@
     swi-prolog
     racket
 
-    brightnessctl
-    upower
     agave
     ubuntu-sans
     alsa-utils

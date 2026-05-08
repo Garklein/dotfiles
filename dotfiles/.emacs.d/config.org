@@ -374,16 +374,6 @@ run a command
   	(switch-to-buffer existing-buffer)
       (run name))))
 
-;; change is from -1.0 to 1.0
-(defun change-brightness (change)
-  (let* ((max-brightness (file-to-float "/sys/class/backlight/intel_backlight/max_brightness"))
-	 (actual-brightness (file-to-float "/sys/class/backlight/intel_backlight/actual_brightness"))
-	 (new-brightness (+ actual-brightness (* change max-brightness)))
-	 (command (concat "echo "
-			  (number-to-string (round new-brightness))
-			  " | sudo tee /sys/class/backlight/intel_backlight/brightness")))
-    (run command)))
-
 ;; make the wine buffer close when colorForth is killed
 (add-hook 'kill-buffer-hook
 	  (lambda () (when-let* ((conhost
@@ -418,8 +408,8 @@ run a command
   	(,(kbd "<XF86AudioRaiseVolume>") . (lambda () (interactive) (run "amixer set Master 5%+") (update-bar)))
   	(,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (run "amixer set Master 5%-") (update-bar)))
 
-  	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (change-brightness 0.03) (update-bar)))
-  	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (change-brightness -0.03) (update-bar)))
+  	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (run "brightnessctl s +3%") (update-bar)))
+  	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (run "brightnessctl s 3%+") (update-bar)))
 
   	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch 0)))
   	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch 1)))
