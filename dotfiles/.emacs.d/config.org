@@ -409,7 +409,7 @@ run a command
   	(,(kbd "<XF86AudioLowerVolume>") . (lambda () (interactive) (run "amixer set Master 5%-") (update-bar)))
 
   	(,(kbd "<XF86MonBrightnessUp>") . (lambda () (interactive) (run "brightnessctl s +3%") (update-bar)))
-  	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (run "brightnessctl s 3%+") (update-bar)))
+  	(,(kbd "<XF86MonBrightnessDown>") . (lambda () (interactive) (run "brightnessctl s 3%-") (update-bar)))
 
   	([?\s-j] . (lambda () (interactive) (exwm-workspace-switch 0)))
   	([?\s-k] . (lambda () (interactive) (exwm-workspace-switch 1)))
