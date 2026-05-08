@@ -306,7 +306,7 @@ run a command
 	     ('spring "kandinsky-wallpaper.png")
 	     ('summer "fluff-blossom-wallpaper.png")
 	     ('fall   "bach-wallpaper.png"))))
-    (run (concat "feh --bg-center ~/dotfiles/dotfiles/wallpapers/" wallpaper))
+    (run (concat "feh --bg-scale ~/dotfiles/dotfiles/wallpapers/" wallpaper))
     (adjust-frame-transparency)))
 
 (set-wallpaper-by-season)

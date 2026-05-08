@@ -14,9 +14,14 @@
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
+
+    nixGL = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, ... }@inputs: {
+  outputs = { nixpkgs, home-manager, ... }@inputs: {
     nixosConfigurations.bog = nixpkgs.lib.nixosSystem {
       specialArgs = {
         inherit inputs;
@@ -27,6 +32,19 @@
         ./modules/nixos
         ./hosts/bog/configuration.nix
         inputs.home-manager.nixosModules.default
+      ];
+    };
+
+    homeConfigurations.home = home-manager.lib.homeManagerConfiguration {
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      extraSpecialArgs = {
+        inherit inputs;
+        # don't forget to set these!
+        username = undefined;
+        hostname = undefined;
+      };
+      modules = [
+        ./modules/home
       ];
     };
   };
