@@ -6,6 +6,7 @@
 (defvar bar-timer nil
   "The timer for the bar.")
 
+;; if a module returns nil, it won't show up (empty string means separator)
 (defvar left-modules nil
   "The left-aligned modules.")
 (defvar centre-modules nil
@@ -134,32 +135,36 @@
 (defun first-number-of-string (s)
   (string-to-number (substring s (string-match-p "[0-9]" s))))
 (defun battery ()
-  (let* ((plug-status (shell-command-to-string "upower -b | grep state"))
-	 (battery-plugged-in (if (string-search "discharging" plug-status) "" "+"))
-	 (battery-percent (first-number-of-string (shell-command-to-string "upower -b | grep percentage"))))
-    (concat (number-to-string battery-percent) " " battery-plugged-in)))
+  (when (= 0 (call-process-shell-command "upower -b"))
+    (let* ((plug-status (shell-command-to-string "upower -b | grep state"))
+		  (battery-plugged-in (if (string-search "discharging" plug-status) "" "+"))
+		  (battery-percent (first-number-of-string (shell-command-to-string "upower -b | grep percentage"))))
+	     (concat (number-to-string battery-percent) " " battery-plugged-in))))
 (setq left-modules `(,#'battery))
-
 
 (defun time-and-date ()
   (-> "%B %-d %Y %-I:%M:%S %p" format-time-string downcase))
 (setq centre-modules `(,#'time-and-date))
 
 (defun vol ()
-  (pcase-let ((`(,level ,onoff)
-	       (-> (shell-command-to-string "amixer get Master | grep Left:")
-		   (split-string)
-		   (seq-drop 4))))
-    (if (equal onoff "[off]")
-	"muted"
-      (concat "vol " (substring level 1 -2)))))
+  (when (= 0 (call-process-shell-command "amixer get Master"))
+    (pcase-let ((`(,level ,onoff)
+		 (-> (shell-command-to-string "amixer get Master | grep Left:")
+		     (split-string)
+		     (seq-drop 4))))
+      (if (equal onoff "[off]")
+	  "muted"
+	(concat "vol " (substring level 1 -2))))))
 (defun light ()
-  (let* ((max-brightness (float (string-to-number (file-to-string "/sys/class/backlight/intel_backlight/max_brightness"))))
-	 (actual-brightness (float (string-to-number (file-to-string "/sys/class/backlight/intel_backlight/actual_brightness"))))
+  (let* ((max-brightness (float (string-to-number (shell-command-to-string "brightnessctl g"))))
+	 (actual-brightness (float (string-to-number (shell-command-to-string "brightnessctl m"))))
 	 (level (round (* 100 (/ actual-brightness max-brightness)))))
     (concat "light " (number-to-string level))))
+
 (defun internet ()
-  (unless (equal "up" (file-to-string "/sys/class/net/wlo1/operstate"))
+  ;; https://unix.stackexchange.com/a/190610
+  ;; 0 = success, 1 = failure
+  (when (= 1 (call-process-shell-command "nc -zw1 google.com 443"))
     "not connected"))
 
 (setq right-modules `(,#'internet ,#'vol ,#'light))
