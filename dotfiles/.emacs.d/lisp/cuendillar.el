@@ -138,6 +138,7 @@
   (advice-remove #'message #'noop)
   (setf overriding-local-map old-overriding-local-map
 	overriding-terminal-local-map old-overriding-terminal-local-map)
+  (bar)
   (message "welcome"))
 
 (provide 'cuendillar)

@@ -1,4 +1,4 @@
-{ pkgs, username, ... }:
+{ config, username, ... }:
 {
   # this can't be done in home-manager since sleep.target can't be used by users
   systemd.services.cuendillar = {
@@ -8,7 +8,7 @@
     serviceConfig = {
       User = username;
       Type = "forking";
-      ExecStart = "${pkgs.emacs-gtk}/bin/emacsclient -s /run/user/1000/emacs/server --eval \"(lock)\"";
+      ExecStart = "/home/${username}/.nix-profile/bin/emacsclient -s /run/user/1000/emacs/server --eval \"(lock)\"";
     };
   };
 }

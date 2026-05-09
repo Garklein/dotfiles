@@ -31,7 +31,7 @@
       modules = [
         ./modules/nixos
         ./hosts/bog/configuration.nix
-        inputs.home-manager.nixosModules.default
+        home-manager.nixosModules.default
       ];
     };
 
