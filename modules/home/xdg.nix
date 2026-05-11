@@ -10,5 +10,6 @@
       pictures = "$HOME/keep/photos";
       videos = "$HOME/keep/photos";
     };
+    userDirs.setSessionVariables = true;
   };
 }
