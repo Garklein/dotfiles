@@ -6,7 +6,17 @@
   home.shell.enableShellIntegration = true;
   home.shell.enableBashIntegration = true;
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs = {
+    config.allowUnfree = true;
+    overlays = [
+      inputs.nixGL.overlay
+    ];
+  };
+
+  targets.genericLinux = {
+    enable = true;
+    nixGL.packages = inputs.nixGL.packages;
+  };
 
   home.file = let
     # editable symlink

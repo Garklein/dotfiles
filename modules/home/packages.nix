@@ -26,6 +26,7 @@
     alsa-utils
     xclip
     maim
+    devenv
     xidlehook
     liberation_ttf
     caligula
@@ -83,30 +84,70 @@
     cmake
     ninja
     wget
-    (python314.withPackages (
-      package: with package; [
-        west
-        tqdm
-        cbor
-        pyusb
-        cbor2
-        click
-        semver
-        patool
-        jinja2
-        anytree
-        tkinter
-        pygments
-        pyserial
-        intelhex
-        requests
-        kconfiglib
-        pyelftools
-        jsonschema
-        cryptography
-      ]))
-    esptool
-    platformio
+
+        loco
+        trunk
+        libyaml
+        binaryen
+        rustywind
+        dioxus-cli
+        sea-orm-cli
+        tailwindcss_4
+        wasm-bindgen-cli
+        rubyPackages_3_4.rails
+
+        SDL2 # for embedded TUI simulator
+        espup
+        esptool
+        esptool
+        espflash
+        esp-generate
+        mcumgr-client
+        cargo-embassy
+        cargo-generate
+        cargo-binstall
+        renode-dts2repl
+        kconfig-frontends
+
+        (probe-rs-tools.overrideAttrs (old: {
+          cargoBuildFeatures = (old.cargoBuildFeatures or [ ]) ++ [ "remote" ];
+        }))
+
+        (python314.withPackages (
+          package: with package; [
+            west
+            tqdm
+            cbor
+            pyusb
+            cbor2
+            click
+            semver
+            patool
+            jinja2
+            anytree
+            tkinter
+            pygments
+            pyserial
+            intelhex
+            requests
+            kconfiglib
+            pyelftools
+            jsonschema
+            cryptography
+          ]
+        ))
+
+        llvm
+        lldb
+        ninja
+        cmake
+        ccache
+        gnumake
+        ldproxy
+        openocd
+        # avrdude
+        dfu-util
+        dfu-programmer
   ]
   ;
 }

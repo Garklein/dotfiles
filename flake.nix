@@ -15,6 +15,9 @@
       url = "github:numtide/flake-utils";
     };
 
+    sops-nix.url = "github:mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
     nixGL = {
       url = "github:nix-community/nixGL";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -40,8 +43,8 @@
       extraSpecialArgs = {
         inherit inputs;
         # don't forget to set these!
-        username = undefined;
-        hostname = undefined;
+        username = "esue";
+        hostname = "archlinux";
       };
       modules = [
         ./modules/home
