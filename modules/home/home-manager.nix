@@ -8,14 +8,6 @@
 
   nixpkgs = {
     config.allowUnfree = true;
-    overlays = [
-      inputs.nixGL.overlay
-    ];
-  };
-
-  targets.genericLinux = {
-    enable = true;
-    nixGL.packages = inputs.nixGL.packages;
   };
 
   home.file = let

@@ -11,17 +11,8 @@
       url = "github:garklein/home-manager";
     };
 
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-    };
-
     sops-nix.url = "github:mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixGL = {
-      url = "github:nix-community/nixGL";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = { nixpkgs, home-manager, ... }@inputs: {
