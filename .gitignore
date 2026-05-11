@@ -1,3 +1,4 @@
+dotfiles/.emacs.d/custom.el
 dotfiles/.emacs.d/var
 dotfiles/.emacs.d/url
 dotfiles/.emacs.d/elpa

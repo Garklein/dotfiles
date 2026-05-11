@@ -42,7 +42,6 @@
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
       extraSpecialArgs = {
         inherit inputs;
-        # don't forget to set these!
         username = "esue";
         hostname = "archlinux";
       };
