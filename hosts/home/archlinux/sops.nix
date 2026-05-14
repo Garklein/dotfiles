@@ -9,7 +9,7 @@
   ];
 
   sops = {
-    defaultSopsFile = ../../secrets.yaml;
+    defaultSopsFile = ../../../secrets.yaml;
     gnupg.home = "${config.home.homeDirectory}/.gnupg";
 
     secrets = {

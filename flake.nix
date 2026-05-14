@@ -24,7 +24,7 @@
       };
       modules = [
         ./modules/nixos
-        ./hosts/bog/configuration.nix
+        ./hosts/nixos/bog/configuration.nix
         home-manager.nixosModules.default
       ];
     };
@@ -38,6 +38,7 @@
       };
       modules = [
         ./modules/home
+        ./hosts/home/archlinux
       ];
     };
   };
