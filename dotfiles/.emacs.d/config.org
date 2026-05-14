@@ -320,6 +320,13 @@ run a command
 			   ("okad2-42c-pd.exe" "colorforth")
 			   ("conhost.exe" " conhost.exe")
 			   (_ exwm-class-name))))))
+
+
+;; https://codeberg.org/emacs-weirdware/exwm-firefox/src/branch/main/lisp/exwm-firefox.el
+(add-hook 'exwm-update-title-hook
+	  '(lambda ()
+	     (when (string= exwm-class-name "firefox")
+	       (exwm-workspace-rename-buffer exwm-title))))
 #+end_src
 ** initial config
 #+begin_src elisp
@@ -348,7 +355,7 @@ run a command
 	  "xidlehook --not-when-audio --timer "
 	  (number-to-string (round (* minutes 60)))
 	  " 'systemctl suspend' ''")))
-(set-sleep-minutes 2)
+;; (set-sleep-minutes 2)
 
 (setq inhibit-startup-screen t)
 (setq initial-scratch-message nil)
