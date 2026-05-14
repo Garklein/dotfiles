@@ -13,7 +13,7 @@
     gnupg.home = "${config.home.homeDirectory}/.gnupg";
 
     secrets = {
-      # PULUMI_CONFIG_PASSPHRASE = {};
+      "api-key" = {};
     };
   };
 }

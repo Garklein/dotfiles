@@ -100,7 +100,17 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   (evil-define-key nil evil-normal-state-map (kbd "M-o")
     (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
 
-  (defvar font-size 10)
+  
+  (defvar default-font-size
+    (let* ((xrandr-numbers
+	    (mapcar 'string-to-number
+		    (split-string
+		     (shell-command-to-string "xrandr | grep -w connected | grep -oE '[0-9]+(mm )?x ?[0-9]+' | grep -o '[0-9]*'")  "\n")))
+	   (pixelw (nth 0 xrandr-numbers))
+	   (mmw (nth 2 xrandr-numbers))
+	   (mm/pixel (/ (float pixelw) (float mmw))))
+      (round (* 1.8 mm/pixel))))
+  (defvar font-size default-font-size)
   (defun set-font-size (new-size)
     (setq font-size new-size)
     (set-frame-font (concat "Agave " (number-to-string font-size)) nil t))
@@ -112,8 +122,8 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   	      (lambda (dec)
   		(set-font-size (- font-size dec))))
   (evil-define-key 'normal 'global (kbd "C-x C-<backspace>")
-    (lambda () (interactive) (set-font-size 10)))
-  (set-font-size 10)
+    (lambda () (interactive) (set-font-size default-font-size)))
+  (set-font-size default-font-size)
 
   (evil-define-key 'insert 'global (kbd "C-<return>")
     (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative))))
@@ -336,7 +346,7 @@ run a command
 (add-hook 'exwm-init-hook #'bar)
 
 ;; this should really be done in nix, but i can't get it working
-(run "xinput --set-prop \"Logitech USB Optical Mouse\" \"Coordinate Transformation Matrix\" 0.5 0 0 0 0.5 0 0 0 1")
+; (run "xinput --set-prop \"Logitech USB Optical Mouse\" \"Coordinate Transformation Matrix\" 0.5 0 0 0 0.5 0 0 0 1")
 
 (require 'cuendillar)
 ;; emacs needs to be a server so that shells can send it commands to toggle cuendillar
@@ -355,7 +365,8 @@ run a command
 	  "xidlehook --not-when-audio --timer "
 	  (number-to-string (round (* minutes 60)))
 	  " 'systemctl suspend' ''")))
-;; (set-sleep-minutes 2)
+
+; (set-sleep-minutes 2)
 
 (setq inhibit-startup-screen t)
 (setq initial-scratch-message nil)
@@ -953,7 +964,7 @@ make mode line look nice (has to be done after theme)
 ** mlatu
 #+begin_src elisp
 ;(require 'mlatu-mode)
-(load-file "~/dormant/mlatu/editors/emacs/mlatu-mode.el")
+;(load-file "~/dormant/mlatu/editors/emacs/mlatu-mode.el")
 #+end_src
 ** prolog
 #+begin_src elisp
@@ -992,6 +1003,11 @@ make mode line look nice (has to be done after theme)
 #+end_src
 
 * other major modes
+** vterm
+#+begin_src elisp
+(use-package vterm
+  :ensure t)
+#+end_src
 ** dired
 #+begin_src elisp
 (setq dired-omit-files "^\\.")
@@ -1007,14 +1023,20 @@ make mode line look nice (has to be done after theme)
 	      (dired-hide-details-mode)
 	      (auto-revert-mode)
 	      (evil-local-set-key 'normal (kbd "C-c C-o") #'toggle-dired-omit-mode)
-	      (evil-local-set-key 'normal (kbd "C-c C-p") #'dired-preview-mode)))
+	      (evil-local-set-key 'normal (kbd "C-c C-p") #'dired-preview-global-mode)))
+(defun my-dired-preview-to-the-right ()
+  "My preferred `dired-preview-display-action-alist-function'."
+  '((display-buffer-in-side-window)
+    (side . right)
+    (window-width . 0.3)))
+(setq dired-preview-display-action-alist #'my-dired-preview-to-the-right)
 (add-hook 'image-mode-hook (lambda () (display-line-numbers-mode 0)))
 (setq dired-listing-switches "-al --group-directories-first")
 #+end_src
 ** pdf mode
 #+begin_src elisp
-(use-package pdf-tools)
-(pdf-tools-install)
+;(use-package pdf-tools)
+;(pdf-tools-install)
 #+end_src
 Make the page resize on opening
 #+begin_src elisp
