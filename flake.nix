@@ -8,10 +8,8 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager = {
-      # url = "github:nix-community/home-manager";
-      # inputs.nixpkgs.follows = "nixpkgs";
-      # url = "path:/home/gator/dormant/home-manager";
-      url = "github:garklein/home-manager";
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
