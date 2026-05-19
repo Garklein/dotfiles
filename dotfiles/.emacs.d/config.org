@@ -412,6 +412,7 @@ run a command
 
   	([?\s-J] . (lambda () (interactive) (find-file "~/dotfiles/modules/home")))
   	([?\s-K] . (lambda () (interactive) (find-file "~/dotfiles/modules/nixos")))
+  	([?\s-L] . (lambda () (interactive) (find-file "~/dotfiles/hosts/home/archlinux")))
   	([?\s-;] . (lambda () (interactive) (async-shell-command "cd ~/dotfiles && sudo nixos-rebuild switch --flake .#bog" "nixos-rebuild switch")))
 
   	(,(kbd "s-<backspace>") . delete-window)

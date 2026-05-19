@@ -13,6 +13,8 @@
     tailwindcss_4
     wasm-bindgen-cli
     rubyPackages_3_4.rails
+    mosquitto
+    binsider
   ]
   ++ [
     tio
@@ -71,6 +73,7 @@
         natsort
         tabulate # for --device-testing
         junitparser
+        chromium
       ]
     ))
   ]
