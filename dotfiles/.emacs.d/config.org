@@ -970,6 +970,7 @@ make mode line look nice (has to be done after theme)
 ** prolog
 #+begin_src elisp
 (use-package ediprolog :defer t)
+(require 'ediprolog)
 (add-hook 'prolog-mode-hook
    (lambda ()
      (set-command (ediprolog-dwim))
@@ -982,10 +983,10 @@ make mode line look nice (has to be done after theme)
    '("\\*ediprolog-consult\\*"
      (display-buffer-below-selected)))
 ;; (setq ediprolog-system 'swi)
-;; (setq ediprolog-program "/etc/profiles/per-user/gator/bin/swipl")
+;; (setq ediprolog-program (shell-command-to-string "which swipl"))
 ;; (setq ediprolog-prefix "% ")
 (setq ediprolog-system 'scryer)
-(setq ediprolog-program "/etc/profiles/per-user/gator/bin/scryer-prolog")
+(setq ediprolog-program (shell-command-to-string "which scryer-prolog"))
 (setq ediprolog-prefix "")
 #+end_src
 ** ocaml
