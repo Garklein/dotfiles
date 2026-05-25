@@ -49,6 +49,10 @@
    `(eshell-prompt ((,class (:weight ultra-bold))))
    `(magit-section-heading ((,class (:weight ultra-bold :height 1.1))))
 
+   ;; segment off code blocks
+   `(org-block-begin-line ((,class (:underline t :foreground "grey60"))))
+   `(org-block-end-line ((,class (:overline t :foreground "grey60"))))
+
    `(show-paren-match ((,class
 			(:foreground unspecified
 			 :background unspecified

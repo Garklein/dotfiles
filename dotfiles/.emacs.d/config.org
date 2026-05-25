@@ -1036,8 +1036,8 @@ make mode line look nice (has to be done after theme)
 #+end_src
 ** pdf mode
 #+begin_src elisp
-;(use-package pdf-tools)
-;(pdf-tools-install)
+(use-package pdf-tools)
+(pdf-tools-install)
 #+end_src
 Make the page resize on opening
 #+begin_src elisp
@@ -1073,6 +1073,7 @@ Fix PDF file displaying when windows are changed
 (setq org-startup-folded t)
 (setq org-startup-truncated nil)
 (setq org-src-tab-acts-natively t)
+(setq org-src-fontify-natively t)
 (setq org-edit-src-content-indentation 0)
 (add-hook 'org-mode-hook
 	  (lambda ()
@@ -1158,7 +1159,9 @@ don't convert to buffer-names at the beginning because that can mess up when mul
   	  (lambda (b) (string-prefix-p " " (buffer-name b)))
   	  (buffer-list))))
     (dolist (b buffers)
-      (unless (member (buffer-name b) '("*scratch*" "firefox" "webcord"))
+      (unless (or
+	       (member (buffer-name b) '("*scratch*" "webcord"))
+	       (string-search "Mozilla Firefox" (buffer-name b)))
     	(kill-buffer b)))))
 #+end_src
 * misc packages
