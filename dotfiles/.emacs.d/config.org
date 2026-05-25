@@ -971,21 +971,21 @@ make mode line look nice (has to be done after theme)
 #+begin_src elisp
 (use-package ediprolog :defer t)
 (add-hook 'prolog-mode-hook
-   (lambda ()
-     (set-command (ediprolog-dwim))
-     (evil-local-set-key 'normal (kbd "C-c C-k") (lambda () (interactive) (ediprolog-kill-prolog)))
-     (set-pretty '(":-" "-->"))
-     (set-normal-tab 2)))
+	  (lambda ()
+	    (set-command (ediprolog-dwim))
+	    (evil-local-set-key 'normal (kbd "C-c C-k") (lambda () (interactive) (ediprolog-kill-prolog)))
+	    (set-pretty '(":-" "-->"))
+	    (set-normal-tab 2)))
 (add-to-list 'auto-mode-alist '("\\.pl\\'" . prolog-mode))
 (add-to-list 'auto-mode-alist '("\\.scryerrc\\'" . prolog-mode))
 (add-to-list 'display-buffer-alist
-   '("\\*ediprolog-consult\\*"
-     (display-buffer-below-selected)))
+	     '("\\*ediprolog-consult\\*"
+	       (display-buffer-below-selected)))
 ;; (setq ediprolog-system 'swi)
-;; (setq ediprolog-program (shell-command-to-string "which swipl"))
+;; (setq ediprolog-program (string-trim-right (shell-command-to-string "which swipl")))
 ;; (setq ediprolog-prefix "% ")
 (setq ediprolog-system 'scryer)
-(setq ediprolog-program (shell-command-to-string "which scryer-prolog"))
+(setq ediprolog-program (string-trim-right (shell-command-to-string "which scryer-prolog")))
 (setq ediprolog-prefix "")
 #+end_src
 ** ocaml
