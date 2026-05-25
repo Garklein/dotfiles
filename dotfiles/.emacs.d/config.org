@@ -970,7 +970,6 @@ make mode line look nice (has to be done after theme)
 ** prolog
 #+begin_src elisp
 (use-package ediprolog :defer t)
-(require 'ediprolog)
 (add-hook 'prolog-mode-hook
    (lambda ()
      (set-command (ediprolog-dwim))
