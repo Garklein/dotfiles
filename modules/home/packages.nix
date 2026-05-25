@@ -65,7 +65,6 @@
     quickjs-ng
     curl
     autoconf
-    platformio
     tinygo
     gdb
     minicom

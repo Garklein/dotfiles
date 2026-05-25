@@ -17,6 +17,7 @@
     binsider
   ]
   ++ [
+    esphome
     tio
     SDL2 # for embedded TUI simulator
     espup
