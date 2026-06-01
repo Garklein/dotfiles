@@ -77,6 +77,8 @@
     icu78
     newcomputermodern
     # emacs-gtk
+    mailutils
+    busybox
   ]
   ++ lib.optionals config.gtk.enable [ pkgs.dconf ];
 }

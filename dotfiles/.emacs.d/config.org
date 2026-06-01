@@ -128,7 +128,10 @@ put autosave files (ie #foo#), backup files (ie foo~), and lock files (ie .#foo)
   (evil-define-key 'insert 'global (kbd "C-<return>")
     (lambda () (interactive) (let ((indent-tabs-mode nil)) (indent-relative))))
 
-  (evil-define-key 'normal 'global (kbd "C-M-x") 'fzf-directory)
+  (evil-define-key 'normal 'global (kbd "C-M-x")
+    (lambda () (interactive)
+      (fzf-with-command "rg --files" #'fzf--action-find-file
+			(read-directory-name "Directory: " fzf/directory-start))))
 
   (evil-define-key 'normal 'global (kbd "C-x C-b") 'ibuffer))
 
@@ -1180,11 +1183,7 @@ don't convert to buffer-names at the beginning because that can mess up when mul
 
 (use-package 2048-game)
 
-(use-package fzf
-  :config
-  (advice-add #'fzf :override
-	      (lambda (&rest _)
-		(fzf-with-command "rg --files" #'fzf--action-find-file (fzf--resolve-directory)))))
+(use-package fzf)
 #+end_src
 * bookmarks
 Save bookmarks when a new one is added:

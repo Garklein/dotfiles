@@ -26,7 +26,13 @@
         };
       };
       SearchEngines = {
-        Default = "DuckDuckGo";
+        Default = "DuckDuckGo No AI";
+        Add = [
+          {
+            Name = "DuckDuckGo No AI";
+            URLTemplate = "https://noai.duckduckgo.com/?q={searchTerms}";
+          }
+        ];
         PreventInstalls = true;
       };
     };
