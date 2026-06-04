@@ -15,21 +15,24 @@
     rubyPackages_3_4.rails
     mosquitto
     binsider
+    cmake
   ]
   ++ [
     esphome
-    tio
-    SDL2 # for embedded TUI simulator
-    espup
-    esptool
-    espflash
-    esp-generate
-    mcumgr-client
-    cargo-embassy
-    cargo-generate
-    cargo-binstall
-    renode-dts2repl
-    kconfig-frontends
+        tio
+        SDL2 # for embedded TUI simulator
+        espup
+        esptool
+        esphome
+        espflash
+        esp-generate
+        mcumgr-client
+        cargo-embassy
+        cargo-generate
+        cargo-binstall
+        renode-dts2repl
+        kconfig-frontends
+        home-assistant-cli
 
     (probe-rs-tools.overrideAttrs (old: {
       cargoBuildFeatures = (old.cargoBuildFeatures or [ ]) ++ [ "remote" ];
@@ -39,45 +42,45 @@
       package:
       with package;
       [
-        dtc
-        west
-        tqdm
-        cbor
-        cbor2
-        click
-        patool
-        jinja2
-        anytree
-        tkinter
-        intelhex
-        requests
-        pyelftools
-        jsonschema
-        cryptography
+            dtc
+            west
+            tqdm
+            cbor
+            cbor2
+            click
+            patool
+            jinja2
+            anytree
+            tkinter
+            intelhex
+            requests
+            pyelftools
+            jsonschema
+            cryptography
       ]
-      ++ [
-        esptool
-      ]
-      ++ [
-        pyusb
-        pyserial
-      ]
-      ++ [
-        semver
-        pygments
-        kconfiglib
-      ]
-      ++ [
-        # NOTE: for west twister
-        psutil
-        pytest
-        natsort
-        tabulate # for --device-testing
-        junitparser
-        chromium
-      ]
+          ++ [
+            pyusb
+            pyserial
+          ]
+          ++ [
+            semver
+            pygments
+            kconfiglib
+          ]
+          ++ [
+            # NOTE: for west twister
+            psutil
+            pytest
+            natsort
+            tabulate # for --device-testing
+            junitparser
+          ]
     ))
   ]
+
+      ++ [
+        flock
+      ]
     
   ++ [
     llvm
@@ -118,6 +121,7 @@
     vips # dired image previews
     # openscad # FIXME: home-manager update
     mediainfo
+    home-assistant
     openscad-lsp
     imagemagick # for image-dired
     poppler-utils # dired pdf previews
@@ -172,5 +176,7 @@
     nix-inspect # flake explorer tui
     nix-weather # check binary cache availability
   ]
+  ++
+  [ wget ]
   ;
 }

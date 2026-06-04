@@ -9,13 +9,12 @@
     profileExtra = ''
       if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
          exec startx
-       fi
+      fi
      '';
   };
 
   home.sessionPath = [
     "$HOME/.local/bin"
     "$HOME/.cargo/bin"
-    "$HOME/.aspire/bin"
   ];
 }
