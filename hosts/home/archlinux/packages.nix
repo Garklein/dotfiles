@@ -177,6 +177,8 @@
     nix-weather # check binary cache availability
   ]
   ++
-  [ wget ]
-  ;
+  [
+    wget
+    # rpi-imager
+  ];
 }

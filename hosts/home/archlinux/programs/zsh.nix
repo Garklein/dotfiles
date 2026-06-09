@@ -1,0 +1,92 @@
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}:
+{
+  programs.zsh = {
+    enable = true;
+    autocd = false;
+    enableCompletion = true;
+    dotDir = "${config.xdg.configHome}/zsh";
+
+    history = {
+      size = 10000;
+      save = 10000;
+      share = true;
+      append = true;
+      extended = true;
+      ignoreDups = true;
+      ignoreAllDups = true;
+      expireDuplicatesFirst = true;
+      # path = "`\${config.programs.zsh.dotDir}/.zsh_history`"; # default
+    };
+
+    autosuggestion = {
+      enable = true;
+      strategy = [
+        "history"
+        "completion"
+      ];
+    };
+
+    syntaxHighlighting = {
+      enable = true;
+      highlighters = [
+        "line"
+        "main"
+        "root"
+        "regexp"
+        "pattern"
+        "brackets"
+      ];
+    };
+
+    plugins = [
+      {
+        name = "powerlevel10k";
+        src = pkgs.zsh-powerlevel10k;
+        file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
+      }
+      {
+        name = "powerlevel10k-config";
+        src = lib.cleanSource ./.;
+        file = ".p10k.zsh";
+      }
+    ];
+
+    oh-my-zsh = {
+      enable = true;
+      plugins = [
+        "sudo"
+        "rust"
+        "emoji"
+        "pulumi"
+        "docker"
+        "kubectl"
+        "colorize"
+        "tailscale"
+        "docker-compose"
+        "colored-man-pages"
+      ]
+      ++ lib.filter (name: config.programs.${name}.enable) [
+        "uv"
+        "git"
+      ]
+      # ++ lib.filter (name: config.services.${name}.enable) [
+      #   "tailscale"
+      # ]
+      ++ lib.optionals pkgs.stdenv.isDarwin [
+        "brew"
+        "dash"
+        "macos"
+      ];
+    };
+
+    # envExtra = '''';     # ~/.zshenv
+    # loginExtra = '''';   # ~/.zlogin
+    # logoutExtra = '''';  # ~/.zlogout
+    # profileExtra = ''''; # ~/.zprofile
+  };
+}

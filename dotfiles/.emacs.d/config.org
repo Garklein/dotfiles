@@ -346,7 +346,7 @@ run a command
 (require 'bar)
 
 (setq exwm-workspace-number 3)
-(add-hook 'exwm-init-hook #'bar)
+; (add-hook 'exwm-init-hook #'bar)
 
 ;; this should really be done in nix, but i can't get it working
 (run "xinput --set-prop \"Logitech USB Optical Mouse\" \"Coordinate Transformation Matrix\" 0.5 0 0 0 0.5 0 0 0 1")
@@ -1040,7 +1040,7 @@ make mode line look nice (has to be done after theme)
 ** pdf mode
 #+begin_src elisp
 (use-package pdf-tools)
-(pdf-tools-install)
+; (pdf-tools-install)
 #+end_src
 Make the page resize on opening
 #+begin_src elisp
@@ -1184,6 +1184,19 @@ don't convert to buffer-names at the beginning because that can mess up when mul
 (use-package 2048-game)
 
 (use-package fzf)
+
+
+(use-package symex-core
+  :straight
+  (symex-core
+   :host github
+   :repo "drym-org/symex.el"
+   :files ("symex-core/symex*.el")))
+(use-package sops
+  :straight
+  (sops :host github :repo "djgoku/sops")
+  :init
+  (global-sops-mode 1))
 #+end_src
 * bookmarks
 Save bookmarks when a new one is added:
