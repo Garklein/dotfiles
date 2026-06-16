@@ -1,5 +1,0 @@
-{
-  services.xidlehook = {
-    enable = true;
-  };
-}

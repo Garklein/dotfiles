@@ -1,1 +1,0 @@
-/home/gator/dormant/mlatu/editors/emacs/mlatu-mode.el

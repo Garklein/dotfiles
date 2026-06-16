@@ -1,5 +1,0 @@
-{
-  programs.gcc = {
-    enable = true;
-  };
-}

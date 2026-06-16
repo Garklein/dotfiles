@@ -1,7 +1,0 @@
-{ ... }:
-
-{
-  services.pulseaudio = {
-    enable = false;
-  };
-}
