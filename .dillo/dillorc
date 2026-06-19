@@ -410,7 +410,7 @@ show_search=NO
 #show_ui_tooltip=YES
 
 # Start dillo with the panels hidden?
-# fullwindow_start=YES
+fullwindow_start=YES
 
 # When filling out forms, our default behaviour is to submit on enterpress,
 # but only when there's a single text entry (to avoid incomplete submits).

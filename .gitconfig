@@ -1,5 +1,6 @@
 [user]
 	name = Garklein
 	email = garklein97@gmail.com
+; https://shaharnaveh.github.io/blog/painless-git-ssh-setup/
 [url "ssh://git@github.com"]
 	insteadOf = https://github.com
