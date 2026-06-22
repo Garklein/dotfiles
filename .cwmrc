@@ -1,20 +1,21 @@
-command dillo		dillo
-command firefox		firefox
-command discord		firefox https://discord.com/channels/@me
-command gmail		firefox https://mail.google.com/mail/u/0
-command outlook		firefox https://outlook.office.com/mail
-command gimp		gimp-3.2
+command dillo				dillo
+command firefox			firefox
+command discord			firefox https://discord.com/channels/@me
+command gmail				firefox https://mail.google.com/mail/u/0
+command outlook			firefox https://outlook.office.com/mail
+command gimp				gimp-3.2
 command temperature	"dillo https://weather.gc.ca/en/forecast/hourly/index.html?coords=45.403,-75.687"
 
 moveamount 50
+gap 26 26 26 26
 
-bind-key CM-Return "xterm +sb"
+bind-key CM-Return "xterm +sb -geometry 104x30"
 bind-key F1 "sndioctl output.mute=!"
 bind-key F2 "sndioctl output.level=-0.05"
 bind-key F3 "sndioctl output.level=+0.04"
 bind-key F4 "xbacklight -dec 5"
 bind-key F5 "xbacklight -inc 5"
 bind-key F11 "sh -c 'maim -s | xclip -selection clipboard -t image/png'"
+bind-key 4-Return window-vtile
 
-ignore xclock
-ignore bar
+ignore rice

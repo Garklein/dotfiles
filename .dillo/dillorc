@@ -205,7 +205,6 @@ search_url="dd DuckDuckGo (https) https://noai.duckduckgo.com/lite/?kp=-1&kd=-1&
 search_url="wiki https://www.wikipedia.org/w/index.php?search=%s&go=Go"
 search_url="word https://en.wiktionary.org/w/index.php?search=%s&go=Go"
 search_url="mot https://fr.wiktionary.org/w/index.php?search=%s&go=Go"
-search_url="Google https://www.google.com/search?ie=UTF-8&oe=UTF-8&gbv=1&q=%s"
 
 # If set, dillo will ask web servers to send pages in this language.
 # This setting does NOT change dillo's user interface.
