@@ -284,6 +284,7 @@ search_url="mot https://fr.wiktionary.org/w/index.php?search=%s&go=Go"
 # bg_color=gray
 # bg_color=0xd6d6c0
 #bg_color=0xdcd1ba
+bg_color=white
 
 # If your eyes suffer with white backgrounds, change this.
 #allow_white_bg=YES
