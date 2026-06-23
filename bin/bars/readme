@@ -1,4 +1,6 @@
-https://xcb.freedesktop.org/tutorial/
-https://raw.githubusercontent.com/drscream/lemonbar-xft/refs/heads/xft-port/lemonbar.c 
-https://xcb.freedesktop.org/manual/modules.html 
+my status bars. bad code since i don't know very much about x, and very specialized to my own use case; unlikely to compile/function on machines that are not my own. use at own risk.
 
+resources:
+https://xcb.freedesktop.org/tutorial/
+https://raw.githubusercontent.com/LemonBoy/bar/refs/heads/master/lemonbar.c
+https://xcb.freedesktop.org/manual/modules.html 

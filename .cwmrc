@@ -18,4 +18,4 @@ bind-key F5 "xbacklight -inc 5"
 bind-key F11 "sh -c 'maim -s | xclip -selection clipboard -t image/png'"
 bind-key 4-Return window-vtile
 
-ignore rice
+ignore bars
