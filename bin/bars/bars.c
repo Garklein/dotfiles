@@ -1,9 +1,7 @@
-#include <stdlib.h>
+#include <time.h>
 #include <stdio.h>
 #include <xcb/xcb.h>
-#include <unistd.h>
 #include <X11/Xutil.h>
-#include <time.h>
 
 xcb_screen_t *scr;
 xcb_connection_t *c;
@@ -11,7 +9,7 @@ xcb_connection_t *c;
 #define SCR_W 1920
 #define SCR_H 1080
 #define MARGIN 12  /* margin */
-#define CORNER 35  /* margin in corners */
+#define CORNER 60  /* margin in corners */
 #define PERP 10    /* marker size */
 
 // taken from lemonbar
@@ -36,30 +34,31 @@ void line(B b,int x0, int y0, int dx, int dy) {
 	xcb_poly_line(c, XCB_COORD_MODE_PREVIOUS, b.win,b.gc, 2,
 		(const xcb_point_t []){ {x0,y0}, {dx,dy} }); }
 
-void draw() { int percent;
-	for (int i=0; i<4; i++) { B*b=&bars[i];
+void draw() {
+	for (int i=0; i<4; i++) { B*b=&bars[i]; int percent;
 		xcb_poly_fill_rectangle(c, b->win, b->cleargc, 1, (const xcb_rectangle_t[]){ 0, 0, b->w, b->h });
+		if (b->w>b->h) line(*b,CORNER,MARGIN,b->l,0); else line(*b,MARGIN,CORNER,0,b->l);
 		switch (b->id) {
-		case CLOCK: line(*b,CORNER,MARGIN,b->l,0);
+		case CLOCK:
 			time_t now; time(&now); int halfDay = (now + (24-4) * 60*60) % (12*60*60);
 			int hour = now % (60*60);
 			line(*b,CORNER+halfDay * b->l / (60*60*12), MARGIN-PERP/2, 0, PERP);
 			line(*b,CORNER+hour * b->l / (60*60), MARGIN-(PERP+4)/2, 0, PERP+4);
 			break;
-		case VOL: line(*b,MARGIN,CORNER,0,b->l);
-			int muted; command("sndioctl output.mute | sed 's/.*=//'","%d",&muted);
-			if (!muted) { command("sndioctl output.level | sed 's/.*=//'", "0.%d", &percent);
-				line(*b,MARGIN-PERP/2,CORNER+b->l - percent * b->l / 1000,PERP,0);}
+		case VOL:
+			int muted; command("sndioctl -n output.mute","%d",&muted);
+			if (!muted) { command("sndioctl -n output.level", "0.%d", &percent);
+				line(*b,MARGIN-PERP/2,CORNER+b->l - percent * b->l / 1000,PERP,0); }
 			break;
-		case BATT: line(*b,CORNER,MARGIN,b->l,0);
+		case BATT:
 			command("apm -l", "%d", &percent);
 			int status; command("apm -b", "%d", &status);
 			int batteryX = percent * b->l / 100;
 			int offsetX = status == 3 ? 5 : 0; // 3 = charging
 			line(*b,CORNER+batteryX+offsetX,MARGIN-PERP/2, -2*offsetX, PERP);
 			break;
-		case LIGHT: line(*b,MARGIN,CORNER,0,b->l);
-			command("xbacklight -get | sed 's/\\..*//'", "%d", &percent);
+		case LIGHT:
+			command("xbacklight -get", "%d", &percent);
 			line(*b,MARGIN-PERP/2,CORNER+b->l-b->l*percent/100,PERP,0);
 		}
 	}
@@ -84,7 +83,7 @@ int main() {
 		xcb_change_property(c, XCB_PROP_MODE_REPLACE, b->win, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, 4, "rice");
 
 		b->gc = xcb_generate_id(c);
-		xcb_create_gc(c, b->gc, b->win, XCB_GC_FOREGROUND | XCB_GC_LINE_WIDTH | XCB_GC_CAP_STYLE, (const uint32_t[]){ 0xff000000, 5, XCB_CAP_STYLE_ROUND });
+		xcb_create_gc(c, b->gc, b->win, XCB_GC_FOREGROUND | XCB_GC_LINE_WIDTH | XCB_GC_CAP_STYLE, (const uint32_t[]){ 0xff504c45, 5, XCB_CAP_STYLE_ROUND });
 
 		b->cleargc = xcb_generate_id(c);
 		xcb_create_gc(c, b->cleargc, b->win, XCB_GC_FOREGROUND, (const uint32_t[]){ 0 });

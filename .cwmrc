@@ -7,7 +7,7 @@ command gimp				gimp-3.2
 command temperature	"dillo https://weather.gc.ca/en/forecast/hourly/index.html?coords=45.403,-75.687"
 
 moveamount 50
-gap 26 26 26 26
+gap 25 25 25 25
 
 bind-key CM-Return "xterm +sb -geometry 104x30"
 bind-key F1 "sndioctl output.mute=!"
