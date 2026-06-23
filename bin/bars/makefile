@@ -1,2 +1,2 @@
 all:
-	cc bars.c -lX11 `pkg-config --cflags --libs xcb` -o bars
+	cc bars.c `pkg-config --cflags --libs xcb` -o bars
