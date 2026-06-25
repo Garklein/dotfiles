@@ -22,8 +22,8 @@ B bars[4] =
 xcb_connection_t *c;
 void line(B b,int x0,int y0,int dx,int dy) {
 	xcb_poly_line(c,XCB_COORD_MODE_PREVIOUS,b.win,b.gc,2,(xcb_point_t[]){{x0,y0},{dx,dy}}); }
-void mark(B b,int num,int denom,int size,int slant) { int pos=CORN+num*b.l/denom, offset=MARG-size/2;
-	b.w>b.h ? line(b,pos+slant,offset,-2*slant,size) : line(b,offset,pos+slant,size,-2*slant); }
+void mark(B b,int num,int denom,int size,int slant) { int pos=CORN+num*b.l/denom, perp=MARG-size/2;
+	b.w>b.h ? line(b,pos+slant,perp,-2*slant,size) : line(b,perp,pos+slant,size,-2*slant); }
 void draw() {
 	FORB { xcb_poly_fill_rectangle(c,b->win,b->cleargc,1,(xcb_rectangle_t[]){0,0,b->w,b->h});
 		b->w>b->h ? line(*b,CORN,MARG,b->l,0) : line(*b,MARG,CORN,0,b->l);
@@ -42,7 +42,7 @@ int main() {
 	xcb_visualid_t visual; xcb_colormap_t colormap=xcb_generate_id(c);
 	for (xcb_depth_iterator_t i=xcb_screen_allowed_depths_iterator(scr); i.rem; xcb_depth_next(&i))
 		if (i.data->depth==32) visual=xcb_depth_visuals_iterator(i.data).data->visual_id; // 32 = alpha
-  xcb_create_colormap(c,XCB_COLORMAP_ALLOC_NONE,colormap,scr->root,visual);
+	xcb_create_colormap(c,XCB_COLORMAP_ALLOC_NONE,colormap,scr->root,visual);
 
 	FORB {
 		b->win=xcb_generate_id(c); xcb_create_window(c,32,b->win,scr->root,b->x,b->y,b->w,b->h,0,
