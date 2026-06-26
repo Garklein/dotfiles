@@ -1,0 +1,6 @@
+#!/bin/sh
+
+FILE=/tmp/$(date +%H-%M-%S).png
+maim -sq $FILE
+# xclip needs the &> to stay open or something...
+xclip -selection clipboard -t image/png $FILE &> /dev/null
