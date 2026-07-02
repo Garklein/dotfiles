@@ -9,7 +9,7 @@ command temperature	"dillo https://weather.gc.ca/en/forecast/hourly/index.html?c
 moveamount 50
 gap 25 25 25 25
 
-bind-key CM-Return "xterm +sb -geometry 104x30"
+bind-key CM-Return "xterm"
 bind-key F1 "sndioctl output.mute=!"
 bind-key F2 "sndioctl output.level=-0.05"
 bind-key F3 "sndioctl output.level=+0.04"
